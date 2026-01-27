@@ -1,0 +1,1805 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Course Autonome</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(to bottom right, #ffffff, #f3e8ff, #ffffff);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Particules d'arrière-plan */
+        .particles {
+            position: fixed;
+            inset: 0;
+            overflow: hidden;
+            pointer-events: none;
+            z-index: 0; 
+        }
+
+        .particle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: #c084fc;
+            border-radius: 50%;
+            opacity: 0;
+            animation: float 5s infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { opacity: 0; }
+            50% { opacity: 0.3; }
+            100% { transform: translateY(100vh); }
+        }
+
+        /* Boutons de navigation */
+        .nav-buttons {
+            position: fixed;
+            top: 24px;
+            right: 24px;
+            z-index: 50;
+            display: flex;
+            gap: 12px;
+        }
+
+        .nav-btn {
+            padding: 16px 24px;
+            border-radius: 16px;
+            font-weight: 900;
+            border: 2px solid;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+            font-size: 14px;
+        }
+
+        .nav-btn:hover {
+            transform: scale(1.05);
+        }
+
+        .nav-btn:active {
+            transform: scale(0.95);
+        }
+
+        .btn-capteurs {
+            background: linear-gradient(to bottom right, #8b5cf6, #7c3aed);
+            color: white;
+            border-color: rgba(139, 92, 246, 0.5);
+        }
+
+        .btn-capteurs.active {
+            background: linear-gradient(to bottom right, #10b981, #059669);
+            border-color: rgba(16, 185, 129, 0.5);
+        }
+
+        .btn-admin {
+            background: linear-gradient(to bottom right, #8b5cf6, #7c3aed);
+            color: white;
+            border-color: rgba(139, 92, 246, 0.5);
+        }
+
+        .btn-dashboard {
+            background: linear-gradient(to bottom right, #334155, #1e293b);
+            color: white;
+            border-color: rgba(51, 65, 85, 0.5);
+        }
+
+        /* Container principal */
+        .container {
+            position: relative;
+            z-index: 1;
+            padding: 32px;
+            min-height: 100vh;
+        }
+
+        .view {
+            display: none;
+            animation: fadeIn 0.3s;
+        }
+
+        .view.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        /* Dashboard */
+        .dashboard-header {
+            text-align: center;
+            margin-bottom: 48px;
+            position: relative;
+        }
+
+        .dashboard-title {
+            font-size: 3.75rem;
+            font-weight: 900;
+            background: linear-gradient(to right, #7c3aed, #8b5cf6, #7c3aed);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 16px;
+        }
+
+        .dashboard-stats {
+            display: flex;
+            justify-content: center;
+            gap: 32px;
+            flex-wrap: wrap;
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(10px);
+            padding: 12px 24px;
+            border-radius: 12px;
+            border: 2px solid #ddd6fe;
+            box-shadow: 0 10px 15px -3px rgba(139, 92, 246, 0.1);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 1.25rem;
+        }
+
+        .stat-label {
+            color: #7c3aed;
+            font-weight: 600;
+        }
+
+        .stat-value {
+            font-family: 'Courier New', monospace;
+            font-weight: 700;
+            color: #0f172a;
+        }
+
+        .status-racing {
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.6; }
+        }
+
+        /* Liste des participants */
+        .participants-list {
+            max-width: 1280px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .participant-card {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(10px);
+            border: 2px solid #ddd6fe;
+            border-radius: 16px;
+            padding: 24px;
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .participant-card:hover {
+            transform: translateX(8px) scale(1.01);
+        }
+
+        .participant-card.leader {
+            background: linear-gradient(to right, rgba(237, 233, 254, 0.8), rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.9));
+            border-color: #a78bfa;
+            box-shadow: 0 20px 25px -5px rgba(167, 139, 250, 0.3);
+        }
+
+        .participant-card.leader::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(to right, transparent, rgba(167, 139, 250, 0.3), transparent);
+            animation: shine 2s infinite;
+        }
+
+        @keyframes shine {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(200%); }
+        }
+
+        .participant-content {
+            display: flex;
+            align-items: center;
+            gap: 24px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .position-badge {
+            width: 64px;
+            height: 64px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            font-weight: 900;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+
+        .position-1 {
+            background: linear-gradient(to bottom right, #a78bfa, #7c3aed);
+            color: white;
+        }
+
+        .position-2 {
+            background: linear-gradient(to bottom right, #cbd5e1, #64748b);
+            color: white;
+        }
+
+        .position-3 {
+            background: linear-gradient(to bottom right, #6d28d9, #4c1d95);
+            color: white;
+        }
+
+        .position-other {
+            background: #ede9fe;
+            color: #7c3aed;
+            border: 2px solid #ddd6fe;
+        }
+
+        .car-number {
+            font-size: 3.75rem;
+            font-weight: 900;
+            color: #ddd6fe;
+            width: 96px;
+            text-align: center;
+        }
+
+        .participant-info {
+            flex: 1;
+        }
+
+        .participant-name {
+            font-size: 1.5rem;
+            font-weight: 900;
+            color: #0f172a;
+            margin-bottom: 4px;
+        }
+
+        .participant-stats {
+            display: flex;
+            gap: 24px;
+            font-size: 0.875rem;
+        }
+
+        .participant-stats span {
+            color: #7c3aed;
+        }
+
+        .participant-stats strong {
+            color: #0f172a;
+            font-family: 'Courier New', monospace;
+        }
+
+        .progress-container {
+            width: 192px;
+        }
+
+        .progress-label {
+            font-size: 0.75rem;
+            color: #7c3aed;
+            margin-bottom: 4px;
+            font-weight: 600;
+        }
+
+        .progress-bar {
+            height: 16px;
+            background: #ede9fe;
+            border-radius: 999px;
+            overflow: hidden;
+            border: 1px solid #ddd6fe;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(to right, #8b5cf6, #7c3aed);
+            transition: width 0.5s;
+        }
+
+        .progress-percent {
+            font-size: 0.75rem;
+            text-align: right;
+            color: #6d28d9;
+            margin-top: 4px;
+            font-family: 'Courier New', monospace;
+            font-weight: 700;
+        }
+
+        .finished-badge {
+            background: linear-gradient(to right, #8b5cf6, #7c3aed);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 12px;
+            font-weight: 900;
+            font-size: 0.875rem;
+            box-shadow: 0 10px 15px -3px rgba(139, 92, 246, 0.5);
+        }
+
+        /* Podium */
+        .podium {
+            max-width: 1024px;
+            margin: 48px auto 0;
+            animation: fadeIn 0.5s;
+        }
+
+        .podium-title {
+            font-size: 2.25rem;
+            font-weight: 900;
+            text-align: center;
+            margin-bottom: 32px;
+            background: linear-gradient(to right, #7c3aed, #8b5cf6, #7c3aed);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .podium-stands {
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            gap: 16px;
+        }
+
+        .podium-stand {
+            flex: 1;
+            text-align: center;
+            padding: 24px;
+            border-radius: 16px 16px 0 0;
+            color: white;
+            font-weight: 900;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+        }
+
+        .podium-stand-1 {
+            height: 280px;
+            background: linear-gradient(to bottom right, #a78bfa, #8b5cf6, #7c3aed);
+            border-top: 4px solid #ddd6fe;
+        }
+
+        .podium-stand-2 {
+            height: 200px;
+            background: linear-gradient(to bottom right, #94a3b8, #64748b);
+            border-top: 4px solid #cbd5e1;
+        }
+
+        .podium-stand-3 {
+            height: 160px;
+            background: linear-gradient(to bottom right, #6d28d9, #4c1d95);
+            border-top: 4px solid #7c3aed;
+        }
+
+        .podium-emoji {
+            font-size: 4rem;
+            margin-bottom: 8px;
+        }
+
+        .podium-stand-2 .podium-emoji,
+        .podium-stand-3 .podium-emoji {
+            font-size: 3rem;
+        }
+
+        .podium-name {
+            font-size: 1.5rem;
+            margin-bottom: 4px;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .podium-stand-2 .podium-name,
+        .podium-stand-3 .podium-name {
+            font-size: 1.25rem;
+        }
+
+        /* Admin Panel */
+        .admin-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 32px;
+        }
+
+        .admin-title {
+            font-size: 3rem;
+            font-weight: 900;
+            background: linear-gradient(to right, #7c3aed, #8b5cf6, #7c3aed);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .admin-subtitle {
+            color: #7c3aed;
+            font-weight: 600;
+        }
+
+        .admin-section {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(10px);
+            border: 2px solid #ddd6fe;
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 24px;
+            box-shadow: 0 20px 25px -5px rgba(221, 214, 254, 0.3);
+        }
+
+        .section-title {
+            font-size: 1.5rem;
+            font-weight: 900;
+            color: #0f172a;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .status-indicator {
+            background: linear-gradient(to right, #f3e8ff, #ede9fe);
+            border: 2px solid #ddd6fe;
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .status-label {
+            font-weight: 700;
+            color: #7c3aed;
+            font-size: 0.875rem;
+        }
+
+        .status-badge {
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-weight: 900;
+            font-size: 0.875rem;
+        }
+
+        .status-waiting {
+            background: #cbd5e1;
+            color: #475569;
+        }
+
+        .status-racing {
+            background: #10b981;
+            color: white;
+            animation: pulse 2s infinite;
+        }
+
+        .status-finished {
+            background: #3b82f6;
+            color: white;
+        }
+
+        .controls-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+
+        .control-btn {
+            padding: 12px 24px;
+            border-radius: 12px;
+            font-weight: 900;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: all 0.3s;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+
+        .control-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+        }
+
+        .control-btn:disabled {
+            background: #e2e8f0 !important;
+            color: #94a3b8 !important;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
+        .btn-start {
+            background: linear-gradient(to right, #8b5cf6, #7c3aed);
+            color: white;
+        }
+
+        .btn-pause {
+            background: linear-gradient(to right, #f59e0b, #d97706);
+            color: white;
+        }
+
+        .btn-finish {
+            background: linear-gradient(to right, #8b5cf6, #7c3aed);
+            color: white;
+        }
+
+        .btn-reset {
+            background: linear-gradient(to right, #ef4444, #dc2626);
+            color: white;
+        }
+
+        .input-group {
+            margin-top: 16px;
+        }
+
+        .input-label {
+            display: block;
+            font-size: 0.875rem;
+            color: #7c3aed;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+
+        .input-field {
+            width: 100%;
+            padding: 12px 16px;
+            background: white;
+            border: 2px solid #ddd6fe;
+            border-radius: 12px;
+            color: #0f172a;
+            font-family: 'Courier New', monospace;
+            font-size: 1rem;
+        }
+
+        .form-row {
+            display: flex;
+            gap: 16px;
+        }
+
+        .form-row input[type="text"] {
+            flex: 1;
+        }
+
+        .form-row input[type="number"] {
+            width: 128px;
+        }
+
+        .btn-add {
+            padding: 12px 32px;
+            background: linear-gradient(to right, #8b5cf6, #7c3aed);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-weight: 900;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 10px 15px -3px rgba(139, 92, 246, 0.5);
+            transition: all 0.3s;
+        }
+
+        .btn-add:hover {
+            transform: translateY(-2px);
+        }
+
+        .participant-item {
+            background: #f3e8ff;
+            border: 2px solid #ddd6fe;
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 16px;
+        }
+
+        .participant-item-content {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .participant-number {
+            font-size: 2rem;
+            font-weight: 900;
+            color: #ddd6fe;
+            width: 64px;
+        }
+
+        .participant-fields {
+            flex: 1;
+        }
+
+        .participant-fields input {
+            width: 100%;
+            padding: 8px 12px;
+            background: white;
+            border: 2px solid #ddd6fe;
+            border-radius: 8px;
+            color: #0f172a;
+            margin-bottom: 8px;
+        }
+
+        .participant-inputs {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+        }
+
+        .participant-inputs label {
+            font-size: 0.75rem;
+            color: #7c3aed;
+            font-weight: 600;
+        }
+
+        .participant-inputs input {
+            font-family: 'Courier New', monospace;
+            font-size: 0.875rem;
+            margin: 0;
+        }
+
+        .participant-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .btn-lap {
+            padding: 8px 16px;
+            background: linear-gradient(to right, #8b5cf6, #7c3aed);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: 900;
+            font-size: 0.875rem;
+            cursor: pointer;
+            box-shadow: 0 10px 15px -3px rgba(139, 92, 246, 0.5);
+            transition: all 0.3s;
+        }
+
+        .btn-lap:disabled {
+            background: #e2e8f0;
+            color: #94a3b8;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
+        .btn-delete {
+            padding: 8px;
+            background: linear-gradient(to right, #ef4444, #dc2626);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            box-shadow: 0 10px 15px -3px rgba(239, 68, 68, 0.5);
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .empty-state {
+            text-align: center;
+            color: #94a3b8;
+            padding: 32px;
+        }
+
+        /* Modal Simulateur */
+        .modal-backdrop {
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(4px);
+            z-index: 60;
+            display: none;
+            animation: fadeIn 0.3s;
+        }
+
+        .modal-backdrop.active {
+            display: block;
+        }
+
+        .modal-panel {
+            position: fixed;
+            right: 0;
+            top: 0;
+            height: 100vh;
+            width: 100%;
+            max-width: 600px;
+            background: linear-gradient(to bottom right, #ffffff, #f3e8ff, #ffffff);
+            z-index: 70;
+            box-shadow: -20px 0 50px -12px rgba(0, 0, 0, 0.25);
+            overflow-y: auto;
+            transform: translateX(100%);
+            transition: transform 0.3s;
+        }
+
+        .modal-panel.active {
+            transform: translateX(0);
+        }
+
+        .modal-header {
+            background: linear-gradient(to right, #7c3aed, #8b5cf6);
+            color: white;
+            padding: 24px;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            border-bottom: 4px solid #a78bfa;
+        }
+
+        .modal-header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .modal-title-group {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .modal-icon {
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            padding: 12px;
+            border-radius: 12px;
+        }
+
+        .modal-title {
+            font-size: 1.875rem;
+            font-weight: 900;
+        }
+
+        .modal-subtitle {
+            color: #ede9fe;
+            font-size: 0.875rem;
+            font-weight: 600;
+        }
+
+        .btn-close {
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            padding: 12px;
+            border-radius: 12px;
+            border: none;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-close:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: rotate(90deg);
+        }
+
+        .connection-indicator {
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            padding: 8px 16px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.875rem;
+            font-weight: 700;
+            margin-top: 16px;
+        }
+
+        .modal-content {
+            padding: 24px;
+        }
+
+        .modal-section {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(10px);
+            border: 2px solid #ddd6fe;
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 24px;
+            box-shadow: 0 20px 25px -5px rgba(221, 214, 254, 0.3);
+        }
+
+        .sensor-btn {
+            width: 100%;
+            padding: 20px;
+            border-radius: 12px;
+            border: 2px solid;
+            font-weight: 900;
+            cursor: pointer;
+            margin-bottom: 16px;
+            transition: all 0.3s;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .sensor-btn:hover:not(:disabled) {
+            transform: translateY(-2px) scale(1.02);
+        }
+
+        .sensor-btn.idle {
+            background: linear-gradient(to right, #8b5cf6, #7c3aed);
+            color: white;
+            border-color: #a78bfa;
+            box-shadow: 0 20px 25px -5px rgba(139, 92, 246, 0.5);
+        }
+
+        .sensor-btn.detecting {
+            background: #f59e0b;
+            color: white;
+            border-color: #fbbf24;
+        }
+
+        .sensor-btn.success {
+            background: #10b981;
+            color: white;
+            border-color: #34d399;
+        }
+
+        .sensor-btn:disabled {
+            cursor: not-allowed;
+        }
+
+        .sensor-btn-content {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .sensor-icon-box {
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            padding: 12px;
+            border-radius: 8px;
+        }
+
+        .sensor-info {
+            text-align: left;
+        }
+
+        .sensor-title {
+            font-size: 1.125rem;
+        }
+
+        .sensor-desc {
+            font-size: 0.75rem;
+            font-weight: normal;
+            opacity: 0.9;
+        }
+
+        .info-box {
+            background: linear-gradient(to bottom right, #ede9fe, #f3e8ff);
+            border: 2px solid #ddd6fe;
+            border-radius: 16px;
+            padding: 24px;
+            display: flex;
+            gap: 12px;
+        }
+
+        .info-icon-box {
+            background: #8b5cf6;
+            padding: 8px;
+            border-radius: 8px;
+            color: white;
+            height: fit-content;
+            margin-top: 4px;
+        }
+
+        .info-content h4 {
+            font-weight: 900;
+            color: #4c1d95;
+            margin-bottom: 8px;
+        }
+
+        .info-content p {
+            font-size: 0.875rem;
+            color: #6d28d9;
+            margin-bottom: 12px;
+        }
+
+        .info-endpoints {
+            background: rgba(255, 255, 255, 0.6);
+            border-radius: 8px;
+            padding: 12px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.75rem;
+            color: #4c1d95;
+        }
+
+        .info-endpoints div {
+            margin-bottom: 4px;
+        }
+
+        .info-endpoints span {
+            color: #7c3aed;
+            font-weight: 700;
+        }
+
+        .status-list {
+            margin-top: 12px;
+        }
+
+        .status-item {
+            background: #f3e8ff;
+            border: 1px solid #ddd6fe;
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .status-item-label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 700;
+            font-size: 0.875rem;
+            color: #0f172a;
+        }
+
+        .status-pill {
+            padding: 4px 12px;
+            border-radius: 999px;
+            font-size: 0.75rem;
+            font-weight: 900;
+            color: white;
+        }
+
+        .status-idle {
+            background: #64748b;
+        }
+
+        .status-detecting {
+            background: #f59e0b;
+        }
+
+        .status-success {
+            background: #10b981;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .spin {
+            animation: spin 1s linear infinite;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .nav-buttons {
+                top: 12px;
+                right: 12px;
+            }
+
+            .nav-btn span {
+                display: none;
+            }
+
+            .dashboard-title {
+                font-size: 2.5rem;
+            }
+
+            .controls-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .modal-panel {
+                max-width: 100%;
+            }
+
+            .participant-inputs {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .hidden {
+            display: none !important;
+        }
+    </style>
+</head>
+<body>
+    <!-- Particules d'arrière-plan -->
+    <div class="particles" id="particles"></div>
+
+    <!-- Boutons de navigation -->
+    <div class="nav-buttons">
+        <button class="nav-btn btn-capteurs" id="btnCapteurs" onclick="toggleSensorPanel()">
+            <span>⚡</span>
+            <span>CAPTEURS</span>
+        </button>
+        <button class="nav-btn btn-admin" id="btnToggleView" onclick="toggleView()">
+            <span id="viewIcon">🛡️</span>
+            <span id="viewText">ADMIN</span>
+        </button>
+    </div>
+
+    <!-- Container principal -->
+    <div class="container">
+        <!-- Vue Dashboard -->
+        <div id="viewDashboard" class="view active">
+            <div class="dashboard-header">
+                <h1 class="dashboard-title">COURSE AUTONOME</h1>
+                <div class="dashboard-stats">
+                    <div class="stat-card">
+                        <span class="stat-label">⏱️</span>
+                        <span class="stat-value" id="dashboardTime">0:00.00</span>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-label">🏁</span>
+                        <span class="stat-value"><span id="dashboardLaps">5</span> Tours</span>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-label" id="dashboardStatusIcon">⏸️</span>
+                        <span class="stat-value" id="dashboardStatus">EN ATTENTE</span>
+                    </div>
+                </div>
+            </div>
+            <div class="participants-list" id="participantsList"></div>
+            <div id="podiumContainer"></div>
+        </div>
+
+        <!-- Vue Admin -->
+        <div id="viewAdmin" class="view">
+            <div class="admin-header">
+                <div>
+                    <h1 class="admin-title">PANNEAU ADMIN</h1>
+                    <p class="admin-subtitle">Contrôlez tous les aspects de la course</p>
+                </div>d
+                
+            </div>
+
+            <!-- Contrôles de course -->
+            <div class="admin-section">
+                <h2 class="section-title">▶️ Contrôles de Course</h2>
+                
+                <div class="status-indicator">
+                    <span class="status-label">Statut actuel :</span>
+                    <span class="status-badge status-waiting" id="statusBadge">⏸️ EN ATTENTE</span>
+                </div>
+
+                <div class="controls-grid">
+                    <button class="control-btn btn-start" id="btnStart" onclick="startRace()">
+                        ▶️ Démarrer
+                    </button>
+                    <button class="control-btn btn-pause" id="btnPause" onclick="pauseRace()" disabled>
+                        ⏸️ Pause
+                    </button>
+                    <button class="control-btn btn-finish" onclick="finishRace()">
+                        🏁 Terminer
+                    </button>
+                    <button class="control-btn btn-reset" onclick="resetRace()">
+                        🔄 Réinitialiser
+                    </button>
+                </div>
+
+                <div class="input-group">
+                    <label class="input-label">Nombre de tours</label>
+                    <input type="number" class="input-field" id="inputTotalLaps" value="5" min="1" onchange="updateTotalLaps()">
+                </div>
+            </div>
+
+            <!-- Ajouter un participant -->
+            <div class="admin-section">
+                <h2 class="section-title">➕ Ajouter un Participant</h2>
+                <div class="form-row">
+                    <input type="text" class="input-field" id="inputName" placeholder="Nom du participant">
+                    <input type="number" class="input-field" id="inputCarNumber" placeholder="N° voiture">
+                    <button class="btn-add" onclick="addParticipant()">
+                        ➕ Ajouter
+                    </button>
+                </div>
+            </div>
+
+            <!-- Liste des participants -->
+            <div class="admin-section">
+                <h2 class="section-title">👥 Participants</h2>
+                <div id="adminParticipantsList">
+                    <div class="empty-state">Aucun participant. Ajoutez-en un pour commencer.</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Simulateur de Capteurs -->
+    <div class="modal-backdrop" id="modalBackdrop" onclick="toggleSensorPanel()"></div>
+    <div class="modal-panel" id="modalPanel">
+        <div class="modal-header">
+            <div class="modal-header-content">
+                <div class="modal-title-group">
+                    <div class="modal-icon">📡</div>
+                    <div>
+                        <h2 class="modal-title">SIMULATEUR</h2>
+                        <p class="modal-subtitle">Testez vos capteurs en temps réel</p>
+                    </div>
+                </div>
+                <button class="btn-close" onclick="toggleSensorPanel()">✕</button>
+            </div>
+            <div class="connection-indicator">
+                <span>📶</span>
+                <span>En cours de dev by Gabriel, Idir et Bilel</span>
+            </div>
+        </div>
+
+        <div class="modal-content">
+            <!-- Configuration -->
+            <div class="modal-section">
+                <h3 class="section-title">📻 Configuration</h3>
+                <label class="input-label">Numéro de voiture</label>
+                <input type="number" class="input-field" id="sensorCarNumber" placeholder="Ex: 42" style="text-align: center; font-size: 1.5rem; font-weight: 900;">
+            </div>
+
+            <!-- Déclencheurs -->
+            <div class="modal-section">
+                <h3 class="section-title">⚡ Déclencheurs</h3>
+                
+                <button class="sensor-btn idle" id="btnLapSensor" onclick="triggerLapSensor()">
+                    <div class="sensor-btn-content">
+                        <div class="sensor-icon-box">📻</div>
+                        <div class="sensor-info">
+                            <div class="sensor-title">Capteur de Ligne</div>
+                            <div class="sensor-desc">Détection passage chronométré</div>
+                        </div>
+                    </div>
+                    <div id="lapSensorIcon">⚪</div>
+                </button>
+
+                <button class="sensor-btn idle" id="btnCameraSensor" onclick="triggerCameraSensor()">
+                    <div class="sensor-btn-content">
+                        <div class="sensor-icon-box">📷</div>
+                        <div class="sensor-info">
+                            <div class="sensor-title">Caméra Position</div>
+                            <div class="sensor-desc">Vision par ordinateur</div>
+                        </div>
+                    </div>
+                    <div id="cameraSensorIcon">⚪</div>
+                </button>
+            </div>
+
+            <!-- Guide d'intégration -->
+            <div class="info-box">
+                <div class="info-icon-box">⚡</div>
+                <div class="info-content">
+                    <h4>Guide d'intégration</h4>
+                    <p>Ce simulateur imite le comportement de vos capteurs physiques. Dans votre système réel, vos capteurs Arduino/Raspberry Pi enverront des requêtes POST aux mêmes endpoints.</p>
+                    <div class="info-endpoints">
+                        <div><span>POST</span> /sensor/lap</div>
+                        <div><span>POST</span> /camera/detect</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Statut des capteurs -->
+            <div class="modal-section">
+                <h3 class="section-title">📡 Statut des capteurs</h3>
+                <div class="status-list">
+                    <div class="status-item">
+                        <div class="status-item-label">
+                            <span>📻</span>
+                            <span>Capteur Ligne</span>
+                        </div>
+                        <div class="status-pill status-idle" id="lapSensorStatus">PRÊT</div>
+                    </div>
+                    <div class="status-item">
+                        <div class="status-item-label">
+                            <span>📷</span>
+                            <span>Caméra Position</span>
+                        </div>
+                        <div class="status-pill status-idle" id="cameraSensorStatus">PRÊT</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Configuration
+        const SUPABASE_URL = 'https://pnzwfmjcuybafpvtvfla.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBuendmbWpjdXliYWZwdnR2ZmxhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzY0Mjc5NTcsImV4cCI6MjA1MjAwMzk1N30.oP6yMYRqvKQHFz9Qg6EeHu_v3tpjjh1YTuOzaGxf30c';
+        const API_URL = `${SUPABASE_URL}/functions/v1/make-server-6fd941f6`;
+
+        // État de l'application
+        let currentView = 'dashboard';
+        let participants = [];
+        let raceStatus = 'waiting';
+        let totalLaps = 5;
+        let raceTime = 0;
+        let raceStartTime = null;
+        let timerInterval = null;
+        let loadInterval = null;
+
+        // Créer les particules
+        function createParticles() {
+            const container = document.getElementById('particles');
+            for (let i = 0; i < 20; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                particle.style.left = Math.random() * 100 + '%';
+                particle.style.animationDelay = Math.random() * 2 + 's';
+                particle.style.animationDuration = (Math.random() * 3 + 2) + 's';
+                container.appendChild(particle);
+            }
+        }
+
+        // Formater le temps
+        function formatTime(ms) {
+            const minutes = Math.floor(ms / 60000);
+            const seconds = Math.floor((ms % 60000) / 1000);
+            const milliseconds = Math.floor((ms % 1000) / 10);
+            return `${minutes}:${seconds.toString().padStart(2, '0')}.${milliseconds.toString().padStart(2, '0')}`;
+        }
+
+        // Basculer entre les vues
+        function toggleView() {
+            currentView = currentView === 'dashboard' ? 'admin' : 'dashboard';
+            
+            if (currentView === 'dashboard') {
+                document.getElementById('viewDashboard').classList.add('active');
+                document.getElementById('viewAdmin').classList.remove('active');
+                document.getElementById('viewIcon').textContent = '🛡️';
+                document.getElementById('viewText').textContent = 'ADMIN';
+                document.getElementById('btnToggleView').className = 'nav-btn btn-admin';
+                startAutoLoad();
+            } else {
+                document.getElementById('viewAdmin').classList.add('active');
+                document.getElementById('viewDashboard').classList.remove('active');
+                document.getElementById('viewIcon').textContent = '📊';
+                document.getElementById('viewText').textContent = 'DASHBOARD';
+                document.getElementById('btnToggleView').className = 'nav-btn btn-dashboard';
+                stopAutoLoad();
+            }
+        }
+
+        // Basculer le panel de capteurs
+        function toggleSensorPanel() {
+            const backdrop = document.getElementById('modalBackdrop');
+            const panel = document.getElementById('modalPanel');
+            const btn = document.getElementById('btnCapteurs');
+            
+            if (backdrop.classList.contains('active')) {
+                backdrop.classList.remove('active');
+                panel.classList.remove('active');
+                btn.classList.remove('active');
+            } else {
+                backdrop.classList.add('active');
+                panel.classList.add('active');
+                btn.classList.add('active');
+            }
+        }
+
+        // Charger l'état depuis le serveur
+        async function loadRaceState() {
+            try {
+                const response = await fetch(`${API_URL}/race/state`, {
+                    headers: {
+                        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+                    },
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    console.log('État chargé:', data);
+                    
+                    participants = data.participants || [];
+                    raceStatus = data.status || 'waiting';
+                    totalLaps = data.totalLaps || 5;
+                    
+                    if (raceStatus !== 'racing') {
+                        raceTime = data.time || 0;
+                    }
+                    
+                    updateUI();
+                }
+            } catch (error) {
+                console.error('Erreur de chargement:', error);
+            }
+        }
+
+        // Sauvegarder l'état sur le serveur
+        async function saveRaceState() {
+            try {
+                await fetch(`${API_URL}/race/state`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+                    },
+                    body: JSON.stringify({
+                        participants,
+                        status: raceStatus,
+                        time: raceTime,
+                        totalLaps,
+                    }),
+                });
+                console.log('État sauvegardé:', { status: raceStatus, time: raceTime });
+            } catch (error) {
+                console.error('Erreur de sauvegarde:', error);
+            }
+        }
+
+        // Démarrer le chronomètre
+        function startTimer() {
+            if (timerInterval) return;
+            
+            if (!raceStartTime) {
+                raceStartTime = Date.now() - raceTime;
+            }
+            
+            timerInterval = setInterval(() => {
+                raceTime = Date.now() - raceStartTime;
+                updateTimeDisplay();
+            }, 100);
+        }
+
+        // Arrêter le chronomètre
+        function stopTimer() {
+            if (timerInterval) {
+                clearInterval(timerInterval);
+                timerInterval = null;
+            }
+            raceStartTime = null;
+        }
+
+        // Démarrer le chargement automatique
+        function startAutoLoad() {
+            if (loadInterval) return;
+            loadInterval = setInterval(loadRaceState, 2000);
+        }
+
+        // Arrêter le chargement automatique
+        function stopAutoLoad() {
+            if (loadInterval) {
+                clearInterval(loadInterval);
+                loadInterval = null;
+            }
+        }
+
+        // Mettre à jour l'affichage du temps
+        function updateTimeDisplay() {
+            document.getElementById('dashboardTime').textContent = formatTime(raceTime);
+        }
+
+        // Démarrer la course
+        async function startRace() {
+            raceStatus = 'racing';
+            startTimer();
+            await saveRaceState();
+            updateUI();
+        }
+
+        // Mettre en pause la course
+        async function pauseRace() {
+            raceStatus = 'waiting';
+            stopTimer();
+            await saveRaceState();
+            updateUI();
+        }
+
+        // Terminer la course
+        async function finishRace() {
+            raceStatus = 'finished';
+            stopTimer();
+            await saveRaceState();
+            updateUI();
+        }
+
+        // Réinitialiser la course
+        async function resetRace() {
+            if (!confirm('Voulez-vous vraiment réinitialiser la course ?')) {
+                return;
+            }
+            
+            try {
+                await fetch(`${API_URL}/race/reset`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+                    },
+                });
+                
+                participants = [];
+                raceTime = 0;
+                raceStatus = 'waiting';
+                stopTimer();
+                updateUI();
+            } catch (error) {
+                console.error('Erreur de réinitialisation:', error);
+                alert('Erreur de connexion lors de la réinitialisation');
+            }
+        }
+
+        // Mettre à jour le nombre de tours
+        async function updateTotalLaps() {
+            totalLaps = parseInt(document.getElementById('inputTotalLaps').value) || 1;
+            await saveRaceState();
+        }
+
+        // Ajouter un participant
+        async function addParticipant() {
+            const name = document.getElementById('inputName').value.trim();
+            const carNumber = parseInt(document.getElementById('inputCarNumber').value);
+            
+            if (!name || !carNumber) {
+                alert('Veuillez remplir tous les champs');
+                return;
+            }
+            
+            if (participants.some(p => p.carNumber === carNumber)) {
+                alert(`Le numéro de voiture ${carNumber} est déjà utilisé !`);
+                return;
+            }
+            
+            participants.push({
+                id: Date.now().toString(),
+                name,
+                carNumber,
+                currentLap: 0,
+                totalTime: 0,
+                lastLapTime: 0,
+            });
+            
+            document.getElementById('inputName').value = '';
+            document.getElementById('inputCarNumber').value = '';
+            
+            await saveRaceState();
+            updateUI();
+        }
+
+        // Supprimer un participant
+        async function removeParticipant(id) {
+            if (!confirm('Voulez-vous vraiment supprimer ce participant ?')) {
+                return;
+            }
+            
+            participants = participants.filter(p => p.id !== id);
+            await saveRaceState();
+            updateUI();
+        }
+
+        // Compléter un tour
+        async function completeLap(id) {
+            const participant = participants.find(p => p.id === id);
+            if (participant && participant.currentLap < totalLaps) {
+                const lapTime = Math.random() * 20000 + 30000;
+                participant.currentLap++;
+                participant.totalTime += lapTime;
+                participant.lastLapTime = lapTime;
+                await saveRaceState();
+                updateUI();
+            }
+        }
+
+        // Mettre à jour un participant
+        async function updateParticipant(id, field, value) {
+            const participant = participants.find(p => p.id === id);
+            if (participant) {
+                participant[field] = value;
+                await saveRaceState();
+            }
+        }
+
+        // Mettre à jour l'interface
+        function updateUI() {
+            updateDashboard();
+            updateAdmin();
+        }
+
+        // Mettre à jour le dashboard
+        function updateDashboard() {
+            // Mettre à jour les stats
+            document.getElementById('dashboardTime').textContent = formatTime(raceTime);
+            document.getElementById('dashboardLaps').textContent = totalLaps;
+            
+            const statusText = raceStatus === 'racing' ? 'EN COURSE' : raceStatus === 'finished' ? 'TERMINÉ' : 'EN ATTENTE';
+            const statusIcon = raceStatus === 'racing' ? '⚡' : raceStatus === 'finished' ? '✅' : '⏸️';
+            document.getElementById('dashboardStatus').textContent = statusText;
+            document.getElementById('dashboardStatusIcon').textContent = statusIcon;
+            
+            if (raceStatus === 'racing') {
+                document.getElementById('dashboardStatusIcon').classList.add('status-racing');
+            } else {
+                document.getElementById('dashboardStatusIcon').classList.remove('status-racing');
+            }
+            
+            // Trier les participants
+            const sorted = [...participants].sort((a, b) => {
+                if (a.currentLap !== b.currentLap) return b.currentLap - a.currentLap;
+                return a.totalTime - b.totalTime;
+            });
+            
+            // Afficher les participants
+            const list = document.getElementById('participantsList');
+            list.innerHTML = sorted.map((p, index) => {
+                const position = index + 1;
+                const isLeader = position === 1;
+                const isFinished = p.currentLap >= totalLaps;
+                const progress = Math.min((p.currentLap / totalLaps) * 100, 100);
+                
+                let positionClass = 'position-other';
+                let positionContent = position;
+                if (position === 1) {
+                    positionClass = 'position-1';
+                    positionContent = '🏆';
+                } else if (position === 2) {
+                    positionClass = 'position-2';
+                } else if (position === 3) {
+                    positionClass = 'position-3';
+                }
+                
+                return `
+                    <div class="participant-card ${isLeader ? 'leader' : ''}">
+                        <div class="participant-content">
+                            <div class="position-badge ${positionClass}">${positionContent}</div>
+                            <div class="car-number">#${p.carNumber}</div>
+                            <div class="participant-info">
+                                <h3 class="participant-name">${p.name}</h3>
+                                <div class="participant-stats">
+                                    <div><span>Tours: </span><strong>${p.currentLap}/${totalLaps}</strong></div>
+                                    <div><span>Temps total: </span><strong>${formatTime(p.totalTime)}</strong></div>
+                                    ${p.lastLapTime > 0 ? `<div><span>Dernier tour: </span><strong>${formatTime(p.lastLapTime)}</strong></div>` : ''}
+                                </div>
+                            </div>
+                            <div class="progress-container">
+                                <div class="progress-label">Progression</div>
+                                <div class="progress-bar">
+                                    <div class="progress-fill" style="width: ${progress}%"></div>
+                                </div>
+                                <div class="progress-percent">${Math.round(progress)}%</div>
+                            </div>
+                            ${isFinished ? '<div class="finished-badge">TERMINÉ</div>' : ''}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            
+            // Afficher le podium si la course est terminée
+            const podiumContainer = document.getElementById('podiumContainer');
+            if (raceStatus === 'finished') {
+                podiumContainer.innerHTML = `
+                    <div class="podium">
+                        <h2 class="podium-title">🏆 PODIUM 🏆</h2>
+                        <div class="podium-stands">
+                            ${sorted[1] ? `
+                                <div class="podium-stand podium-stand-2">
+                                    <div class="podium-emoji">🥈</div>
+                                    <div class="podium-name">${sorted[1].name}</div>
+                                    <div>${formatTime(sorted[1].totalTime)}</div>
+                                </div>
+                            ` : ''}
+                            ${sorted[0] ? `
+                                <div class="podium-stand podium-stand-1">
+                                    <div class="podium-emoji">🥇</div>
+                                    <div class="podium-name">${sorted[0].name}</div>
+                                    <div style="font-size: 1.125rem;">${formatTime(sorted[0].totalTime)}</div>
+                                </div>
+                            ` : ''}
+                            ${sorted[2] ? `
+                                <div class="podium-stand podium-stand-3">
+                                    <div class="podium-emoji">🥉</div>
+                                    <div class="podium-name">${sorted[2].name}</div>
+                                    <div>${formatTime(sorted[2].totalTime)}</div>
+                                </div>
+                            ` : ''}
+                        </div>
+                    </div>
+                `;
+            } else {
+                podiumContainer.innerHTML = '';
+            }
+        }
+
+        // Mettre à jour l'admin
+        function updateAdmin() {
+            // Mettre à jour le badge de statut
+            const badge = document.getElementById('statusBadge');
+            const statusText = raceStatus === 'racing' ? '🏁 EN COURSE' : raceStatus === 'finished' ? '✅ TERMINÉ' : '⏸️ EN ATTENTE';
+            const statusClass = raceStatus === 'racing' ? 'status-racing' : raceStatus === 'finished' ? 'status-finished' : 'status-waiting';
+            
+            badge.textContent = statusText;
+            badge.className = `status-badge ${statusClass}`;
+            
+            // Mettre à jour les boutons
+            document.getElementById('btnStart').disabled = raceStatus === 'racing';
+            document.getElementById('btnPause').disabled = raceStatus !== 'racing';
+            
+            // Mettre à jour l'input des tours
+            document.getElementById('inputTotalLaps').value = totalLaps;
+            
+            // Afficher la liste des participants
+            const list = document.getElementById('adminParticipantsList');
+            if (participants.length === 0) {
+                list.innerHTML = '<div class="empty-state">Aucun participant. Ajoutez-en un pour commencer.</div>';
+            } else {
+                list.innerHTML = participants.map(p => `
+                    <div class="participant-item">
+                        <div class="participant-item-content">
+                            <div class="participant-number">#${p.carNumber}</div>
+                            <div class="participant-fields">
+                                <input type="text" value="${p.name}" onchange="updateParticipant('${p.id}', 'name', this.value)">
+                                <div class="participant-inputs">
+                                    <div>
+                                        <label>Tours</label>
+                                        <input type="number" value="${p.currentLap}" onchange="updateParticipant('${p.id}', 'currentLap', parseInt(this.value) || 0)">
+                                    </div>
+                                    <div>
+                                        <label>Temps total (ms)</label>
+                                        <input type="number" value="${p.totalTime}" onchange="updateParticipant('${p.id}', 'totalTime', parseInt(this.value) || 0)">
+                                    </div>
+                                    <div>
+                                        <label>Dernier tour (ms)</label>
+                                        <input type="number" value="${p.lastLapTime}" onchange="updateParticipant('${p.id}', 'lastLapTime', parseInt(this.value) || 0)">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="participant-actions">
+                                <button class="btn-lap" onclick="completeLap('${p.id}')" ${p.currentLap >= totalLaps ? 'disabled' : ''}>
+                                    +1 Tour
+                                </button>
+                                <button class="btn-delete" onclick="removeParticipant('${p.id}')">
+                                    🗑️
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+            }
+        }
+
+        // Déclencher le capteur de ligne
+        async function triggerLapSensor() {
+            const carNumber = parseInt(document.getElementById('sensorCarNumber').value);
+            if (!carNumber) {
+                alert('Veuillez entrer un numéro de voiture');
+                return;
+            }
+            
+            setSensorStatus('lap', 'detecting');
+            
+            try {
+                const response = await fetch(`${API_URL}/sensor/lap`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+                    },
+                    body: JSON.stringify({
+                        carNumber,
+                        timestamp: Date.now(),
+                    }),
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    console.log('Tour enregistré:', data);
+                    setSensorStatus('lap', 'success');
+                    setTimeout(() => setSensorStatus('lap', 'idle'), 1500);
+                } else {
+                    const error = await response.json();
+                    console.error('Erreur:', error);
+                    alert(`Erreur: ${error.error}`);
+                    setSensorStatus('lap', 'idle');
+                }
+            } catch (error) {
+                console.error('Erreur:', error);
+                setSensorStatus('lap', 'idle');
+            }
+        }
+
+        // Déclencher la caméra
+        async function triggerCameraSensor() {
+            const carNumber = parseInt(document.getElementById('sensorCarNumber').value);
+            if (!carNumber) {
+                alert('Veuillez entrer un numéro de voiture');
+                return;
+            }
+            
+            setSensorStatus('camera', 'detecting');
+            
+            try {
+                const response = await fetch(`${API_URL}/camera/detect`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+                    },
+                    body: JSON.stringify({
+                        carNumber,
+                        position: Math.floor(Math.random() * 100),
+                        timestamp: Date.now(),
+                    }),
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    console.log('Détection caméra:', data);
+                    setSensorStatus('camera', 'success');
+                    setTimeout(() => setSensorStatus('camera', 'idle'), 1500);
+                } else {
+                    const error = await response.json();
+                    console.error('Erreur:', error);
+                    alert(`Erreur: ${error.error}`);
+                    setSensorStatus('camera', 'idle');
+                }
+            } catch (error) {
+                console.error('Erreur:', error);
+                setSensorStatus('camera', 'idle');
+            }
+        }
+
+        // Mettre à jour le statut d'un capteur
+        function setSensorStatus(sensor, status) {
+            const btnId = sensor === 'lap' ? 'btnLapSensor' : 'btnCameraSensor';
+            const iconId = sensor === 'lap' ? 'lapSensorIcon' : 'cameraSensorIcon';
+            const statusId = sensor === 'lap' ? 'lapSensorStatus' : 'cameraSensorStatus';
+            
+            const btn = document.getElementById(btnId);
+            const icon = document.getElementById(iconId);
+            const statusEl = document.getElementById(statusId);
+            
+            btn.className = `sensor-btn ${status}`;
+            btn.disabled = status === 'detecting';
+            
+            if (status === 'detecting') {
+                icon.innerHTML = '⏳';
+                icon.classList.add('spin');
+                statusEl.textContent = 'DÉTECTION...';
+                statusEl.className = 'status-pill status-detecting';
+            } else if (status === 'success') {
+                icon.innerHTML = '✅';
+                icon.classList.remove('spin');
+                statusEl.textContent = 'SUCCÈS';
+                statusEl.className = 'status-pill status-success';
+            } else {
+                icon.innerHTML = '⚪';
+                icon.classList.remove('spin');
+                statusEl.textContent = 'PRÊT';
+                statusEl.className = 'status-pill status-idle';
+            }
+        }
+
+        // Gérer le chronomètre en fonction du statut
+        setInterval(() => {
+            if (raceStatus === 'racing' && !timerInterval) {
+                startTimer();
+            } else if (raceStatus !== 'racing' && timerInterval) {
+                stopTimer();
+            }
+        }, 100);
+
+        // Initialisation
+        createParticles();
+        loadRaceState();
+        startAutoLoad();
+        
+        // Permettre d'ajouter un participant avec Entrée
+        document.getElementById('inputCarNumber').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') addParticipant();
+        });
+        document.getElementById('inputName').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') addParticipant();
+        });
+    </script>
+</body>
+</html>
