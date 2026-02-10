@@ -3,7 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard Course Autonome</title>
+    <title>KINETIC - Dashboard Course Autonome v3.0</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
     <style>
         * {
             margin: 0;
@@ -12,1202 +19,253 @@
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: linear-gradient(to bottom right, #ffffff, #f3e8ff, #ffffff);
-            min-height: 100vh;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: #f8fafc;
+            color: #020617;
             overflow-x: hidden;
         }
 
-        /* Particules d'arrière-plan */
-        .particles {
-            position: fixed;
-            inset: 0;
-            overflow: hidden;
-            pointer-events: none;
-            z-index: 0; 
-        }
-
-        .particle {
-            position: absolute;
-            width: 4px;
-            height: 4px;
-            background: #c084fc;
-            border-radius: 50%;
-            opacity: 0;
-            animation: float 5s infinite;
-        }
-
-        @keyframes float {
-            0%, 100% { opacity: 0; }
-            50% { opacity: 0.3; }
-            100% { transform: translateY(100vh); }
-        }
-
-        /* Boutons de navigation */
-        .nav-buttons {
-            position: fixed;
-            top: 24px;
-            right: 24px;
-            z-index: 50;
-            display: flex;
-            gap: 12px;
-        }
-
-        .nav-btn {
-            padding: 16px 24px;
-            border-radius: 16px;
-            font-weight: 900;
-            border: 2px solid;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            transition: all 0.3s;
-            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
-            font-size: 14px;
-        }
-
-        .nav-btn:hover {
-            transform: scale(1.05);
-        }
-
-        .nav-btn:active {
-            transform: scale(0.95);
-        }
-
-        .btn-capteurs {
-            background: linear-gradient(to bottom right, #8b5cf6, #7c3aed);
-            color: white;
-            border-color: rgba(139, 92, 246, 0.5);
-        }
-
-        .btn-capteurs.active {
-            background: linear-gradient(to bottom right, #10b981, #059669);
-            border-color: rgba(16, 185, 129, 0.5);
-        }
-
-        .btn-admin {
-            background: linear-gradient(to bottom right, #8b5cf6, #7c3aed);
-            color: white;
-            border-color: rgba(139, 92, 246, 0.5);
-        }
-
-        .btn-dashboard {
-            background: linear-gradient(to bottom right, #334155, #1e293b);
-            color: white;
-            border-color: rgba(51, 65, 85, 0.5);
-        }
-
-        /* Container principal */
-        .container {
-            position: relative;
-            z-index: 1;
-            padding: 32px;
-            min-height: 100vh;
-        }
-
-        .view {
-            display: none;
-            animation: fadeIn 0.3s;
-        }
-
-        .view.active {
-            display: block;
-        }
-
+        .font-sans { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; }
+        .font-mono { font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace; }
+        
+        /* Animations */
         @keyframes fadeIn {
-            from { opacity: 0; transform: scale(0.95); }
-            to { opacity: 1; transform: scale(1); }
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
         }
-
-        /* Dashboard */
-        .dashboard-header {
-            text-align: center;
-            margin-bottom: 48px;
-            position: relative;
-        }
-
-        .dashboard-title {
-            font-size: 3.75rem;
-            font-weight: 900;
-            background: linear-gradient(to right, #7c3aed, #8b5cf6, #7c3aed);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            margin-bottom: 16px;
-        }
-
-        .dashboard-stats {
-            display: flex;
-            justify-content: center;
-            gap: 32px;
-            flex-wrap: wrap;
-        }
-
-        .stat-card {
-            background: rgba(255, 255, 255, 0.8);
-            backdrop-filter: blur(10px);
-            padding: 12px 24px;
-            border-radius: 12px;
-            border: 2px solid #ddd6fe;
-            box-shadow: 0 10px 15px -3px rgba(139, 92, 246, 0.1);
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 1.25rem;
-        }
-
-        .stat-label {
-            color: #7c3aed;
-            font-weight: 600;
-        }
-
-        .stat-value {
-            font-family: 'Courier New', monospace;
-            font-weight: 700;
-            color: #0f172a;
-        }
-
-        .status-racing {
-            animation: pulse 2s infinite;
+        
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(20px); }
+            to { opacity: 1; transform: translateX(0); }
         }
 
         @keyframes pulse {
             0%, 100% { opacity: 1; }
-            50% { opacity: 0.6; }
-        }
-
-        /* Liste des participants */
-        .participants-list {
-            max-width: 1280px;
-            margin: 0 auto;
-            display: flex;
-            flex-direction: column;
-            gap: 16px;
-        }
-
-        .participant-card {
-            background: rgba(255, 255, 255, 0.8);
-            backdrop-filter: blur(10px);
-            border: 2px solid #ddd6fe;
-            border-radius: 16px;
-            padding: 24px;
-            transition: all 0.3s;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .participant-card:hover {
-            transform: translateX(8px) scale(1.01);
-        }
-
-        .participant-card.leader {
-            background: linear-gradient(to right, rgba(237, 233, 254, 0.8), rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.9));
-            border-color: #a78bfa;
-            box-shadow: 0 20px 25px -5px rgba(167, 139, 250, 0.3);
-        }
-
-        .participant-card.leader::before {
-            content: '';
-            position: absolute;
-            inset: 0;
-            background: linear-gradient(to right, transparent, rgba(167, 139, 250, 0.3), transparent);
-            animation: shine 2s infinite;
-        }
-
-        @keyframes shine {
-            0% { transform: translateX(-100%); }
-            100% { transform: translateX(200%); }
-        }
-
-        .participant-content {
-            display: flex;
-            align-items: center;
-            gap: 24px;
-            position: relative;
-            z-index: 1;
-        }
-
-        .position-badge {
-            width: 64px;
-            height: 64px;
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.5rem;
-            font-weight: 900;
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-        }
-
-        .position-1 {
-            background: linear-gradient(to bottom right, #a78bfa, #7c3aed);
-            color: white;
-        }
-
-        .position-2 {
-            background: linear-gradient(to bottom right, #cbd5e1, #64748b);
-            color: white;
-        }
-
-        .position-3 {
-            background: linear-gradient(to bottom right, #6d28d9, #4c1d95);
-            color: white;
-        }
-
-        .position-other {
-            background: #ede9fe;
-            color: #7c3aed;
-            border: 2px solid #ddd6fe;
-        }
-
-        .car-number {
-            font-size: 3.75rem;
-            font-weight: 900;
-            color: #ddd6fe;
-            width: 96px;
-            text-align: center;
-        }
-
-        .participant-info {
-            flex: 1;
-        }
-
-        .participant-name {
-            font-size: 1.5rem;
-            font-weight: 900;
-            color: #0f172a;
-            margin-bottom: 4px;
-        }
-
-        .participant-stats {
-            display: flex;
-            gap: 24px;
-            font-size: 0.875rem;
-        }
-
-        .participant-stats span {
-            color: #7c3aed;
-        }
-
-        .participant-stats strong {
-            color: #0f172a;
-            font-family: 'Courier New', monospace;
-        }
-
-        .progress-container {
-            width: 192px;
-        }
-
-        .progress-label {
-            font-size: 0.75rem;
-            color: #7c3aed;
-            margin-bottom: 4px;
-            font-weight: 600;
-        }
-
-        .progress-bar {
-            height: 16px;
-            background: #ede9fe;
-            border-radius: 999px;
-            overflow: hidden;
-            border: 1px solid #ddd6fe;
-        }
-
-        .progress-fill {
-            height: 100%;
-            background: linear-gradient(to right, #8b5cf6, #7c3aed);
-            transition: width 0.5s;
-        }
-
-        .progress-percent {
-            font-size: 0.75rem;
-            text-align: right;
-            color: #6d28d9;
-            margin-top: 4px;
-            font-family: 'Courier New', monospace;
-            font-weight: 700;
-        }
-
-        .finished-badge {
-            background: linear-gradient(to right, #8b5cf6, #7c3aed);
-            color: white;
-            padding: 8px 16px;
-            border-radius: 12px;
-            font-weight: 900;
-            font-size: 0.875rem;
-            box-shadow: 0 10px 15px -3px rgba(139, 92, 246, 0.5);
-        }
-
-        /* Podium */
-        .podium {
-            max-width: 1024px;
-            margin: 48px auto 0;
-            animation: fadeIn 0.5s;
-        }
-
-        .podium-title {
-            font-size: 2.25rem;
-            font-weight: 900;
-            text-align: center;
-            margin-bottom: 32px;
-            background: linear-gradient(to right, #7c3aed, #8b5cf6, #7c3aed);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-
-        .podium-stands {
-            display: flex;
-            align-items: flex-end;
-            justify-content: center;
-            gap: 16px;
-        }
-
-        .podium-stand {
-            flex: 1;
-            text-align: center;
-            padding: 24px;
-            border-radius: 16px 16px 0 0;
-            color: white;
-            font-weight: 900;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-        }
-
-        .podium-stand-1 {
-            height: 280px;
-            background: linear-gradient(to bottom right, #a78bfa, #8b5cf6, #7c3aed);
-            border-top: 4px solid #ddd6fe;
-        }
-
-        .podium-stand-2 {
-            height: 200px;
-            background: linear-gradient(to bottom right, #94a3b8, #64748b);
-            border-top: 4px solid #cbd5e1;
-        }
-
-        .podium-stand-3 {
-            height: 160px;
-            background: linear-gradient(to bottom right, #6d28d9, #4c1d95);
-            border-top: 4px solid #7c3aed;
-        }
-
-        .podium-emoji {
-            font-size: 4rem;
-            margin-bottom: 8px;
-        }
-
-        .podium-stand-2 .podium-emoji,
-        .podium-stand-3 .podium-emoji {
-            font-size: 3rem;
-        }
-
-        .podium-name {
-            font-size: 1.5rem;
-            margin-bottom: 4px;
-            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-        }
-
-        .podium-stand-2 .podium-name,
-        .podium-stand-3 .podium-name {
-            font-size: 1.25rem;
-        }
-
-        /* Admin Panel */
-        .admin-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 32px;
-        }
-
-        .admin-title {
-            font-size: 3rem;
-            font-weight: 900;
-            background: linear-gradient(to right, #7c3aed, #8b5cf6, #7c3aed);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-
-        .admin-subtitle {
-            color: #7c3aed;
-            font-weight: 600;
-        }
-
-        .admin-section {
-            background: rgba(255, 255, 255, 0.8);
-            backdrop-filter: blur(10px);
-            border: 2px solid #ddd6fe;
-            border-radius: 16px;
-            padding: 24px;
-            margin-bottom: 24px;
-            box-shadow: 0 20px 25px -5px rgba(221, 214, 254, 0.3);
-        }
-
-        .section-title {
-            font-size: 1.5rem;
-            font-weight: 900;
-            color: #0f172a;
-            margin-bottom: 16px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .status-indicator {
-            background: linear-gradient(to right, #f3e8ff, #ede9fe);
-            border: 2px solid #ddd6fe;
-            border-radius: 12px;
-            padding: 16px;
-            margin-bottom: 16px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .status-label {
-            font-weight: 700;
-            color: #7c3aed;
-            font-size: 0.875rem;
-        }
-
-        .status-badge {
-            padding: 8px 16px;
-            border-radius: 8px;
-            font-weight: 900;
-            font-size: 0.875rem;
-        }
-
-        .status-waiting {
-            background: #cbd5e1;
-            color: #475569;
-        }
-
-        .status-racing {
-            background: #10b981;
-            color: white;
-            animation: pulse 2s infinite;
-        }
-
-        .status-finished {
-            background: #3b82f6;
-            color: white;
-        }
-
-        .controls-grid {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 16px;
-            margin-bottom: 16px;
-        }
-
-        .control-btn {
-            padding: 12px 24px;
-            border-radius: 12px;
-            font-weight: 900;
-            border: none;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            transition: all 0.3s;
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-        }
-
-        .control-btn:hover:not(:disabled) {
-            transform: translateY(-2px);
-        }
-
-        .control-btn:disabled {
-            background: #e2e8f0 !important;
-            color: #94a3b8 !important;
-            cursor: not-allowed;
-            box-shadow: none;
-        }
-
-        .btn-start {
-            background: linear-gradient(to right, #8b5cf6, #7c3aed);
-            color: white;
-        }
-
-        .btn-pause {
-            background: linear-gradient(to right, #f59e0b, #d97706);
-            color: white;
-        }
-
-        .btn-finish {
-            background: linear-gradient(to right, #8b5cf6, #7c3aed);
-            color: white;
-        }
-
-        .btn-reset {
-            background: linear-gradient(to right, #ef4444, #dc2626);
-            color: white;
-        }
-
-        .input-group {
-            margin-top: 16px;
-        }
-
-        .input-label {
-            display: block;
-            font-size: 0.875rem;
-            color: #7c3aed;
-            margin-bottom: 8px;
-            font-weight: 600;
-        }
-
-        .input-field {
-            width: 100%;
-            padding: 12px 16px;
-            background: white;
-            border: 2px solid #ddd6fe;
-            border-radius: 12px;
-            color: #0f172a;
-            font-family: 'Courier New', monospace;
-            font-size: 1rem;
-        }
-
-        .form-row {
-            display: flex;
-            gap: 16px;
-        }
-
-        .form-row input[type="text"] {
-            flex: 1;
-        }
-
-        .form-row input[type="number"] {
-            width: 128px;
-        }
-
-        .btn-add {
-            padding: 12px 32px;
-            background: linear-gradient(to right, #8b5cf6, #7c3aed);
-            color: white;
-            border: none;
-            border-radius: 12px;
-            font-weight: 900;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            box-shadow: 0 10px 15px -3px rgba(139, 92, 246, 0.5);
-            transition: all 0.3s;
-        }
-
-        .btn-add:hover {
-            transform: translateY(-2px);
-        }
-
-        .participant-item {
-            background: #f3e8ff;
-            border: 2px solid #ddd6fe;
-            border-radius: 12px;
-            padding: 16px;
-            margin-bottom: 16px;
-        }
-
-        .participant-item-content {
-            display: flex;
-            align-items: center;
-            gap: 16px;
-        }
-
-        .participant-number {
-            font-size: 2rem;
-            font-weight: 900;
-            color: #ddd6fe;
-            width: 64px;
-        }
-
-        .participant-fields {
-            flex: 1;
-        }
-
-        .participant-fields input {
-            width: 100%;
-            padding: 8px 12px;
-            background: white;
-            border: 2px solid #ddd6fe;
-            border-radius: 8px;
-            color: #0f172a;
-            margin-bottom: 8px;
-        }
-
-        .participant-inputs {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 8px;
-        }
-
-        .participant-inputs label {
-            font-size: 0.75rem;
-            color: #7c3aed;
-            font-weight: 600;
-        }
-
-        .participant-inputs input {
-            font-family: 'Courier New', monospace;
-            font-size: 0.875rem;
-            margin: 0;
-        }
-
-        .participant-actions {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
-
-        .btn-lap {
-            padding: 8px 16px;
-            background: linear-gradient(to right, #8b5cf6, #7c3aed);
-            color: white;
-            border: none;
-            border-radius: 8px;
-            font-weight: 900;
-            font-size: 0.875rem;
-            cursor: pointer;
-            box-shadow: 0 10px 15px -3px rgba(139, 92, 246, 0.5);
-            transition: all 0.3s;
-        }
-
-        .btn-lap:disabled {
-            background: #e2e8f0;
-            color: #94a3b8;
-            cursor: not-allowed;
-            box-shadow: none;
-        }
-
-        .btn-delete {
-            padding: 8px;
-            background: linear-gradient(to right, #ef4444, #dc2626);
-            color: white;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            box-shadow: 0 10px 15px -3px rgba(239, 68, 68, 0.5);
-            transition: all 0.3s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .empty-state {
-            text-align: center;
-            color: #94a3b8;
-            padding: 32px;
-        }
-
-        /* Modal Simulateur */
+            50% { opacity: 0.5; }
+        }
+
+        @keyframes growWidth {
+            from { width: 0; }
+        }
+
+        .animate-fadeIn { animation: fadeIn 0.3s ease-out; }
+        .animate-slideIn { animation: slideIn 0.3s ease-out; }
+        .animate-pulse { animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
+        
+        /* Custom scrollbar */
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: #f1f5f9; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+        /* Utility classes */
+        .tabular-nums { font-variant-numeric: tabular-nums; }
+        .tracking-widest { letter-spacing: 0.1em; }
+        .tracking-tight { letter-spacing: -0.025em; }
+        .leading-none { line-height: 1; }
+        .leading-relaxed { line-height: 1.625; }
+        
+        /* Hidden class */
+        .hidden { display: none !important; }
+        
+        /* Modal backdrop */
         .modal-backdrop {
             position: fixed;
             inset: 0;
             background: rgba(15, 23, 42, 0.6);
-            backdrop-filter: blur(4px);
-            z-index: 60;
-            display: none;
-            animation: fadeIn 0.3s;
+            backdrop-filter: blur(8px);
+            z-index: 200;
         }
 
-        .modal-backdrop.active {
-            display: block;
+        /* Progress bar animation */
+        .progress-bar {
+            transition: width 0.3s ease-out;
         }
 
-        .modal-panel {
-            position: fixed;
-            right: 0;
-            top: 0;
-            height: 100vh;
-            width: 100%;
-            max-width: 600px;
-            background: linear-gradient(to bottom right, #ffffff, #f3e8ff, #ffffff);
-            z-index: 70;
-            box-shadow: -20px 0 50px -12px rgba(0, 0, 0, 0.25);
-            overflow-y: auto;
-            transform: translateX(100%);
-            transition: transform 0.3s;
-        }
-
-        .modal-panel.active {
-            transform: translateX(0);
-        }
-
-        .modal-header {
-            background: linear-gradient(to right, #7c3aed, #8b5cf6);
-            color: white;
-            padding: 24px;
-            position: sticky;
-            top: 0;
-            z-index: 10;
-            border-bottom: 4px solid #a78bfa;
-        }
-
-        .modal-header-content {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 8px;
-        }
-
-        .modal-title-group {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .modal-icon {
-            background: rgba(255, 255, 255, 0.2);
-            backdrop-filter: blur(10px);
-            padding: 12px;
-            border-radius: 12px;
-        }
-
-        .modal-title {
-            font-size: 1.875rem;
-            font-weight: 900;
-        }
-
-        .modal-subtitle {
-            color: #ede9fe;
-            font-size: 0.875rem;
-            font-weight: 600;
-        }
-
-        .btn-close {
-            background: rgba(255, 255, 255, 0.2);
-            backdrop-filter: blur(10px);
-            padding: 12px;
-            border-radius: 12px;
-            border: none;
-            color: white;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-
-        .btn-close:hover {
-            background: rgba(255, 255, 255, 0.3);
-            transform: rotate(90deg);
-        }
-
-        .connection-indicator {
-            background: rgba(255, 255, 255, 0.2);
-            backdrop-filter: blur(10px);
-            padding: 8px 16px;
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 0.875rem;
-            font-weight: 700;
-            margin-top: 16px;
-        }
-
-        .modal-content {
-            padding: 24px;
-        }
-
-        .modal-section {
-            background: rgba(255, 255, 255, 0.8);
-            backdrop-filter: blur(10px);
-            border: 2px solid #ddd6fe;
-            border-radius: 16px;
-            padding: 24px;
-            margin-bottom: 24px;
-            box-shadow: 0 20px 25px -5px rgba(221, 214, 254, 0.3);
-        }
-
-        .sensor-btn {
-            width: 100%;
-            padding: 20px;
-            border-radius: 12px;
-            border: 2px solid;
-            font-weight: 900;
-            cursor: pointer;
-            margin-bottom: 16px;
-            transition: all 0.3s;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .sensor-btn:hover:not(:disabled) {
-            transform: translateY(-2px) scale(1.02);
-        }
-
-        .sensor-btn.idle {
-            background: linear-gradient(to right, #8b5cf6, #7c3aed);
-            color: white;
-            border-color: #a78bfa;
-            box-shadow: 0 20px 25px -5px rgba(139, 92, 246, 0.5);
-        }
-
-        .sensor-btn.detecting {
-            background: #f59e0b;
-            color: white;
-            border-color: #fbbf24;
-        }
-
-        .sensor-btn.success {
-            background: #10b981;
-            color: white;
-            border-color: #34d399;
-        }
-
-        .sensor-btn:disabled {
-            cursor: not-allowed;
-        }
-
-        .sensor-btn-content {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .sensor-icon-box {
-            background: rgba(255, 255, 255, 0.2);
-            backdrop-filter: blur(10px);
-            padding: 12px;
-            border-radius: 8px;
-        }
-
-        .sensor-info {
-            text-align: left;
-        }
-
-        .sensor-title {
-            font-size: 1.125rem;
-        }
-
-        .sensor-desc {
-            font-size: 0.75rem;
-            font-weight: normal;
-            opacity: 0.9;
-        }
-
-        .info-box {
-            background: linear-gradient(to bottom right, #ede9fe, #f3e8ff);
-            border: 2px solid #ddd6fe;
-            border-radius: 16px;
-            padding: 24px;
-            display: flex;
-            gap: 12px;
-        }
-
-        .info-icon-box {
-            background: #8b5cf6;
-            padding: 8px;
-            border-radius: 8px;
-            color: white;
-            height: fit-content;
-            margin-top: 4px;
-        }
-
-        .info-content h4 {
-            font-weight: 900;
-            color: #4c1d95;
-            margin-bottom: 8px;
-        }
-
-        .info-content p {
-            font-size: 0.875rem;
-            color: #6d28d9;
-            margin-bottom: 12px;
-        }
-
-        .info-endpoints {
-            background: rgba(255, 255, 255, 0.6);
-            border-radius: 8px;
-            padding: 12px;
-            font-family: 'Courier New', monospace;
-            font-size: 0.75rem;
-            color: #4c1d95;
-        }
-
-        .info-endpoints div {
-            margin-bottom: 4px;
-        }
-
-        .info-endpoints span {
-            color: #7c3aed;
-            font-weight: 700;
-        }
-
-        .status-list {
-            margin-top: 12px;
-        }
-
-        .status-item {
-            background: #f3e8ff;
-            border: 1px solid #ddd6fe;
-            border-radius: 8px;
-            padding: 12px;
-            margin-bottom: 12px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .status-item-label {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-weight: 700;
-            font-size: 0.875rem;
-            color: #0f172a;
-        }
-
-        .status-pill {
-            padding: 4px 12px;
-            border-radius: 999px;
-            font-size: 0.75rem;
-            font-weight: 900;
-            color: white;
-        }
-
-        .status-idle {
-            background: #64748b;
-        }
-
-        .status-detecting {
-            background: #f59e0b;
-        }
-
-        .status-success {
-            background: #10b981;
-        }
-
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-
-        .spin {
-            animation: spin 1s linear infinite;
-        }
-
-        /* Responsive */
-        @media (max-width: 768px) {
-            .nav-buttons {
-                top: 12px;
-                right: 12px;
-            }
-
-            .nav-btn span {
-                display: none;
-            }
-
-            .dashboard-title {
-                font-size: 2.5rem;
-            }
-
-            .controls-grid {
-                grid-template-columns: 1fr 1fr;
-            }
-
-            .modal-panel {
-                max-width: 100%;
-            }
-
-            .participant-inputs {
-                grid-template-columns: 1fr;
-            }
-        }
-
-        .hidden {
-            display: none !important;
+        /* Glow effect */
+        .glow-emerald {
+            box-shadow: 0 0 12px rgba(16, 185, 129, 0.5);
         }
     </style>
 </head>
-<body>
-    <!-- Particules d'arrière-plan -->
-    <div class="particles" id="particles"></div>
-
-    <!-- Boutons de navigation -->
-    <div class="nav-buttons">
-        <button class="nav-btn btn-capteurs" id="btnCapteurs" onclick="toggleSensorPanel()">
-            <span>⚡</span>
-            <span>CAPTEURS</span>
-        </button>
-        <button class="nav-btn btn-admin" id="btnToggleView" onclick="toggleView()">
-            <span id="viewIcon">🛡️</span>
-            <span id="viewText">ADMIN</span>
-        </button>
-    </div>
-
-    <!-- Container principal -->
-    <div class="container">
-        <!-- Vue Dashboard -->
-        <div id="viewDashboard" class="view active">
-            <div class="dashboard-header">
-                <h1 class="dashboard-title">COURSE AUTONOME</h1>
-                <div class="dashboard-stats">
-                    <div class="stat-card">
-                        <span class="stat-label">⏱️</span>
-                        <span class="stat-value" id="dashboardTime">0:00.00</span>
-                    </div>
-                    <div class="stat-card">
-                        <span class="stat-label">🏁</span>
-                        <span class="stat-value"><span id="dashboardLaps">5</span> Tours</span>
-                    </div>
-                    <div class="stat-card">
-                        <span class="stat-label" id="dashboardStatusIcon">⏸️</span>
-                        <span class="stat-value" id="dashboardStatus">EN ATTENTE</span>
-                    </div>
+<body class="antialiased">
+    
+    <!-- Main App Container -->
+    <div id="app" class="min-h-screen bg-[#f8fafc] text-slate-900 font-sans">
+        
+        <!-- Sidebar Navigation -->
+        <aside class="fixed left-0 top-0 bottom-0 w-20 md:w-64 bg-slate-900 border-r border-slate-800 z-[100] transition-all flex flex-col">
+            <div class="p-6 flex items-center gap-3">
+                <div class="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center flex-shrink-0">
+                    <i data-lucide="cpu" class="w-6 h-6 text-white"></i>
                 </div>
-            </div>
-            <div class="participants-list" id="participantsList"></div>
-            <div id="podiumContainer"></div>
-        </div>
-
-        <!-- Vue Admin -->
-        <div id="viewAdmin" class="view">
-            <div class="admin-header">
-                <div>
-                    <h1 class="admin-title">PANNEAU ADMIN</h1>
-                    <p class="admin-subtitle">Contrôlez tous les aspects de la course</p>
-                </div>
-                <div style="font-size: 3rem; color: #8b5cf6;">⚙️</div>
-            </div>
-
-            <!-- Contrôles de course -->
-            <div class="admin-section">
-                <h2 class="section-title">▶️ Contrôles de Course</h2>
-                
-                <div class="status-indicator">
-                    <span class="status-label">Statut actuel :</span>
-                    <span class="status-badge status-waiting" id="statusBadge">⏸️ EN ATTENTE</span>
-                </div>
-
-                <div class="controls-grid">
-                    <button class="control-btn btn-start" id="btnStart" onclick="startRace()">
-                        ▶️ Démarrer
-                    </button>
-                    <button class="control-btn btn-pause" id="btnPause" onclick="pauseRace()" disabled>
-                        ⏸️ Pause
-                    </button>
-                    <button class="control-btn btn-finish" onclick="finishRace()">
-                        🏁 Terminer
-                    </button>
-                    <button class="control-btn btn-reset" onclick="resetRace()">
-                        🔄 Réinitialiser
-                    </button>
-                </div>
-
-                <div class="input-group">
-                    <label class="input-label">Nombre de tours</label>
-                    <input type="number" class="input-field" id="inputTotalLaps" value="5" min="1" onchange="updateTotalLaps()">
+                <div class="hidden md:block">
+                    <h1 class="font-black text-white text-lg tracking-tight">KINETIC</h1>
+                    <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest leading-none">Contrôle v3.0</p>
                 </div>
             </div>
 
-            <!-- Ajouter un participant -->
-            <div class="admin-section">
-                <h2 class="section-title">➕ Ajouter un Participant</h2>
-                <div class="form-row">
-                    <input type="text" class="input-field" id="inputName" placeholder="Nom du participant">
-                    <input type="number" class="input-field" id="inputCarNumber" placeholder="N° voiture">
-                    <button class="btn-add" onclick="addParticipant()">
-                        ➕ Ajouter
-                    </button>
-                </div>
-            </div>
-
-            <!-- Liste des participants -->
-            <div class="admin-section">
-                <h2 class="section-title">👥 Participants</h2>
-                <div id="adminParticipantsList">
-                    <div class="empty-state">Aucun participant. Ajoutez-en un pour commencer.</div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Modal Simulateur de Capteurs -->
-    <div class="modal-backdrop" id="modalBackdrop" onclick="toggleSensorPanel()"></div>
-    <div class="modal-panel" id="modalPanel">
-        <div class="modal-header">
-            <div class="modal-header-content">
-                <div class="modal-title-group">
-                    <div class="modal-icon">📡</div>
-                    <div>
-                        <h2 class="modal-title">SIMULATEUR</h2>
-                        <p class="modal-subtitle">Testez vos capteurs en temps réel</p>
-                    </div>
-                </div>
-                <button class="btn-close" onclick="toggleSensorPanel()">✕</button>
-            </div>
-            <div class="connection-indicator">
-                <span>📶</span>
-                <span>Connecté au serveur Supabase</span>
-            </div>
-        </div>
-
-        <div class="modal-content">
-            <!-- Configuration -->
-            <div class="modal-section">
-                <h3 class="section-title">📻 Configuration</h3>
-                <label class="input-label">Numéro de voiture</label>
-                <input type="number" class="input-field" id="sensorCarNumber" placeholder="Ex: 42" style="text-align: center; font-size: 1.5rem; font-weight: 900;">
-            </div>
-
-            <!-- Déclencheurs -->
-            <div class="modal-section">
-                <h3 class="section-title">⚡ Déclencheurs</h3>
-                
-                <button class="sensor-btn idle" id="btnLapSensor" onclick="triggerLapSensor()">
-                    <div class="sensor-btn-content">
-                        <div class="sensor-icon-box">📻</div>
-                        <div class="sensor-info">
-                            <div class="sensor-title">Capteur de Ligne</div>
-                            <div class="sensor-desc">Détection passage chronométré</div>
-                        </div>
-                    </div>
-                    <div id="lapSensorIcon">⚪</div>
+            <nav class="flex-1 px-4 py-8 space-y-2">
+                <button onclick="switchView('dashboard')" id="nav-dashboard" class="nav-btn w-full flex items-center gap-3 p-3 rounded-lg transition-all bg-blue-600 text-white shadow-lg shadow-blue-900/50">
+                    <i data-lucide="layout-dashboard" class="w-6 h-6"></i>
+                    <span class="hidden md:block font-bold text-sm">Moniteur Course</span>
                 </button>
+                <button onclick="switchView('admin')" id="nav-admin" class="nav-btn w-full flex items-center gap-3 p-3 rounded-lg transition-all text-slate-400 hover:text-white hover:bg-slate-800">
+                    <i data-lucide="settings-2" class="w-6 h-6"></i>
+                    <span class="hidden md:block font-bold text-sm">Opérations</span>
+                </button>
+                <button onclick="switchView('logs')" id="nav-logs" class="nav-btn w-full flex items-center gap-3 p-3 rounded-lg transition-all text-slate-400 hover:text-white hover:bg-slate-800">
+                    <i data-lucide="terminal" class="w-6 h-6"></i>
+                    <span class="hidden md:block font-bold text-sm">Journaux Système</span>
+                </button>
+                
+                <div class="pt-4 pb-2">
+                    <div class="hidden md:block px-4 text-[9px] font-black text-slate-500 uppercase tracking-widest mb-2">Intégrations</div>
+                    <button onclick="switchView('connections')" id="nav-connections" class="nav-btn w-full flex items-center gap-3 p-3 rounded-lg transition-all text-slate-400 hover:text-white hover:bg-slate-800">
+                        <i data-lucide="database" class="w-6 h-6"></i>
+                        <span class="hidden md:block font-bold text-sm">AWS DynamoDB</span>
+                    </button>
+                </div>
+            </nav>
 
-                <button class="sensor-btn idle" id="btnCameraSensor" onclick="triggerCameraSensor()">
-                    <div class="sensor-btn-content">
-                        <div class="sensor-icon-box">📷</div>
-                        <div class="sensor-info">
-                            <div class="sensor-title">Caméra Position</div>
-                            <div class="sensor-desc">Vision par ordinateur</div>
-                        </div>
-                    </div>
-                    <div id="cameraSensorIcon">⚪</div>
+            <div class="p-4 mt-auto">
+                <button onclick="toggleSensorPanel()" id="sensor-toggle" class="w-full flex items-center gap-3 p-3 rounded-lg transition-all text-slate-400 hover:text-white hover:bg-slate-800">
+                    <i data-lucide="activity" class="w-6 h-6"></i>
+                    <span class="hidden md:block font-bold text-sm">Déclencheurs Manuels</span>
                 </button>
             </div>
+        </aside>
 
-            <!-- Guide d'intégration -->
-            <div class="info-box">
-                <div class="info-icon-box">⚡</div>
-                <div class="info-content">
-                    <h4>Guide d'intégration</h4>
-                    <p>Ce simulateur imite le comportement de vos capteurs physiques. Dans votre système réel, vos capteurs Arduino/Raspberry Pi enverront des requêtes POST aux mêmes endpoints.</p>
-                    <div class="info-endpoints">
-                        <div><span>POST</span> /sensor/lap</div>
-                        <div><span>POST</span> /camera/detect</div>
-                    </div>
+        <!-- Main Content -->
+        <main class="pl-20 md:pl-64 min-h-screen">
+            <!-- Top bar -->
+            <header class="h-16 bg-white border-b border-slate-200 sticky top-0 z-[90] px-8 flex items-center justify-between">
+                <div class="flex items-center gap-2 text-slate-400 text-xs font-bold uppercase tracking-widest">
+                    <span>Noyau</span>
+                    <i data-lucide="chevron-right" class="w-3 h-3"></i>
+                    <span class="text-slate-900" id="breadcrumb">Surveillance Course</span>
                 </div>
-            </div>
 
-            <!-- Statut des capteurs -->
-            <div class="modal-section">
-                <h3 class="section-title">📡 Statut des capteurs</h3>
-                <div class="status-list">
-                    <div class="status-item">
-                        <div class="status-item-label">
-                            <span>📻</span>
-                            <span>Capteur Ligne</span>
-                        </div>
-                        <div class="status-pill status-idle" id="lapSensorStatus">PRÊT</div>
+                <div class="flex items-center gap-6">
+                    <div class="flex items-center gap-2">
+                        <div id="status-indicator" class="w-2 h-2 rounded-full bg-slate-300"></div>
+                        <span class="text-[10px] font-black text-slate-500 uppercase tracking-widest" id="status-text">
+                            Système: En attente
+                        </span>
                     </div>
-                    <div class="status-item">
-                        <div class="status-item-label">
-                            <span>📷</span>
-                            <span>Caméra Position</span>
+                    <div class="h-6 w-px bg-slate-200"></div>
+                    <button class="relative p-2 text-slate-400 hover:text-slate-900 transition-colors">
+                        <i data-lucide="bell" class="w-5 h-5"></i>
+                        <span class="absolute top-1.5 right-1.5 w-2 h-2 bg-blue-600 rounded-full border-2 border-white"></span>
+                    </button>
+                </div>
+            </header>
+
+            <!-- Views Container -->
+            <div id="views-container" class="relative">
+                <!-- Dashboard View -->
+                <div id="view-dashboard" class="view-content"></div>
+                
+                <!-- Admin View -->
+                <div id="view-admin" class="view-content hidden"></div>
+                
+                <!-- Logs View -->
+                <div id="view-logs" class="view-content hidden"></div>
+                
+                <!-- Connections View -->
+                <div id="view-connections" class="view-content hidden"></div>
+            </div>
+        </main>
+
+        <!-- Sensor Panel Modal -->
+        <div id="sensor-modal" class="hidden">
+            <div class="modal-backdrop" onclick="toggleSensorPanel()"></div>
+            <div class="fixed inset-0 z-[200] flex items-center justify-center p-4" style="pointer-events: none;">
+                <div class="bg-white rounded-xl shadow-2xl overflow-hidden border border-slate-200 flex flex-col md:flex-row max-h-[90vh] w-full max-w-4xl" style="pointer-events: all;">
+                    <!-- Side HUD -->
+                    <div class="md:w-64 bg-slate-900 p-8 text-white flex flex-col">
+                        <div class="w-12 h-12 bg-blue-600 rounded-lg flex items-center justify-center mb-6 shadow-lg shadow-blue-500/20">
+                            <i data-lucide="activity" class="w-7 h-7 text-white"></i>
                         </div>
-                        <div class="status-pill status-idle" id="cameraSensorStatus">PRÊT</div>
+                        <h2 class="text-lg font-black leading-tight mb-2 tracking-tight uppercase">Diagnostic Matériel</h2>
+                        <p class="text-slate-500 text-[10px] font-bold uppercase tracking-widest mb-12">Suite de Tests E/S</p>
+
+                        <div class="space-y-4 mt-auto">
+                            <div class="flex items-center justify-between text-[10px] font-black uppercase tracking-widest text-slate-500">
+                                <span>Lien Serveur</span>
+                                <span class="text-emerald-500">Actif</span>
+                            </div>
+                            <div class="h-1 w-full bg-slate-800 rounded-full overflow-hidden">
+                                <div class="h-full bg-blue-600 w-full animate-pulse"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Main Panel -->
+                    <div class="flex-1 p-8 md:p-12 bg-slate-50/30 overflow-y-auto">
+                        <div class="flex justify-between items-center mb-10">
+                            <div class="flex items-center gap-2 text-slate-400">
+                                <i data-lucide="network" class="w-4 h-4"></i>
+                                <span class="text-[10px] font-black uppercase tracking-widest">Interface de Contrôle Système</span>
+                            </div>
+                            <button onclick="toggleSensorPanel()" class="p-2 hover:bg-white rounded-lg transition-colors border border-transparent hover:border-slate-200">
+                                <i data-lucide="x" class="w-5 h-5 text-slate-400"></i>
+                            </button>
+                        </div>
+
+                        <div class="space-y-12">
+                            <!-- Node Selection -->
+                            <div class="space-y-4">
+                                <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">ID Nœud Cible</label>
+                                <div class="relative group">
+                                    <input
+                                        type="number"
+                                        id="sensor-car-number"
+                                        placeholder="00"
+                                        class="w-full px-8 py-6 bg-white border border-slate-200 rounded-2xl text-slate-900 font-black text-5xl placeholder:text-slate-100 focus:border-blue-600 transition-all outline-none shadow-sm"
+                                    />
+                                    <div class="absolute right-8 top-1/2 -translate-y-1/2 font-black text-slate-200 text-sm tracking-widest">NUM_UNITÉ</div>
+                                </div>
+                            </div>
+
+                            <!-- Logic Triggers -->
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <button onclick="triggerLapSensor()" id="lap-sensor-btn" class="flex flex-col items-start gap-6 p-8 rounded-2xl border-2 transition-all bg-white border-slate-100 hover:border-blue-200 shadow-sm">
+                                    <div class="w-10 h-10 bg-slate-900 text-white rounded-lg flex items-center justify-center">
+                                        <i data-lucide="radio" class="w-5 h-5"></i>
+                                    </div>
+                                    <div class="text-left">
+                                        <div class="font-black text-slate-900 text-sm uppercase tracking-tight">Événement Franchissement Ligne</div>
+                                        <div class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Simuler Impulsion RF</div>
+                                    </div>
+                                </button>
+
+                                <button onclick="triggerCameraDetection()" id="camera-sensor-btn" class="flex flex-col items-start gap-6 p-8 rounded-2xl border-2 transition-all bg-white border-slate-100 hover:border-blue-200 shadow-sm">
+                                    <div class="w-10 h-10 bg-slate-900 text-white rounded-lg flex items-center justify-center">
+                                        <i data-lucide="camera" class="w-5 h-5"></i>
+                                    </div>
+                                    <div class="text-left">
+                                        <div class="font-black text-slate-900 text-sm uppercase tracking-tight">Capture Caméra</div>
+                                        <div class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Mise à Jour Nœud Vision</div>
+                                    </div>
+                                </button>
+                            </div>
+
+                            <!-- Dev Docs -->
+                            <div class="p-6 bg-slate-900 rounded-2xl border border-slate-800">
+                                <div class="flex gap-4 items-start">
+                                    <div class="p-2 bg-blue-500/10 rounded-lg">
+                                        <i data-lucide="zap" class="w-4 h-4 text-blue-400"></i>
+                                    </div>
+                                    <div class="space-y-2">
+                                        <p class="text-[10px] font-black text-blue-400 uppercase tracking-widest">Référence Développeur</p>
+                                        <p class="text-xs text-slate-400 leading-relaxed">
+                                            Pour intégrer du matériel physique (Arduino/ESP32), effectuez un <span class="text-slate-200 font-bold">JSON POST</span> vers le point d'accès <code class="text-blue-400">/sensor/lap</code>. Assurez-vous que la charge utile contient un entier <code class="text-blue-400">carNumber</code> valide.
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -1215,35 +273,25 @@
     </div>
 
     <script>
-        // Configuration
-        const SUPABASE_URL = 'https://pnzwfmjcuybafpvtvfla.supabase.co';
-        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBuendmbWpjdXliYWZwdnR2ZmxhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzY0Mjc5NTcsImV4cCI6MjA1MjAwMzk1N30.oP6yMYRqvKQHFz9Qg6EeHu_v3tpjjh1YTuOzaGxf30c';
-        const API_URL = `${SUPABASE_URL}/functions/v1/make-server-6fd941f6`;
+        // Application State
+        const state = {
+            currentView: 'dashboard',
+            participants: [],
+            raceStatus: 'waiting',
+            totalLaps: 5,
+            raceTime: 0,
+            logs: [],
+            connectionConfig: {
+                region: 'eu-west-1',
+                tableName: 'race-telemetry-v3',
+                status: 'disconnected',
+                lastSync: null
+            },
+            raceStartTime: null,
+            mockDynamoData: []
+        };
 
-        // État de l'application
-        let currentView = 'dashboard';
-        let participants = [];
-        let raceStatus = 'waiting';
-        let totalLaps = 5;
-        let raceTime = 0;
-        let raceStartTime = null;
-        let timerInterval = null;
-        let loadInterval = null;
-
-        // Créer les particules
-        function createParticles() {
-            const container = document.getElementById('particles');
-            for (let i = 0; i < 20; i++) {
-                const particle = document.createElement('div');
-                particle.className = 'particle';
-                particle.style.left = Math.random() * 100 + '%';
-                particle.style.animationDelay = Math.random() * 2 + 's';
-                particle.style.animationDuration = (Math.random() * 3 + 2) + 's';
-                container.appendChild(particle);
-            }
-        }
-
-        // Formater le temps
+        // Utility Functions
         function formatTime(ms) {
             const minutes = Math.floor(ms / 60000);
             const seconds = Math.floor((ms % 60000) / 1000);
@@ -1251,554 +299,918 @@
             return `${minutes}:${seconds.toString().padStart(2, '0')}.${milliseconds.toString().padStart(2, '0')}`;
         }
 
-        // Basculer entre les vues
-        function toggleView() {
-            currentView = currentView === 'dashboard' ? 'admin' : 'dashboard';
-            
-            if (currentView === 'dashboard') {
-                document.getElementById('viewDashboard').classList.add('active');
-                document.getElementById('viewAdmin').classList.remove('active');
-                document.getElementById('viewIcon').textContent = '🛡️';
-                document.getElementById('viewText').textContent = 'ADMIN';
-                document.getElementById('btnToggleView').className = 'nav-btn btn-admin';
-                startAutoLoad();
-            } else {
-                document.getElementById('viewAdmin').classList.add('active');
-                document.getElementById('viewDashboard').classList.remove('active');
-                document.getElementById('viewIcon').textContent = '📊';
-                document.getElementById('viewText').textContent = 'DASHBOARD';
-                document.getElementById('btnToggleView').className = 'nav-btn btn-dashboard';
-                stopAutoLoad();
-            }
-        }
-
-        // Basculer le panel de capteurs
-        function toggleSensorPanel() {
-            const backdrop = document.getElementById('modalBackdrop');
-            const panel = document.getElementById('modalPanel');
-            const btn = document.getElementById('btnCapteurs');
-            
-            if (backdrop.classList.contains('active')) {
-                backdrop.classList.remove('active');
-                panel.classList.remove('active');
-                btn.classList.remove('active');
-            } else {
-                backdrop.classList.add('active');
-                panel.classList.add('active');
-                btn.classList.add('active');
-            }
-        }
-
-        // Charger l'état depuis le serveur
-        async function loadRaceState() {
-            try {
-                const response = await fetch(`${API_URL}/race/state`, {
-                    headers: {
-                        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
-                    },
-                });
-                
-                if (response.ok) {
-                    const data = await response.json();
-                    console.log('État chargé:', data);
-                    
-                    participants = data.participants || [];
-                    raceStatus = data.status || 'waiting';
-                    totalLaps = data.totalLaps || 5;
-                    
-                    if (raceStatus !== 'racing') {
-                        raceTime = data.time || 0;
-                    }
-                    
-                    updateUI();
-                }
-            } catch (error) {
-                console.error('Erreur de chargement:', error);
-            }
-        }
-
-        // Sauvegarder l'état sur le serveur
-        async function saveRaceState() {
-            try {
-                await fetch(`${API_URL}/race/state`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
-                    },
-                    body: JSON.stringify({
-                        participants,
-                        status: raceStatus,
-                        time: raceTime,
-                        totalLaps,
-                    }),
-                });
-                console.log('État sauvegardé:', { status: raceStatus, time: raceTime });
-            } catch (error) {
-                console.error('Erreur de sauvegarde:', error);
-            }
-        }
-
-        // Démarrer le chronomètre
-        function startTimer() {
-            if (timerInterval) return;
-            
-            if (!raceStartTime) {
-                raceStartTime = Date.now() - raceTime;
-            }
-            
-            timerInterval = setInterval(() => {
-                raceTime = Date.now() - raceStartTime;
-                updateTimeDisplay();
-            }, 100);
-        }
-
-        // Arrêter le chronomètre
-        function stopTimer() {
-            if (timerInterval) {
-                clearInterval(timerInterval);
-                timerInterval = null;
-            }
-            raceStartTime = null;
-        }
-
-        // Démarrer le chargement automatique
-        function startAutoLoad() {
-            if (loadInterval) return;
-            loadInterval = setInterval(loadRaceState, 2000);
-        }
-
-        // Arrêter le chargement automatique
-        function stopAutoLoad() {
-            if (loadInterval) {
-                clearInterval(loadInterval);
-                loadInterval = null;
-            }
-        }
-
-        // Mettre à jour l'affichage du temps
-        function updateTimeDisplay() {
-            document.getElementById('dashboardTime').textContent = formatTime(raceTime);
-        }
-
-        // Démarrer la course
-        async function startRace() {
-            raceStatus = 'racing';
-            startTimer();
-            await saveRaceState();
-            updateUI();
-        }
-
-        // Mettre en pause la course
-        async function pauseRace() {
-            raceStatus = 'waiting';
-            stopTimer();
-            await saveRaceState();
-            updateUI();
-        }
-
-        // Terminer la course
-        async function finishRace() {
-            raceStatus = 'finished';
-            stopTimer();
-            await saveRaceState();
-            updateUI();
-        }
-
-        // Réinitialiser la course
-        async function resetRace() {
-            if (!confirm('Voulez-vous vraiment réinitialiser la course ?')) {
-                return;
-            }
-            
-            try {
-                await fetch(`${API_URL}/race/reset`, {
-                    method: 'POST',
-                    headers: {
-                        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
-                    },
-                });
-                
-                participants = [];
-                raceTime = 0;
-                raceStatus = 'waiting';
-                stopTimer();
-                updateUI();
-            } catch (error) {
-                console.error('Erreur de réinitialisation:', error);
-                alert('Erreur de connexion lors de la réinitialisation');
-            }
-        }
-
-        // Mettre à jour le nombre de tours
-        async function updateTotalLaps() {
-            totalLaps = parseInt(document.getElementById('inputTotalLaps').value) || 1;
-            await saveRaceState();
-        }
-
-        // Ajouter un participant
-        async function addParticipant() {
-            const name = document.getElementById('inputName').value.trim();
-            const carNumber = parseInt(document.getElementById('inputCarNumber').value);
-            
-            if (!name || !carNumber) {
-                alert('Veuillez remplir tous les champs');
-                return;
-            }
-            
-            if (participants.some(p => p.carNumber === carNumber)) {
-                alert(`Le numéro de voiture ${carNumber} est déjà utilisé !`);
-                return;
-            }
-            
-            participants.push({
-                id: Date.now().toString(),
-                name,
-                carNumber,
-                currentLap: 0,
-                totalTime: 0,
-                lastLapTime: 0,
+        function formatLogTime(ts) {
+            return new Date(ts).toLocaleTimeString('fr-FR', {
+                hour12: false,
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit',
+                fractionalSecondDigits: 2
             });
-            
-            document.getElementById('inputName').value = '';
-            document.getElementById('inputCarNumber').value = '';
-            
-            await saveRaceState();
-            updateUI();
         }
 
-        // Supprimer un participant
-        async function removeParticipant(id) {
-            if (!confirm('Voulez-vous vraiment supprimer ce participant ?')) {
-                return;
+        function addLog(message, type, source) {
+            const log = {
+                id: Math.random().toString(36).substr(2, 9),
+                timestamp: Date.now(),
+                message,
+                type,
+                source
+            };
+            state.logs.unshift(log);
+            if (state.logs.length > 100) state.logs.pop();
+            if (state.currentView === 'logs') renderLogsView();
+        }
+
+        // View Switching
+        function switchView(viewName) {
+            state.currentView = viewName;
+            
+            // Update navigation
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.classList.remove('bg-blue-600', 'text-white', 'shadow-lg', 'shadow-blue-900/50');
+                btn.classList.add('text-slate-400', 'hover:text-white', 'hover:bg-slate-800');
+            });
+            document.getElementById(`nav-${viewName}`).classList.add('bg-blue-600', 'text-white', 'shadow-lg', 'shadow-blue-900/50');
+            document.getElementById(`nav-${viewName}`).classList.remove('text-slate-400', 'hover:text-white', 'hover:bg-slate-800');
+
+            // Update breadcrumb
+            const breadcrumbs = {
+                dashboard: 'Surveillance Course',
+                admin: 'Centre Opérations',
+                logs: 'Audit Système',
+                connections: 'Pont Infrastructure'
+            };
+            document.getElementById('breadcrumb').textContent = breadcrumbs[viewName];
+
+            // Hide all views
+            document.querySelectorAll('.view-content').forEach(view => view.classList.add('hidden'));
+            
+            // Show current view
+            const viewElement = document.getElementById(`view-${viewName}`);
+            viewElement.classList.remove('hidden');
+            viewElement.classList.add('animate-slideIn');
+
+            // Render view
+            switch(viewName) {
+                case 'dashboard': renderDashboardView(); break;
+                case 'admin': renderAdminView(); break;
+                case 'logs': renderLogsView(); break;
+                case 'connections': renderConnectionsView(); break;
             }
-            
-            participants = participants.filter(p => p.id !== id);
-            await saveRaceState();
-            updateUI();
         }
 
-        // Compléter un tour
-        async function completeLap(id) {
-            const participant = participants.find(p => p.id === id);
-            if (participant && participant.currentLap < totalLaps) {
-                const lapTime = Math.random() * 20000 + 30000;
-                participant.currentLap++;
-                participant.totalTime += lapTime;
-                participant.lastLapTime = lapTime;
-                await saveRaceState();
-                updateUI();
-            }
-        }
-
-        // Mettre à jour un participant
-        async function updateParticipant(id, field, value) {
-            const participant = participants.find(p => p.id === id);
-            if (participant) {
-                participant[field] = value;
-                await saveRaceState();
-            }
-        }
-
-        // Mettre à jour l'interface
-        function updateUI() {
-            updateDashboard();
-            updateAdmin();
-        }
-
-        // Mettre à jour le dashboard
-        function updateDashboard() {
-            // Mettre à jour les stats
-            document.getElementById('dashboardTime').textContent = formatTime(raceTime);
-            document.getElementById('dashboardLaps').textContent = totalLaps;
-            
-            const statusText = raceStatus === 'racing' ? 'EN COURSE' : raceStatus === 'finished' ? 'TERMINÉ' : 'EN ATTENTE';
-            const statusIcon = raceStatus === 'racing' ? '⚡' : raceStatus === 'finished' ? '✅' : '⏸️';
-            document.getElementById('dashboardStatus').textContent = statusText;
-            document.getElementById('dashboardStatusIcon').textContent = statusIcon;
-            
-            if (raceStatus === 'racing') {
-                document.getElementById('dashboardStatusIcon').classList.add('status-racing');
-            } else {
-                document.getElementById('dashboardStatusIcon').classList.remove('status-racing');
-            }
-            
-            // Trier les participants
-            const sorted = [...participants].sort((a, b) => {
+        // Dashboard View
+        function renderDashboardView() {
+            const sortedParticipants = [...state.participants].sort((a, b) => {
                 if (a.currentLap !== b.currentLap) return b.currentLap - a.currentLap;
                 return a.totalTime - b.totalTime;
             });
-            
-            // Afficher les participants
-            const list = document.getElementById('participantsList');
-            list.innerHTML = sorted.map((p, index) => {
-                const position = index + 1;
-                const isLeader = position === 1;
-                const isFinished = p.currentLap >= totalLaps;
-                const progress = Math.min((p.currentLap / totalLaps) * 100, 100);
-                
-                let positionClass = 'position-other';
-                let positionContent = position;
-                if (position === 1) {
-                    positionClass = 'position-1';
-                    positionContent = '🏆';
-                } else if (position === 2) {
-                    positionClass = 'position-2';
-                } else if (position === 3) {
-                    positionClass = 'position-3';
+
+            const html = `
+                <div class="p-8 space-y-8 max-w-[1600px] mx-auto">
+                    <!-- Quick Stats Grid -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                        <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm animate-fadeIn">
+                            <div class="flex items-center gap-3 mb-3">
+                                <div class="p-2 bg-blue-50 rounded-lg"><i data-lucide="clock" class="w-5 h-5 text-blue-600"></i></div>
+                                <span class="text-xs font-black text-slate-400 uppercase tracking-widest">Temps Écoulé</span>
+                            </div>
+                            <div class="text-3xl font-mono font-bold text-slate-900 tabular-nums">${formatTime(state.raceTime)}</div>
+                        </div>
+
+                        <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm animate-fadeIn">
+                            <div class="flex items-center gap-3 mb-3">
+                                <div class="p-2 bg-slate-50 rounded-lg"><i data-lucide="flag" class="w-5 h-5 text-slate-600"></i></div>
+                                <span class="text-xs font-black text-slate-400 uppercase tracking-widest">Progression Globale</span>
+                            </div>
+                            <div class="text-3xl font-mono font-bold text-slate-900">
+                                ${sortedParticipants[0]?.currentLap || 0} <span class="text-slate-200">/</span> ${state.totalLaps}
+                            </div>
+                        </div>
+
+                        <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm animate-fadeIn">
+                            <div class="flex items-center gap-3 mb-3">
+                                <div class="p-2 bg-emerald-50 rounded-lg"><i data-lucide="zap" class="w-5 h-5 text-emerald-600"></i></div>
+                                <span class="text-xs font-black text-slate-400 uppercase tracking-widest">Statut</span>
+                            </div>
+                            <div class="text-xl font-black uppercase ${state.raceStatus === 'racing' ? 'text-emerald-600' : 'text-slate-400'}">
+                                ${state.raceStatus === 'racing' ? 'Course Active' : state.raceStatus === 'finished' ? 'Terminée' : 'En Attente'}
+                            </div>
+                        </div>
+
+                        <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm animate-fadeIn">
+                            <div class="flex items-center gap-3 mb-3">
+                                <div class="p-2 bg-amber-50 rounded-lg"><i data-lucide="users" class="w-5 h-5 text-amber-600"></i></div>
+                                <span class="text-xs font-black text-slate-400 uppercase tracking-widest">Participants</span>
+                            </div>
+                            <div class="text-3xl font-mono font-bold text-slate-900">${state.participants.length} Unités</div>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                        <!-- Main Leaderboard -->
+                        <div class="lg:col-span-2 space-y-4">
+                            <div class="flex items-center justify-between mb-2">
+                                <h2 class="text-sm font-black text-slate-900 uppercase tracking-widest flex items-center gap-2">
+                                    <i data-lucide="circle" class="w-3 h-3 fill-blue-600 text-blue-600"></i>
+                                    Classement en Direct
+                                </h2>
+                            </div>
+
+                            <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+                                <table class="w-full text-left">
+                                    <thead class="bg-slate-50 border-b border-slate-200">
+                                        <tr>
+                                            <th class="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Pos</th>
+                                            <th class="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Unité</th>
+                                            <th class="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Progression</th>
+                                            <th class="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Dernier Tour</th>
+                                            <th class="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">Temps Total</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="divide-y divide-slate-100">
+                                        ${sortedParticipants.length > 0 ? sortedParticipants.map((p, idx) => {
+                                            const position = idx + 1;
+                                            const progress = (p.currentLap / state.totalLaps) * 100;
+                                            return `
+                                                <tr class="group hover:bg-slate-50/50 transition-colors">
+                                                    <td class="px-6 py-5">
+                                                        <div class="w-8 h-8 rounded-lg flex items-center justify-center font-black text-sm ${position === 1 ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-500'}">
+                                                            ${position}
+                                                        </div>
+                                                    </td>
+                                                    <td class="px-6 py-5">
+                                                        <div class="flex items-center gap-4">
+                                                            <span class="text-lg font-black text-slate-300">#${p.carNumber.toString().padStart(2, '0')}</span>
+                                                            <span class="font-bold text-slate-900">${p.name}</span>
+                                                        </div>
+                                                    </td>
+                                                    <td class="px-6 py-5">
+                                                        <div class="w-32">
+                                                            <div class="flex justify-between text-[10px] font-bold text-slate-400 mb-1">
+                                                                <span>T${p.currentLap}</span>
+                                                                <span>${Math.round(progress)}%</span>
+                                                            </div>
+                                                            <div class="h-1.5 w-full bg-slate-100 rounded-full overflow-hidden">
+                                                                <div class="h-full bg-blue-600 progress-bar" style="width: ${Math.min(progress, 100)}%"></div>
+                                                            </div>
+                                                        </div>
+                                                    </td>
+                                                    <td class="px-6 py-5">
+                                                        <span class="font-mono text-sm font-bold text-slate-600">
+                                                            ${p.lastLapTime > 0 ? formatTime(p.lastLapTime) : '--:--.--'}
+                                                        </span>
+                                                    </td>
+                                                    <td class="px-6 py-5 text-right">
+                                                        <span class="font-mono font-bold text-slate-900 tabular-nums">
+                                                            ${formatTime(p.totalTime)}
+                                                        </span>
+                                                    </td>
+                                                </tr>
+                                            `;
+                                        }).join('') : `
+                                            <tr>
+                                                <td colspan="5" class="px-6 py-20 text-center">
+                                                    <p class="text-slate-400 font-medium">En attente des données participants...</p>
+                                                </td>
+                                            </tr>
+                                        `}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- Telemetry Column -->
+                        <div class="space-y-8">
+                            <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+                                <h3 class="text-sm font-black text-slate-900 uppercase tracking-widest mb-6 flex items-center gap-2">
+                                    <i data-lucide="trending-up" class="w-4 h-4 text-blue-600"></i>
+                                    Performance Tours
+                                </h3>
+                                <div class="h-64 flex items-center justify-center text-slate-300 text-xs font-bold uppercase tracking-widest">
+                                    Télémétrie Active
+                                </div>
+                            </div>
+
+                            <div class="bg-slate-900 p-8 rounded-xl text-white relative overflow-hidden">
+                                <div class="absolute top-0 right-0 w-32 h-32 bg-blue-500/10 rounded-full blur-3xl -mr-16 -mt-16"></div>
+                                <div class="relative">
+                                    <h3 class="text-xs font-black text-slate-400 uppercase tracking-widest mb-6">Configuration Circuit</h3>
+                                    <div class="space-y-4">
+                                        <div class="flex justify-between items-center py-3 border-b border-slate-800">
+                                            <span class="text-slate-400 text-xs font-bold uppercase">Circuit</span>
+                                            <span class="font-bold text-sm text-blue-400">Oméga Industriel</span>
+                                        </div>
+                                        <div class="flex justify-between items-center py-3 border-b border-slate-800">
+                                            <span class="text-slate-400 text-xs font-bold uppercase">Secteurs actifs</span>
+                                            <span class="font-bold text-sm">3 Actifs</span>
+                                        </div>
+                                        <div class="flex justify-between items-center py-3">
+                                            <span class="text-slate-400 text-xs font-bold uppercase">Temp. Air</span>
+                                            <span class="font-bold text-sm">24.2°C</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            ${state.raceStatus === 'finished' && sortedParticipants.length > 0 ? `
+                                <div class="bg-white p-6 rounded-xl border-2 border-blue-600 shadow-xl animate-fadeIn">
+                                    <h3 class="text-center font-black text-slate-900 uppercase tracking-widest mb-6">Classement Final</h3>
+                                    <div class="flex items-end justify-center gap-2">
+                                        ${sortedParticipants[1] ? `
+                                            <div class="flex-1">
+                                                <div class="h-16 bg-slate-100 rounded-t-lg flex items-center justify-center font-black text-slate-400">2</div>
+                                                <div class="text-[10px] font-black text-center mt-2 truncate">${sortedParticipants[1].name}</div>
+                                            </div>
+                                        ` : ''}
+                                        ${sortedParticipants[0] ? `
+                                            <div class="flex-1">
+                                                <div class="h-24 bg-blue-600 rounded-t-lg flex items-center justify-center font-black text-white">1</div>
+                                                <div class="text-[10px] font-black text-center mt-2 truncate">${sortedParticipants[0].name}</div>
+                                            </div>
+                                        ` : ''}
+                                        ${sortedParticipants[2] ? `
+                                            <div class="flex-1">
+                                                <div class="h-12 bg-slate-200 rounded-t-lg flex items-center justify-center font-black text-slate-500">3</div>
+                                                <div class="text-[10px] font-black text-center mt-2 truncate">${sortedParticipants[2].name}</div>
+                                            </div>
+                                        ` : ''}
+                                    </div>
+                                </div>
+                            ` : ''}
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('view-dashboard').innerHTML = html;
+            lucide.createIcons();
+        }
+
+        // Admin View
+        function renderAdminView() {
+            const html = `
+                <div class="p-8 max-w-[1400px] mx-auto space-y-8">
+                    <!-- Operation Dashboard Header -->
+                    <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+                        <div class="lg:col-span-3 grid grid-cols-1 md:grid-cols-3 gap-6">
+                            <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between">
+                                <div>
+                                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Mode Système</p>
+                                    <p class="text-xl font-black text-slate-900">${state.raceStatus === 'racing' ? 'OPÉRATIONNEL' : 'INACTIF'}</p>
+                                </div>
+                                <div class="w-3 h-3 rounded-full ${state.raceStatus === 'racing' ? 'bg-emerald-500 glow-emerald' : 'bg-slate-300'}"></div>
+                            </div>
+
+                            <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+                                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Compte Flotte</p>
+                                <p class="text-xl font-black text-slate-900">${state.participants.length} Nœuds Actifs</p>
+                            </div>
+
+                            <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+                                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Tours Cibles</p>
+                                <div class="flex items-center gap-2">
+                                    <input
+                                        type="number"
+                                        id="total-laps-input"
+                                        value="${state.totalLaps}"
+                                        onchange="updateTotalLaps(this.value)"
+                                        class="w-16 font-black text-xl text-slate-900 bg-transparent border-none p-0 focus:ring-0"
+                                    />
+                                    <span class="text-xs font-bold text-slate-300 uppercase">Configurés</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="bg-slate-900 p-6 rounded-xl text-white flex items-center gap-4">
+                            <i data-lucide="terminal" class="w-8 h-8 text-blue-400"></i>
+                            <div>
+                                <p class="text-[10px] font-black text-slate-500 uppercase tracking-widest leading-none">Console</p>
+                                <p class="text-sm font-bold">En attente d'entrée...</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                        <!-- Fleet Control Column -->
+                        <div class="lg:col-span-8 space-y-6">
+                            <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+                                <div class="px-6 py-4 border-b border-slate-100 bg-slate-50 flex items-center justify-between">
+                                    <h2 class="text-xs font-black text-slate-900 uppercase tracking-widest flex items-center gap-2">
+                                        <i data-lucide="users" class="w-4 h-4 text-blue-600"></i> Gestion Flotte
+                                    </h2>
+                                    <div class="flex gap-2">
+                                        <input
+                                            type="text"
+                                            id="new-participant-name"
+                                            placeholder="Nom"
+                                            class="h-9 px-3 bg-white border border-slate-200 rounded-lg text-sm font-medium focus:border-blue-500 outline-none transition-all w-40"
+                                        />
+                                        <input
+                                            type="number"
+                                            id="new-participant-number"
+                                            placeholder="#"
+                                            class="h-9 w-16 px-3 bg-white border border-slate-200 rounded-lg text-sm font-bold focus:border-blue-500 outline-none transition-all"
+                                        />
+                                        <button
+                                            onclick="addParticipant()"
+                                            class="h-9 px-4 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-black transition-all active:scale-95"
+                                        >
+                                            AJOUTER
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div class="divide-y divide-slate-100" id="participants-list">
+                                    ${state.participants.length > 0 ? state.participants.map(p => `
+                                        <div class="p-6 hover:bg-slate-50/50 transition-colors">
+                                            <div class="flex flex-col xl:flex-row xl:items-center gap-8">
+                                                <div class="flex items-center gap-4 min-w-[180px]">
+                                                    <div class="w-10 h-10 rounded-lg bg-slate-900 text-white flex items-center justify-center font-black">
+                                                        ${p.carNumber}
+                                                    </div>
+                                                    <input
+                                                        type="text"
+                                                        value="${p.name}"
+                                                        onchange="updateParticipant('${p.id}', 'name', this.value)"
+                                                        class="font-bold text-slate-900 bg-transparent border-none p-0 focus:ring-0 w-full"
+                                                    />
+                                                </div>
+
+                                                <div class="flex-1 grid grid-cols-2 md:grid-cols-3 gap-6">
+                                                    <div>
+                                                        <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1 block">Compteur Tours</label>
+                                                        <input
+                                                            type="number"
+                                                            value="${p.currentLap}"
+                                                            onchange="updateParticipant('${p.id}', 'currentLap', parseInt(this.value) || 0)"
+                                                            class="w-full h-9 px-3 bg-slate-50 border border-slate-100 rounded-lg text-sm font-bold focus:border-blue-300 outline-none"
+                                                        />
+                                                    </div>
+                                                    <div class="col-span-2">
+                                                        <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1 block">Données Temporelles (ms)</label>
+                                                        <input
+                                                            type="number"
+                                                            value="${p.totalTime}"
+                                                            onchange="updateParticipant('${p.id}', 'totalTime', parseInt(this.value) || 0)"
+                                                            class="w-full h-9 px-3 bg-slate-50 border border-slate-100 rounded-lg text-sm font-mono font-bold focus:border-blue-300 outline-none"
+                                                        />
+                                                    </div>
+                                                </div>
+
+                                                <div class="flex items-center gap-3">
+                                                    <button
+                                                        onclick="completeLap('${p.id}')"
+                                                        ${p.currentLap >= state.totalLaps ? 'disabled' : ''}
+                                                        class="flex items-center justify-center gap-2 h-10 px-6 bg-slate-900 text-white rounded-lg text-xs font-black transition-all hover:bg-slate-800 disabled:bg-slate-100 disabled:text-slate-300"
+                                                    >
+                                                        <i data-lucide="save" class="w-3.5 h-3.5"></i> IMPULSION
+                                                    </button>
+                                                    <button
+                                                        onclick="removeParticipant('${p.id}')"
+                                                        class="p-2.5 text-slate-300 hover:text-red-500 transition-colors"
+                                                    >
+                                                        <i data-lucide="trash-2" class="w-5 h-5"></i>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    `).join('') : `
+                                        <div class="p-20 text-center">
+                                            <i data-lucide="cpu" class="w-12 h-12 text-slate-200 mx-auto mb-4"></i>
+                                            <p class="text-slate-400 font-medium">Aucune unité enregistrée dans le tampon local.</p>
+                                        </div>
+                                    `}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Global Controls Column -->
+                        <div class="lg:col-span-4 space-y-6">
+                            <div class="bg-white p-8 rounded-xl border border-slate-200 shadow-sm space-y-6">
+                                <h3 class="text-xs font-black text-slate-900 uppercase tracking-widest flex items-center gap-2">
+                                    <i data-lucide="settings" class="w-4 h-4 text-blue-600"></i> Opérations Globales
+                                </h3>
+                                
+                                <div class="space-y-3">
+                                    <button
+                                        onclick="setRaceStatus('racing')"
+                                        ${state.raceStatus === 'racing' ? 'disabled' : ''}
+                                        class="w-full h-14 rounded-xl font-black text-sm tracking-widest transition-all flex items-center justify-center gap-3 ${state.raceStatus === 'racing' ? 'bg-slate-100 text-slate-300' : 'bg-blue-600 text-white hover:bg-blue-700 shadow-lg shadow-blue-200'}"
+                                    >
+                                        <i data-lucide="play" class="w-5 h-5"></i> LANCER COURSE
+                                    </button>
+
+                                    <div class="grid grid-cols-2 gap-3">
+                                        <button
+                                            onclick="setRaceStatus('waiting')"
+                                            ${state.raceStatus !== 'racing' ? 'disabled' : ''}
+                                            class="h-14 rounded-xl border-2 border-slate-200 font-black text-xs text-slate-600 hover:bg-slate-50 transition-all disabled:opacity-30 flex items-center justify-center gap-2"
+                                        >
+                                            <i data-lucide="pause" class="w-4 h-4"></i> PAUSE
+                                        </button>
+                                        <button
+                                            onclick="setRaceStatus('finished')"
+                                            class="h-14 rounded-xl border-2 border-slate-200 font-black text-xs text-slate-600 hover:bg-slate-50 transition-all flex items-center justify-center gap-2"
+                                        >
+                                            <i data-lucide="flag" class="w-4 h-4"></i> TERMINER
+                                        </button>
+                                    </div>
+
+                                    <div class="pt-6">
+                                        <button
+                                            onclick="resetRace()"
+                                            class="w-full h-12 rounded-xl bg-red-50 text-red-600 font-black text-xs hover:bg-red-100 transition-all flex items-center justify-center gap-2"
+                                        >
+                                            <i data-lucide="shield-alert" class="w-4 h-4"></i> RÉINITIALISATION D'URGENCE
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="bg-blue-50 p-6 rounded-xl border border-blue-100">
+                                <div class="flex gap-4">
+                                    <div class="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center flex-shrink-0">
+                                        <i data-lucide="terminal" class="w-5 h-5 text-white"></i>
+                                    </div>
+                                    <div>
+                                        <p class="text-xs font-black text-blue-900 uppercase tracking-widest mb-1">Rapport de Statut</p>
+                                        <p class="text-xs text-blue-700 font-medium leading-relaxed">
+                                            Le système se synchronise actuellement avec le serveur périphérique. Toutes les interventions manuelles seront enregistrées et diffusées au Moniteur de Course.
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('view-admin').innerHTML = html;
+            lucide.createIcons();
+        }
+
+        // Logs View
+        function renderLogsView() {
+            const getIcon = (type) => {
+                switch (type) {
+                    case 'success': return '<i data-lucide="check-circle" class="w-4 h-4 text-emerald-500"></i>';
+                    case 'warning': return '<i data-lucide="alert-triangle" class="w-4 h-4 text-amber-500"></i>';
+                    case 'error': return '<i data-lucide="x-circle" class="w-4 h-4 text-red-500"></i>';
+                    default: return '<i data-lucide="info" class="w-4 h-4 text-blue-500"></i>';
                 }
-                
-                return `
-                    <div class="participant-card ${isLeader ? 'leader' : ''}">
-                        <div class="participant-content">
-                            <div class="position-badge ${positionClass}">${positionContent}</div>
-                            <div class="car-number">#${p.carNumber}</div>
-                            <div class="participant-info">
-                                <h3 class="participant-name">${p.name}</h3>
-                                <div class="participant-stats">
-                                    <div><span>Tours: </span><strong>${p.currentLap}/${totalLaps}</strong></div>
-                                    <div><span>Temps total: </span><strong>${formatTime(p.totalTime)}</strong></div>
-                                    ${p.lastLapTime > 0 ? `<div><span>Dernier tour: </span><strong>${formatTime(p.lastLapTime)}</strong></div>` : ''}
-                                </div>
+            };
+
+            const html = `
+                <div class="p-8 max-w-[1400px] mx-auto space-y-6">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-4">
+                            <div class="w-10 h-10 bg-slate-900 rounded-lg flex items-center justify-center">
+                                <i data-lucide="terminal" class="w-6 h-6 text-white"></i>
                             </div>
-                            <div class="progress-container">
-                                <div class="progress-label">Progression</div>
-                                <div class="progress-bar">
-                                    <div class="progress-fill" style="width: ${progress}%"></div>
-                                </div>
-                                <div class="progress-percent">${Math.round(progress)}%</div>
+                            <div>
+                                <h2 class="text-xl font-black text-slate-900 tracking-tight uppercase">Journaux Système</h2>
+                                <p class="text-xs font-bold text-slate-400 uppercase tracking-widest">Audit d'activité en temps réel</p>
                             </div>
-                            ${isFinished ? '<div class="finished-badge">TERMINÉ</div>' : ''}
                         </div>
+                        
+                        <button 
+                            onclick="clearLogs()"
+                            class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-lg text-xs font-black transition-all"
+                        >
+                            TOUT EFFACER
+                        </button>
                     </div>
-                `;
-            }).join('');
-            
-            // Afficher le podium si la course est terminée
-            const podiumContainer = document.getElementById('podiumContainer');
-            if (raceStatus === 'finished') {
-                podiumContainer.innerHTML = `
-                    <div class="podium">
-                        <h2 class="podium-title">🏆 PODIUM 🏆</h2>
-                        <div class="podium-stands">
-                            ${sorted[1] ? `
-                                <div class="podium-stand podium-stand-2">
-                                    <div class="podium-emoji">🥈</div>
-                                    <div class="podium-name">${sorted[1].name}</div>
-                                    <div>${formatTime(sorted[1].totalTime)}</div>
+
+                    <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden flex flex-col" style="height: calc(100vh - 250px);">
+                        <div class="p-4 border-b border-slate-100 bg-slate-50 flex items-center gap-4">
+                            <div class="relative flex-1">
+                                <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400"></i>
+                                <input 
+                                    type="text" 
+                                    placeholder="Filtrer les journaux..." 
+                                    class="w-full pl-10 pr-4 py-2 bg-white border border-slate-200 rounded-lg text-xs font-medium focus:border-blue-500 outline-none"
+                                />
+                            </div>
+                            <button class="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 rounded-lg text-[10px] font-black text-slate-400 hover:text-slate-900 transition-all uppercase tracking-widest">
+                                <i data-lucide="filter" class="w-3 h-3"></i> Filtrer
+                            </button>
+                        </div>
+
+                        <div class="flex-1 overflow-y-auto p-4 space-y-1 font-mono text-[11px]">
+                            ${state.logs.map(log => `
+                                <div class="group flex items-start gap-4 p-2 hover:bg-slate-50 rounded transition-colors">
+                                    <span class="text-slate-400 font-bold shrink-0">[${formatLogTime(log.timestamp)}]</span>
+                                    <span class="shrink-0">${getIcon(log.type)}</span>
+                                    <span class="w-24 font-black uppercase tracking-widest text-slate-400 shrink-0">${log.source}</span>
+                                    <span class="text-slate-700 font-medium">${log.message}</span>
                                 </div>
-                            ` : ''}
-                            ${sorted[0] ? `
-                                <div class="podium-stand podium-stand-1">
-                                    <div class="podium-emoji">🥇</div>
-                                    <div class="podium-name">${sorted[0].name}</div>
-                                    <div style="font-size: 1.125rem;">${formatTime(sorted[0].totalTime)}</div>
-                                </div>
-                            ` : ''}
-                            ${sorted[2] ? `
-                                <div class="podium-stand podium-stand-3">
-                                    <div class="podium-emoji">🥉</div>
-                                    <div class="podium-name">${sorted[2].name}</div>
-                                    <div>${formatTime(sorted[2].totalTime)}</div>
+                            `).join('')}
+                            ${state.logs.length === 0 ? `
+                                <div class="h-full flex flex-col items-center justify-center text-slate-300 py-20">
+                                    <i data-lucide="clock" class="w-12 h-12 mb-4 opacity-20"></i>
+                                    <p class="font-bold uppercase tracking-widest">Tampon vide. En attente d'événements système...</p>
                                 </div>
                             ` : ''}
                         </div>
+
+                        <div class="p-3 bg-slate-900 text-slate-500 text-[10px] font-bold uppercase tracking-[0.2em] flex justify-between">
+                            <span>Tampon: ${state.logs.length} entrées</span>
+                            <span class="flex items-center gap-2">
+                                <span class="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse"></span>
+                                Flux: Actif
+                            </span>
+                        </div>
                     </div>
-                `;
+                </div>
+            `;
+
+            document.getElementById('view-logs').innerHTML = html;
+            lucide.createIcons();
+        }
+
+        // Connections View
+        function renderConnectionsView() {
+            const html = `
+                <div class="p-8 max-w-[1400px] mx-auto space-y-8">
+                    <div class="flex items-center gap-4">
+                        <div class="w-10 h-10 bg-slate-900 rounded-lg flex items-center justify-center">
+                            <i data-lucide="database" class="w-6 h-6 text-white"></i>
+                        </div>
+                        <div>
+                            <h2 class="text-xl font-black text-slate-900 tracking-tight uppercase">Infrastructure AWS</h2>
+                            <p class="text-xs font-bold text-slate-400 uppercase tracking-widest">Pont Capteurs DynamoDB</p>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                        <div class="lg:col-span-5 space-y-6">
+                            <div class="bg-white p-8 rounded-xl border border-slate-200 shadow-sm space-y-6">
+                                <h3 class="text-xs font-black text-slate-900 uppercase tracking-widest flex items-center gap-2">
+                                    <i data-lucide="settings" class="w-4 h-4 text-blue-600"></i> Configuration
+                                </h3>
+
+                                <div class="space-y-4">
+                                    <div>
+                                        <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 block">Région</label>
+                                        <select 
+                                            id="aws-region"
+                                            onchange="updateConnectionConfig('region', this.value)"
+                                            class="w-full h-12 px-4 bg-slate-50 border border-slate-200 rounded-lg text-sm font-bold outline-none focus:border-blue-500"
+                                        >
+                                            <option value="eu-west-1" ${state.connectionConfig.region === 'eu-west-1' ? 'selected' : ''}>eu-west-1 (Irlande)</option>
+                                            <option value="us-east-1" ${state.connectionConfig.region === 'us-east-1' ? 'selected' : ''}>us-east-1 (N. Virginie)</option>
+                                            <option value="eu-central-1" ${state.connectionConfig.region === 'eu-central-1' ? 'selected' : ''}>eu-central-1 (Francfort)</option>
+                                        </select>
+                                    </div>
+
+                                    <div>
+                                        <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 block">Nom de Table</label>
+                                        <input 
+                                            type="text"
+                                            id="table-name"
+                                            value="${state.connectionConfig.tableName}"
+                                            onchange="updateConnectionConfig('tableName', this.value)"
+                                            class="w-full h-12 px-4 bg-slate-50 border border-slate-200 rounded-lg text-sm font-bold outline-none focus:border-blue-500"
+                                            placeholder="race-telemetry-v3"
+                                        />
+                                    </div>
+
+                                    <div class="pt-4 space-y-3">
+                                        ${state.connectionConfig.status === 'disconnected' ? `
+                                            <button
+                                                onclick="connectAWS()"
+                                                class="w-full h-12 bg-slate-900 hover:bg-black text-white rounded-lg text-xs font-black tracking-widest transition-all flex items-center justify-center gap-3"
+                                            >
+                                                <i data-lucide="link-2" class="w-4 h-4"></i>
+                                                ÉTABLIR LE PONT
+                                            </button>
+                                        ` : `
+                                            <button
+                                                onclick="disconnectAWS()"
+                                                class="w-full h-12 bg-red-50 text-red-600 hover:bg-red-100 rounded-lg text-xs font-black tracking-widest transition-all flex items-center justify-center gap-3"
+                                            >
+                                                TERMINER LA CONNEXION
+                                            </button>
+                                        `}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="bg-slate-900 p-8 rounded-xl text-white relative overflow-hidden">
+                                <div class="absolute top-0 right-0 w-32 h-32 bg-blue-500/10 rounded-full blur-3xl -mr-16 -mt-16"></div>
+                                <div class="relative space-y-4">
+                                    <div class="flex items-center justify-between">
+                                        <span class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Statut Rôle IAM</span>
+                                        <span class="text-[10px] font-black text-emerald-500 uppercase tracking-widest flex items-center gap-1">
+                                            <i data-lucide="shield-check" class="w-3 h-3"></i> Autorisé
+                                        </span>
+                                    </div>
+                                    <p class="text-xs text-slate-400 leading-relaxed">
+                                        KINETIC OS utilise des permissions IAM granulaires pour interroger les données des capteurs. Assurez-vous que le rôle d'exécution dispose des droits <code class="text-blue-400">dynamodb:GetItem</code> et <code class="text-blue-400">dynamodb:Query</code>.
+                                    </p>
+                                    <div class="pt-2">
+                                        <button class="text-[10px] font-black text-blue-400 uppercase tracking-widest flex items-center gap-2 hover:text-blue-300 transition-colors">
+                                            Voir Documentation AWS <i data-lucide="external-link" class="w-3 h-3"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="lg:col-span-7 space-y-6">
+                            <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden flex flex-col min-h-[500px]">
+                                <div class="px-6 py-4 border-b border-slate-100 bg-slate-50 flex items-center justify-between">
+                                    <h3 class="text-xs font-black text-slate-900 uppercase tracking-widest flex items-center gap-2">
+                                        <i data-lucide="activity" class="w-4 h-4 text-emerald-600"></i> Explorateur de Flux en Direct
+                                    </h3>
+                                    <div class="flex items-center gap-2">
+                                        <span class="w-2 h-2 rounded-full ${state.connectionConfig.status === 'connected' ? 'bg-emerald-500 animate-pulse' : 'bg-slate-300'}"></span>
+                                        <span class="text-[10px] font-black text-slate-500 uppercase tracking-widest">
+                                            ${state.connectionConfig.status === 'connected' ? 'En Diffusion' : 'Aucun Signal'}
+                                        </span>
+                                    </div>
+                                </div>
+
+                                <div class="flex-1 p-6" id="dynamo-stream">
+                                    ${state.connectionConfig.status === 'connected' ? `
+                                        <div class="space-y-3">
+                                            ${state.mockDynamoData.map((item, idx) => `
+                                                <div class="p-4 bg-slate-50 border border-slate-100 rounded-lg flex items-center justify-between animate-fadeIn">
+                                                    <div class="flex items-center gap-4">
+                                                        <div class="w-8 h-8 bg-white border border-slate-200 rounded flex items-center justify-center">
+                                                            <i data-lucide="cpu" class="w-4 h-4 text-slate-400"></i>
+                                                        </div>
+                                                        <div>
+                                                            <p class="text-xs font-black text-slate-900">${item.sensor_id}</p>
+                                                            <p class="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Paquet Télémétrique</p>
+                                                        </div>
+                                                    </div>
+                                                    <div class="text-right">
+                                                        <p class="text-sm font-black text-blue-600 tabular-nums">${item.value}%</p>
+                                                        <p class="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Signal: ${100 - idx * 2}%</p>
+                                                    </div>
+                                                </div>
+                                            `).join('')}
+                                        </div>
+                                    ` : `
+                                        <div class="h-full flex flex-col items-center justify-center text-slate-300 py-20">
+                                            <i data-lucide="server" class="w-12 h-12 mb-4 opacity-10"></i>
+                                            <p class="font-bold uppercase tracking-widest">Établir le pont pour voir le flux</p>
+                                        </div>
+                                    `}
+                                </div>
+
+                                <div class="p-4 border-t border-slate-100 bg-slate-50">
+                                    <div class="flex justify-between items-center text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                                        <span>Partitions: 01</span>
+                                        <span>Latence: 14ms</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('view-connections').innerHTML = html;
+            lucide.createIcons();
+        }
+
+        // Modal Functions
+        function toggleSensorPanel() {
+            const modal = document.getElementById('sensor-modal');
+            if (modal.classList.contains('hidden')) {
+                modal.classList.remove('hidden');
+                document.getElementById('sensor-toggle').classList.add('bg-slate-800', 'text-blue-400', 'border', 'border-blue-400/30');
+                lucide.createIcons();
             } else {
-                podiumContainer.innerHTML = '';
+                modal.classList.add('hidden');
+                document.getElementById('sensor-toggle').classList.remove('bg-slate-800', 'text-blue-400', 'border', 'border-blue-400/30');
             }
         }
 
-        // Mettre à jour l'admin
-        function updateAdmin() {
-            // Mettre à jour le badge de statut
-            const badge = document.getElementById('statusBadge');
-            const statusText = raceStatus === 'racing' ? '🏁 EN COURSE' : raceStatus === 'finished' ? '✅ TERMINÉ' : '⏸️ EN ATTENTE';
-            const statusClass = raceStatus === 'racing' ? 'status-racing' : raceStatus === 'finished' ? 'status-finished' : 'status-waiting';
+        // Race Functions
+        function setRaceStatus(status) {
+            const oldStatus = state.raceStatus;
+            state.raceStatus = status;
             
-            badge.textContent = statusText;
-            badge.className = `status-badge ${statusClass}`;
-            
-            // Mettre à jour les boutons
-            document.getElementById('btnStart').disabled = raceStatus === 'racing';
-            document.getElementById('btnPause').disabled = raceStatus !== 'racing';
-            
-            // Mettre à jour l'input des tours
-            document.getElementById('inputTotalLaps').value = totalLaps;
-            
-            // Afficher la liste des participants
-            const list = document.getElementById('adminParticipantsList');
-            if (participants.length === 0) {
-                list.innerHTML = '<div class="empty-state">Aucun participant. Ajoutez-en un pour commencer.</div>';
-            } else {
-                list.innerHTML = participants.map(p => `
-                    <div class="participant-item">
-                        <div class="participant-item-content">
-                            <div class="participant-number">#${p.carNumber}</div>
-                            <div class="participant-fields">
-                                <input type="text" value="${p.name}" onchange="updateParticipant('${p.id}', 'name', this.value)">
-                                <div class="participant-inputs">
-                                    <div>
-                                        <label>Tours</label>
-                                        <input type="number" value="${p.currentLap}" onchange="updateParticipant('${p.id}', 'currentLap', parseInt(this.value) || 0)">
-                                    </div>
-                                    <div>
-                                        <label>Temps total (ms)</label>
-                                        <input type="number" value="${p.totalTime}" onchange="updateParticipant('${p.id}', 'totalTime', parseInt(this.value) || 0)">
-                                    </div>
-                                    <div>
-                                        <label>Dernier tour (ms)</label>
-                                        <input type="number" value="${p.lastLapTime}" onchange="updateParticipant('${p.id}', 'lastLapTime', parseInt(this.value) || 0)">
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="participant-actions">
-                                <button class="btn-lap" onclick="completeLap('${p.id}')" ${p.currentLap >= totalLaps ? 'disabled' : ''}>
-                                    +1 Tour
-                                </button>
-                                <button class="btn-delete" onclick="removeParticipant('${p.id}')">
-                                    🗑️
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                `).join('');
+            if (status === 'racing' && !state.raceStartTime) {
+                state.raceStartTime = Date.now() - state.raceTime;
+                addLog('Race timer started', 'info', 'TIMER');
+            } else if (status !== 'racing') {
+                state.raceStartTime = null;
             }
+            
+            if (oldStatus !== status) {
+                addLog(`Race status changed to ${status}`, 'info', 'SYSTEM');
+            }
+            
+            updateStatusIndicator();
+            renderCurrentView();
         }
 
-        // Déclencher le capteur de ligne
-        async function triggerLapSensor() {
-            const carNumber = parseInt(document.getElementById('sensorCarNumber').value);
-            if (!carNumber) {
-                alert('Veuillez entrer un numéro de voiture');
+        function resetRace() {
+            if (!confirm('Voulez-vous vraiment réinitialiser la course ?')) return;
+            
+            state.participants = [];
+            state.raceTime = 0;
+            state.raceStatus = 'waiting';
+            state.raceStartTime = null;
+            
+            addLog('Race reset by operator', 'warning', 'SYSTEM');
+            updateStatusIndicator();
+            renderCurrentView();
+        }
+
+        function updateTotalLaps(value) {
+            state.totalLaps = parseInt(value) || 1;
+            addLog(`Total laps set to ${state.totalLaps}`, 'info', 'CONFIG');
+            renderCurrentView();
+        }
+
+        // Participant Functions
+        function addParticipant() {
+            const name = document.getElementById('new-participant-name').value;
+            const number = document.getElementById('new-participant-number').value;
+            
+            if (!name || !number) return;
+            
+            if (state.participants.some(p => p.carNumber === parseInt(number))) {
+                alert(`Le numéro de voiture ${number} est déjà utilisé !`);
                 return;
             }
             
-            setSensorStatus('lap', 'detecting');
+            const participant = {
+                id: Date.now().toString(),
+                name,
+                carNumber: parseInt(number),
+                currentLap: 0,
+                totalTime: 0,
+                lastLapTime: 0
+            };
             
-            try {
-                const response = await fetch(`${API_URL}/sensor/lap`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
-                    },
-                    body: JSON.stringify({
-                        carNumber,
-                        timestamp: Date.now(),
-                    }),
-                });
-                
-                if (response.ok) {
-                    const data = await response.json();
-                    console.log('Tour enregistré:', data);
-                    setSensorStatus('lap', 'success');
-                    setTimeout(() => setSensorStatus('lap', 'idle'), 1500);
-                } else {
-                    const error = await response.json();
-                    console.error('Erreur:', error);
-                    alert(`Erreur: ${error.error}`);
-                    setSensorStatus('lap', 'idle');
-                }
-            } catch (error) {
-                console.error('Erreur:', error);
-                setSensorStatus('lap', 'idle');
+            state.participants.push(participant);
+            addLog(`Added participant ${name} (#${number})`, 'success', 'FLEET');
+            
+            document.getElementById('new-participant-name').value = '';
+            document.getElementById('new-participant-number').value = '';
+            
+            renderCurrentView();
+        }
+
+        function removeParticipant(id) {
+            const p = state.participants.find(x => x.id === id);
+            if (!confirm('Voulez-vous vraiment supprimer ce participant ?')) return;
+            
+            state.participants = state.participants.filter(p => p.id !== id);
+            addLog(`Removed unit ${p?.name || id}`, 'warning', 'FLEET');
+            renderCurrentView();
+        }
+
+        function updateParticipant(id, field, value) {
+            const participant = state.participants.find(p => p.id === id);
+            if (participant) {
+                participant[field] = value;
+                renderCurrentView();
             }
         }
 
-        // Déclencher la caméra
-        async function triggerCameraSensor() {
-            const carNumber = parseInt(document.getElementById('sensorCarNumber').value);
-            if (!carNumber) {
-                alert('Veuillez entrer un numéro de voiture');
-                return;
-            }
-            
-            setSensorStatus('camera', 'detecting');
-            
-            try {
-                const response = await fetch(`${API_URL}/camera/detect`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
-                    },
-                    body: JSON.stringify({
-                        carNumber,
-                        position: Math.floor(Math.random() * 100),
-                        timestamp: Date.now(),
-                    }),
-                });
-                
-                if (response.ok) {
-                    const data = await response.json();
-                    console.log('Détection caméra:', data);
-                    setSensorStatus('camera', 'success');
-                    setTimeout(() => setSensorStatus('camera', 'idle'), 1500);
-                } else {
-                    const error = await response.json();
-                    console.error('Erreur:', error);
-                    alert(`Erreur: ${error.error}`);
-                    setSensorStatus('camera', 'idle');
-                }
-            } catch (error) {
-                console.error('Erreur:', error);
-                setSensorStatus('camera', 'idle');
+        function completeLap(id) {
+            const participant = state.participants.find(p => p.id === id);
+            if (participant && participant.currentLap < state.totalLaps) {
+                const lapTime = Math.random() * 20000 + 30000;
+                participant.currentLap += 1;
+                participant.totalTime += lapTime;
+                participant.lastLapTime = lapTime;
+                addLog(`Unit #${participant.carNumber} completed lap ${participant.currentLap}`, 'info', 'SENSOR');
+                renderCurrentView();
             }
         }
 
-        // Mettre à jour le statut d'un capteur
-        function setSensorStatus(sensor, status) {
-            const btnId = sensor === 'lap' ? 'btnLapSensor' : 'btnCameraSensor';
-            const iconId = sensor === 'lap' ? 'lapSensorIcon' : 'cameraSensorIcon';
-            const statusId = sensor === 'lap' ? 'lapSensorStatus' : 'cameraSensorStatus';
+        // Sensor Functions
+        function triggerLapSensor() {
+            const carNumber = document.getElementById('sensor-car-number').value;
+            if (!carNumber) return;
             
-            const btn = document.getElementById(btnId);
-            const icon = document.getElementById(iconId);
-            const statusEl = document.getElementById(statusId);
-            
-            btn.className = `sensor-btn ${status}`;
-            btn.disabled = status === 'detecting';
-            
-            if (status === 'detecting') {
-                icon.innerHTML = '⏳';
-                icon.classList.add('spin');
-                statusEl.textContent = 'DÉTECTION...';
-                statusEl.className = 'status-pill status-detecting';
-            } else if (status === 'success') {
-                icon.innerHTML = '✅';
-                icon.classList.remove('spin');
-                statusEl.textContent = 'SUCCÈS';
-                statusEl.className = 'status-pill status-success';
+            const participant = state.participants.find(p => p.carNumber === parseInt(carNumber));
+            if (participant) {
+                completeLap(participant.id);
+                addLog(`Manual sensor pulse for car #${carNumber}`, 'success', 'RF_MOCK');
+                
+                const btn = document.getElementById('lap-sensor-btn');
+                btn.classList.add('bg-emerald-50', 'border-emerald-500/20');
+                setTimeout(() => {
+                    btn.classList.remove('bg-emerald-50', 'border-emerald-500/20');
+                }, 1500);
             } else {
-                icon.innerHTML = '⚪';
-                icon.classList.remove('spin');
-                statusEl.textContent = 'PRÊT';
-                statusEl.className = 'status-pill status-idle';
+                addLog(`Car #${carNumber} not found in fleet`, 'error', 'RF_MOCK');
             }
         }
 
-        // Gérer le chronomètre en fonction du statut
+        function triggerCameraDetection() {
+            const carNumber = document.getElementById('sensor-car-number').value;
+            if (!carNumber) return;
+            
+            addLog(`Camera node detection: Unit #${carNumber}`, 'success', 'VISION');
+            
+            const btn = document.getElementById('camera-sensor-btn');
+            btn.classList.add('bg-emerald-50', 'border-emerald-500/20');
+            setTimeout(() => {
+                btn.classList.remove('bg-emerald-50', 'border-emerald-500/20');
+            }, 1500);
+        }
+
+        // Connection Functions
+        function updateConnectionConfig(field, value) {
+            state.connectionConfig[field] = value;
+            renderConnectionsView();
+        }
+
+        function connectAWS() {
+            addLog(`Attempting handshake with DynamoDB at ${state.connectionConfig.region}...`, 'info', 'AWS');
+            
+            setTimeout(() => {
+                state.connectionConfig.status = 'connected';
+                state.connectionConfig.lastSync = Date.now();
+                addLog(`Secure connection established with table: ${state.connectionConfig.tableName}`, 'success', 'AWS');
+                renderConnectionsView();
+                startDynamoStream();
+            }, 2000);
+        }
+
+        function disconnectAWS() {
+            state.connectionConfig.status = 'disconnected';
+            state.mockDynamoData = [];
+            addLog(`Disconnected from DynamoDB cluster`, 'warning', 'AWS');
+            renderConnectionsView();
+        }
+
+        function startDynamoStream() {
+            setInterval(() => {
+                if (state.connectionConfig.status === 'connected') {
+                    const newData = {
+                        sensor_id: `SN-${Math.floor(Math.random() * 1000)}`,
+                        value: (Math.random() * 100).toFixed(2),
+                        timestamp: Date.now()
+                    };
+                    state.mockDynamoData.unshift(newData);
+                    if (state.mockDynamoData.length > 5) state.mockDynamoData.pop();
+                    
+                    if (state.currentView === 'connections') {
+                        renderConnectionsView();
+                    }
+                }
+            }, 3000);
+        }
+
+        // Log Functions
+        function clearLogs() {
+            state.logs = [];
+            addLog('Log buffer cleared by operator', 'info', 'SYSTEM');
+            renderLogsView();
+        }
+
+        // Helper Functions
+        function updateStatusIndicator() {
+            const indicator = document.getElementById('status-indicator');
+            const statusText = document.getElementById('status-text');
+            
+            if (state.raceStatus === 'racing') {
+                indicator.className = 'w-2 h-2 rounded-full bg-emerald-500 animate-pulse';
+                statusText.textContent = 'Système: Actif';
+            } else {
+                indicator.className = 'w-2 h-2 rounded-full bg-slate-300';
+                statusText.textContent = 'Système: En attente';
+            }
+        }
+
+        function renderCurrentView() {
+            switch(state.currentView) {
+                case 'dashboard': renderDashboardView(); break;
+                case 'admin': renderAdminView(); break;
+                case 'logs': renderLogsView(); break;
+                case 'connections': renderConnectionsView(); break;
+            }
+        }
+
+        // Race Timer
         setInterval(() => {
-            if (raceStatus === 'racing' && !timerInterval) {
-                startTimer();
-            } else if (raceStatus !== 'racing' && timerInterval) {
-                stopTimer();
+            if (state.raceStatus === 'racing' && state.raceStartTime) {
+                state.raceTime = Date.now() - state.raceStartTime;
+                if (state.currentView === 'dashboard') {
+                    renderCurrentView();
+                }
             }
         }, 100);
 
-        // Initialisation
-        createParticles();
-        loadRaceState();
-        startAutoLoad();
-        
-        // Permettre d'ajouter un participant avec Entrée
-        document.getElementById('inputCarNumber').addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') addParticipant();
-        });
-        document.getElementById('inputName').addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') addParticipant();
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            lucide.createIcons();
+            addLog('KINETIC OS v3.0 initialized', 'success', 'BOOT');
+            addLog('All subsystems operational', 'info', 'SYSTEM');
+            switchView('dashboard');
         });
     </script>
 </body>
