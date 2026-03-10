@@ -87,229 +87,1131 @@
             box-shadow: 0 0 12px rgba(16, 185, 129, 0.5);
         }
     </style>
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>KINETIC OS v3</title>
-    <script src="https://cdn.jsdelivr.net/npm/lucide/dist/lucide.min.js"></script>
-    <script src="https://sdk.amazonaws.com/js/aws-sdk-2.1480.0.min.js"></script>
-    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@3.3.2/dist/tailwind.min.css" rel="stylesheet">
-    <style>
-        @keyframes fadeIn { from {opacity:0} to {opacity:1} }
-        .animate-fadeIn { animation: fadeIn 0.3s ease-in-out; }
-    </style>
 </head>
-<body class="bg-slate-100 font-sans text-slate-900">
-
-<div id="status-bar" class="flex items-center gap-2 p-2 bg-slate-900 text-white">
-    <span id="status-indicator" class="w-2 h-2 rounded-full bg-slate-300"></span>
-    <span id="status-text" class="text-xs font-bold">Système: En attente</span>
-</div>
-
-<div id="view-dashboard"></div>
-<div id="view-admin" class="hidden"></div>
-<div id="view-logs" class="hidden"></div>
-<div id="view-connections" class="hidden"></div>
-
-<!-- Sensor Modal -->
-<div id="sensor-modal" class="hidden fixed inset-0 bg-black/30 flex items-center justify-center z-50">
-    <div class="bg-white p-8 rounded-xl w-[400px] space-y-4">
-        <h3 class="text-lg font-black">Panel Capteurs</h3>
-        <input type="number" id="sensor-car-number" placeholder="Numéro voiture" class="w-full p-2 border rounded" />
-        <div class="flex gap-2">
-            <button id="lap-sensor-btn" onclick="triggerLapSensor()" class="flex-1 p-2 bg-emerald-500 text-white rounded">Pulse Lap</button>
-            <button id="camera-sensor-btn" onclick="triggerCameraDetection()" class="flex-1 p-2 bg-blue-500 text-white rounded">Camera Detect</button>
-        </div>
-        <button onclick="toggleSensorPanel()" class="mt-4 px-4 py-2 bg-slate-900 text-white rounded">Fermer</button>
-    </div>
-</div>
-
-<script>
-    // ---------------- STATE ----------------
-    const state = {
-        currentView: 'dashboard',
-        raceStatus: 'waiting',
-        raceTime: 0,
-        raceStartTime: null,
-        totalLaps: 3,
-        participants: [],
-        logs: [],
-        connectionConfig: {
-            region: 'eu-west-1',
-            tableName: 'race-telemetry-v3',
-            status: 'disconnected',
-            lastSync: null
-        },
-        mockDynamoData: []
-    };
-
-    let dynamodb = null;
-
-    // ---------------- LOGS ----------------
-    function addLog(message, type='info', source='SYSTEM') {
-        state.logs.unshift({ timestamp: Date.now(), type, source, message });
-        if(state.logs.length>100) state.logs.pop();
-        renderLogsView();
-    }
-
-    function clearLogs() {
-        state.logs = [];
-        addLog('Log buffer cleared by operator', 'info', 'SYSTEM');
-        renderLogsView();
-    }
-
-    function formatLogTime(ts) {
-        const d = new Date(ts);
-        return `${d.getHours()}:${d.getMinutes()}:${d.getSeconds()}`;
-    }
-
-    function renderLogsView() {
-        const getIcon = (type) => {
-            switch (type) {
-                case 'success': return '<i data-lucide="check-circle" class="w-4 h-4 text-emerald-500"></i>';
-                case 'warning': return '<i data-lucide="alert-triangle" class="w-4 h-4 text-amber-500"></i>';
-                case 'error': return '<i data-lucide="x-circle" class="w-4 h-4 text-red-500"></i>';
-                default: return '<i data-lucide="info" class="w-4 h-4 text-blue-500"></i>';
-            }
-        };
-
-        const html = `
-            <div class="p-8 max-w-[1400px] mx-auto space-y-6">
-                <div class="flex items-center justify-between">
-                    <h2 class="text-xl font-black uppercase">Journaux Système</h2>
-                    <button onclick="clearLogs()" class="px-4 py-2 bg-slate-100 rounded text-slate-600">TOUT EFFACER</button>
+<body class="antialiased">
+    
+    <!-- Main App Container -->
+    <div id="app" class="min-h-screen bg-[#f8fafc] text-slate-900 font-sans">
+        
+        <!-- Sidebar Navigation -->
+        <aside class="fixed left-0 top-0 bottom-0 w-20 md:w-64 bg-slate-900 border-r border-slate-800 z-[100] transition-all flex flex-col">
+            <div class="p-6 flex items-center gap-3">
+                <div class="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center flex-shrink-0">
+                    <i data-lucide="cpu" class="w-6 h-6 text-white"></i>
                 </div>
-                <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden flex flex-col" style="height: calc(100vh - 250px);">
-                    <div class="flex-1 overflow-y-auto p-4 space-y-1 font-mono text-[11px]">
-                        ${state.logs.map(log => `
-                            <div class="flex items-start gap-4 p-2 hover:bg-slate-50 rounded transition-colors">
-                                <span class="text-slate-400 font-bold">[${formatLogTime(log.timestamp)}]</span>
-                                <span>${getIcon(log.type)}</span>
-                                <span class="font-black uppercase text-slate-400">${log.source}</span>
-                                <span class="text-slate-700 font-medium">${log.message}</span>
+                <div class="hidden md:block">
+                    <h1 class="font-black text-white text-lg tracking-tight">KINETIC</h1>
+                    <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest leading-none">Contrôle v3.0</p>
+                </div>
+            </div>
+
+            <nav class="flex-1 px-4 py-8 space-y-2">
+                <button onclick="switchView('dashboard')" id="nav-dashboard" class="nav-btn w-full flex items-center gap-3 p-3 rounded-lg transition-all bg-blue-600 text-white shadow-lg shadow-blue-900/50">
+                    <i data-lucide="layout-dashboard" class="w-6 h-6"></i>
+                    <span class="hidden md:block font-bold text-sm">Moniteur Course</span>
+                </button>
+                <button onclick="switchView('admin')" id="nav-admin" class="nav-btn w-full flex items-center gap-3 p-3 rounded-lg transition-all text-slate-400 hover:text-white hover:bg-slate-800">
+                    <i data-lucide="settings-2" class="w-6 h-6"></i>
+                    <span class="hidden md:block font-bold text-sm">Opérations</span>
+                </button>
+                <button onclick="switchView('logs')" id="nav-logs" class="nav-btn w-full flex items-center gap-3 p-3 rounded-lg transition-all text-slate-400 hover:text-white hover:bg-slate-800">
+                    <i data-lucide="terminal" class="w-6 h-6"></i>
+                    <span class="hidden md:block font-bold text-sm">Journaux Système</span>
+                </button>
+                
+                <div class="pt-4 pb-2">
+                    <div class="hidden md:block px-4 text-[9px] font-black text-slate-500 uppercase tracking-widest mb-2">Intégrations</div>
+                    <button onclick="switchView('connections')" id="nav-connections" class="nav-btn w-full flex items-center gap-3 p-3 rounded-lg transition-all text-slate-400 hover:text-white hover:bg-slate-800">
+                        <i data-lucide="database" class="w-6 h-6"></i>
+                        <span class="hidden md:block font-bold text-sm">AWS DynamoDB</span>
+                    </button>
+                </div>
+            </nav>
+
+            <div class="p-4 mt-auto">
+                <button onclick="toggleSensorPanel()" id="sensor-toggle" class="w-full flex items-center gap-3 p-3 rounded-lg transition-all text-slate-400 hover:text-white hover:bg-slate-800">
+                    <i data-lucide="activity" class="w-6 h-6"></i>
+                    <span class="hidden md:block font-bold text-sm">Déclencheurs Manuels</span>
+                </button>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="pl-20 md:pl-64 min-h-screen">
+            <!-- Top bar -->
+            <header class="h-16 bg-white border-b border-slate-200 sticky top-0 z-[90] px-8 flex items-center justify-between">
+                <div class="flex items-center gap-2 text-slate-400 text-xs font-bold uppercase tracking-widest">
+                    <span>Noyau</span>
+                    <i data-lucide="chevron-right" class="w-3 h-3"></i>
+                    <span class="text-slate-900" id="breadcrumb">Surveillance Course</span>
+                </div>
+
+                <div class="flex items-center gap-6">
+                    <div class="flex items-center gap-2">
+                        <div id="status-indicator" class="w-2 h-2 rounded-full bg-slate-300"></div>
+                        <span class="text-[10px] font-black text-slate-500 uppercase tracking-widest" id="status-text">
+                            Système: En attente
+                        </span>
+                    </div>
+                    <div class="h-6 w-px bg-slate-200"></div>
+                    <button class="relative p-2 text-slate-400 hover:text-slate-900 transition-colors">
+                        <i data-lucide="bell" class="w-5 h-5"></i>
+                        <span class="absolute top-1.5 right-1.5 w-2 h-2 bg-blue-600 rounded-full border-2 border-white"></span>
+                    </button>
+                </div>
+            </header>
+
+            <!-- Views Container -->
+            <div id="views-container" class="relative">
+                <!-- Dashboard View -->
+                <div id="view-dashboard" class="view-content"></div>
+                
+                <!-- Admin View -->
+                <div id="view-admin" class="view-content hidden"></div>
+                
+                <!-- Logs View -->
+                <div id="view-logs" class="view-content hidden"></div>
+                
+                <!-- Connections View -->
+                <div id="view-connections" class="view-content hidden"></div>
+            </div>
+        </main>
+
+        <!-- Sensor Panel Modal -->
+        <div id="sensor-modal" class="hidden">
+            <div class="modal-backdrop" onclick="toggleSensorPanel()"></div>
+            <div class="fixed inset-0 z-[200] flex items-center justify-center p-4" style="pointer-events: none;">
+                <div class="bg-white rounded-xl shadow-2xl overflow-hidden border border-slate-200 flex flex-col md:flex-row max-h-[90vh] w-full max-w-4xl" style="pointer-events: all;">
+                    <!-- Side HUD -->
+                    <div class="md:w-64 bg-slate-900 p-8 text-white flex flex-col">
+                        <div class="w-12 h-12 bg-blue-600 rounded-lg flex items-center justify-center mb-6 shadow-lg shadow-blue-500/20">
+                            <i data-lucide="activity" class="w-7 h-7 text-white"></i>
+                        </div>
+                        <h2 class="text-lg font-black leading-tight mb-2 tracking-tight uppercase">Diagnostic Matériel</h2>
+                        <p class="text-slate-500 text-[10px] font-bold uppercase tracking-widest mb-12">Suite de Tests E/S</p>
+
+                        <div class="space-y-4 mt-auto">
+                            <div class="flex items-center justify-between text-[10px] font-black uppercase tracking-widest text-slate-500">
+                                <span>Lien Serveur</span>
+                                <span class="text-emerald-500">Actif</span>
                             </div>
-                        `).join('')}
-                        ${state.logs.length === 0 ? `
-                            <div class="h-full flex flex-col items-center justify-center text-slate-300 py-20">
-                                <p class="font-bold uppercase">Tampon vide. En attente d'événements système...</p>
+                            <div class="h-1 w-full bg-slate-800 rounded-full overflow-hidden">
+                                <div class="h-full bg-blue-600 w-full animate-pulse"></div>
                             </div>
-                        ` : ''}
+                        </div>
+                    </div>
+
+                    <!-- Main Panel -->
+                    <div class="flex-1 p-8 md:p-12 bg-slate-50/30 overflow-y-auto">
+                        <div class="flex justify-between items-center mb-10">
+                            <div class="flex items-center gap-2 text-slate-400">
+                                <i data-lucide="network" class="w-4 h-4"></i>
+                                <span class="text-[10px] font-black uppercase tracking-widest">Interface de Contrôle Système</span>
+                            </div>
+                            <button onclick="toggleSensorPanel()" class="p-2 hover:bg-white rounded-lg transition-colors border border-transparent hover:border-slate-200">
+                                <i data-lucide="x" class="w-5 h-5 text-slate-400"></i>
+                            </button>
+                        </div>
+
+                        <div class="space-y-12">
+                            <!-- Node Selection -->
+                            <div class="space-y-4">
+                                <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">ID Nœud Cible</label>
+                                <div class="relative group">
+                                    <input
+                                        type="number"
+                                        id="sensor-car-number"
+                                        placeholder="00"
+                                        class="w-full px-8 py-6 bg-white border border-slate-200 rounded-2xl text-slate-900 font-black text-5xl placeholder:text-slate-100 focus:border-blue-600 transition-all outline-none shadow-sm"
+                                    />
+                                    <div class="absolute right-8 top-1/2 -translate-y-1/2 font-black text-slate-200 text-sm tracking-widest">NUM_UNITÉ</div>
+                                </div>
+                            </div>
+
+                            <!-- Logic Triggers -->
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <button onclick="triggerLapSensor()" id="lap-sensor-btn" class="flex flex-col items-start gap-6 p-8 rounded-2xl border-2 transition-all bg-white border-slate-100 hover:border-blue-200 shadow-sm">
+                                    <div class="w-10 h-10 bg-slate-900 text-white rounded-lg flex items-center justify-center">
+                                        <i data-lucide="radio" class="w-5 h-5"></i>
+                                    </div>
+                                    <div class="text-left">
+                                        <div class="font-black text-slate-900 text-sm uppercase tracking-tight">Événement Franchissement Ligne</div>
+                                        <div class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Simuler Impulsion RF</div>
+                                    </div>
+                                </button>
+
+                                <button onclick="triggerCameraDetection()" id="camera-sensor-btn" class="flex flex-col items-start gap-6 p-8 rounded-2xl border-2 transition-all bg-white border-slate-100 hover:border-blue-200 shadow-sm">
+                                    <div class="w-10 h-10 bg-slate-900 text-white rounded-lg flex items-center justify-center">
+                                        <i data-lucide="camera" class="w-5 h-5"></i>
+                                    </div>
+                                    <div class="text-left">
+                                        <div class="font-black text-slate-900 text-sm uppercase tracking-tight">Capture Caméra</div>
+                                        <div class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Mise à Jour Nœud Vision</div>
+                                    </div>
+                                </button>
+                            </div>
+
+                            <!-- Dev Docs -->
+                            <div class="p-6 bg-slate-900 rounded-2xl border border-slate-800">
+                                <div class="flex gap-4 items-start">
+                                    <div class="p-2 bg-blue-500/10 rounded-lg">
+                                        <i data-lucide="zap" class="w-4 h-4 text-blue-400"></i>
+                                    </div>
+                                    <div class="space-y-2">
+                                        <p class="text-[10px] font-black text-blue-400 uppercase tracking-widest">Référence Développeur</p>
+                                        <p class="text-xs text-slate-400 leading-relaxed">
+                                            Pour intégrer du matériel physique (Arduino/ESP32), effectuez un <span class="text-slate-200 font-bold">JSON POST</span> vers le point d'accès <code class="text-blue-400">/sensor/lap</code>. Assurez-vous que la charge utile contient un entier <code class="text-blue-400">carNumber</code> valide.
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
-        `;
-        document.getElementById('view-logs').innerHTML = html;
-        lucide.createIcons();
-    }
+        </div>
+    </div>
 
-    // ---------------- CONNECTIONS ----------------
-    function updateConnectionConfig(field, value) {
-        state.connectionConfig[field] = value;
-        renderConnectionsView();
-    }
+    <script>
+        // Application State
+        const state = {
+            currentView: 'dashboard',
+            participants: [],
+            raceStatus: 'waiting',
+            totalLaps: 5,
+            raceTime: 0,
+            logs: [],
+            connectionConfig: {
+                region: 'eu-west-1',
+                tableName: 'race-telemetry-v3',
+                status: 'disconnected',
+                lastSync: null
+            },
+            raceStartTime: null,
+            mockDynamoData: []
+        };
 
-    function connectAWS() {
-        addLog(`Attempting handshake with DynamoDB at ${state.connectionConfig.region}...`, 'info', 'AWS');
-
-        AWS.config.update({
-            region: state.connectionConfig.region,
-            accessKeyId: "🔴METTRE_TA_ACCESS_KEY",
-            secretAccessKey: "🔴METTRE_TA_SECRET_KEY"
-        });
-
-        dynamodb = new AWS.DynamoDB.DocumentClient();
-
-        setTimeout(() => {
-            state.connectionConfig.status = 'connected';
-            addLog(`Secure connection established with table: ${state.connectionConfig.tableName}`, 'success', 'AWS');
-            renderConnectionsView();
-            startDynamoStream();
-        }, 1000);
-    }
-
-    function disconnectAWS() {
-        state.connectionConfig.status = 'disconnected';
-        state.mockDynamoData = [];
-        addLog(`Disconnected from DynamoDB cluster`, 'warning', 'AWS');
-        renderConnectionsView();
-    }
-
-    function startDynamoStream() {
-        setInterval(() => {
-            if (state.connectionConfig.status !== 'connected') return;
-
-            const params = { TableName: state.connectionConfig.tableName, Limit: 5 };
-            dynamodb.scan(params, function(err, data) {
-                if(err) { addLog(err.message, 'error', 'AWS'); return; }
-                state.mockDynamoData = data.Items.map(i => ({ sensor_id:i.sensor_id, value:i.value, timestamp:i.timestamp }));
-                if(state.currentView==='connections') renderConnectionsView();
-            });
-        }, 3000);
-    }
-
-    function renderConnectionsView() {
-        const html = `
-            <div class="p-8 max-w-[1400px] mx-auto">
-                <h2 class="text-xl font-black uppercase mb-4">Infrastructure AWS</h2>
-                <div class="flex gap-4 mb-4">
-                    <select onchange="updateConnectionConfig('region', this.value)" class="border p-2 rounded">
-                        <option value="eu-west-1" ${state.connectionConfig.region==='eu-west-1'?'selected':''}>eu-west-1 (Irlande)</option>
-                        <option value="us-east-1" ${state.connectionConfig.region==='us-east-1'?'selected':''}>us-east-1 (Virginie)</option>
-                    </select>
-                    <input type="text" value="${state.connectionConfig.tableName}" onchange="updateConnectionConfig('tableName', this.value)" class="border p-2 rounded" />
-                    ${state.connectionConfig.status==='disconnected'
-                        ? `<button onclick="connectAWS()" class="bg-slate-900 text-white px-4 py-2 rounded">Connect</button>`
-                        : `<button onclick="disconnectAWS()" class="bg-red-500 text-white px-4 py-2 rounded">Disconnect</button>`
-                    }
-                </div>
-                <div class="space-y-2">
-                    ${state.mockDynamoData.map(d => `
-                        <div class="border p-2 rounded flex justify-between">
-                            <span>${d.sensor_id}</span>
-                            <span>${d.value}%</span>
-                        </div>
-                    `).join('')}
-                </div>
-            </div>
-        `;
-        document.getElementById('view-connections').innerHTML = html;
-    }
-
-    // ---------------- VIEW MANAGEMENT ----------------
-    function switchView(view) {
-        state.currentView = view;
-        document.getElementById('view-dashboard').classList.add('hidden');
-        document.getElementById('view-admin').classList.add('hidden');
-        document.getElementById('view-logs').classList.add('hidden');
-        document.getElementById('view-connections').classList.add('hidden');
-
-        document.getElementById('view-' + view).classList.remove('hidden');
-        renderCurrentView();
-    }
-
-    function renderCurrentView() {
-        switch(state.currentView) {
-            case 'logs': renderLogsView(); break;
-            case 'connections': renderConnectionsView(); break;
+        // Utility Functions
+        function formatTime(ms) {
+            const minutes = Math.floor(ms / 60000);
+            const seconds = Math.floor((ms % 60000) / 1000);
+            const milliseconds = Math.floor((ms % 1000) / 10);
+            return `${minutes}:${seconds.toString().padStart(2, '0')}.${milliseconds.toString().padStart(2, '0')}`;
         }
-    }
 
-    // ---------------- SENSOR MODAL ----------------
-    function toggleSensorPanel() {
-        const modal = document.getElementById('sensor-modal');
-        modal.classList.toggle('hidden');
-    }
+        function formatLogTime(ts) {
+            return new Date(ts).toLocaleTimeString('fr-FR', {
+                hour12: false,
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit',
+                fractionalSecondDigits: 2
+            });
+        }
 
-    // ---------------- INIT ----------------
-    document.addEventListener('DOMContentLoaded', () => {
-        lucide.createIcons();
-        addLog('KINETIC OS v3.0 initialized', 'success', 'BOOT');
-        addLog('All subsystems operational', 'info', 'SYSTEM');
-        switchView('dashboard'); // affiche ton dashboard par défaut
-    });
-</script>
+        function addLog(message, type, source) {
+            const log = {
+                id: Math.random().toString(36).substr(2, 9),
+                timestamp: Date.now(),
+                message,
+                type,
+                source
+            };
+            state.logs.unshift(log);
+            if (state.logs.length > 100) state.logs.pop();
+            if (state.currentView === 'logs') renderLogsView();
+        }
+
+        // View Switching
+        function switchView(viewName) {
+            state.currentView = viewName;
+            
+            // Update navigation
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.classList.remove('bg-blue-600', 'text-white', 'shadow-lg', 'shadow-blue-900/50');
+                btn.classList.add('text-slate-400', 'hover:text-white', 'hover:bg-slate-800');
+            });
+            document.getElementById(`nav-${viewName}`).classList.add('bg-blue-600', 'text-white', 'shadow-lg', 'shadow-blue-900/50');
+            document.getElementById(`nav-${viewName}`).classList.remove('text-slate-400', 'hover:text-white', 'hover:bg-slate-800');
+
+            // Update breadcrumb
+            const breadcrumbs = {
+                dashboard: 'Surveillance Course',
+                admin: 'Centre Opérations',
+                logs: 'Audit Système',
+                connections: 'Pont Infrastructure'
+            };
+            document.getElementById('breadcrumb').textContent = breadcrumbs[viewName];
+
+            // Hide all views
+            document.querySelectorAll('.view-content').forEach(view => view.classList.add('hidden'));
+            
+            // Show current view
+            const viewElement = document.getElementById(`view-${viewName}`);
+            viewElement.classList.remove('hidden');
+            viewElement.classList.add('animate-slideIn');
+
+            // Render view
+            switch(viewName) {
+                case 'dashboard': renderDashboardView(); break;
+                case 'admin': renderAdminView(); break;
+                case 'logs': renderLogsView(); break;
+                case 'connections': renderConnectionsView(); break;
+            }
+        }
+
+        // Dashboard View
+        function renderDashboardView() {
+            const sortedParticipants = [...state.participants].sort((a, b) => {
+                if (a.currentLap !== b.currentLap) return b.currentLap - a.currentLap;
+                return a.totalTime - b.totalTime;
+            });
+
+            const html = `
+                <div class="p-8 space-y-8 max-w-[1600px] mx-auto">
+                    <!-- Quick Stats Grid -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                        <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm animate-fadeIn">
+                            <div class="flex items-center gap-3 mb-3">
+                                <div class="p-2 bg-blue-50 rounded-lg"><i data-lucide="clock" class="w-5 h-5 text-blue-600"></i></div>
+                                <span class="text-xs font-black text-slate-400 uppercase tracking-widest">Temps Écoulé</span>
+                            </div>
+                            <div class="text-3xl font-mono font-bold text-slate-900 tabular-nums">${formatTime(state.raceTime)}</div>
+                        </div>
+
+                        <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm animate-fadeIn">
+                            <div class="flex items-center gap-3 mb-3">
+                                <div class="p-2 bg-slate-50 rounded-lg"><i data-lucide="flag" class="w-5 h-5 text-slate-600"></i></div>
+                                <span class="text-xs font-black text-slate-400 uppercase tracking-widest">Progression Globale</span>
+                            </div>
+                            <div class="text-3xl font-mono font-bold text-slate-900">
+                                ${sortedParticipants[0]?.currentLap || 0} <span class="text-slate-200">/</span> ${state.totalLaps}
+                            </div>
+                        </div>
+
+                        <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm animate-fadeIn">
+                            <div class="flex items-center gap-3 mb-3">
+                                <div class="p-2 bg-emerald-50 rounded-lg"><i data-lucide="zap" class="w-5 h-5 text-emerald-600"></i></div>
+                                <span class="text-xs font-black text-slate-400 uppercase tracking-widest">Statut</span>
+                            </div>
+                            <div class="text-xl font-black uppercase ${state.raceStatus === 'racing' ? 'text-emerald-600' : 'text-slate-400'}">
+                                ${state.raceStatus === 'racing' ? 'Course Active' : state.raceStatus === 'finished' ? 'Terminée' : 'En Attente'}
+                            </div>
+                        </div>
+
+                        <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm animate-fadeIn">
+                            <div class="flex items-center gap-3 mb-3">
+                                <div class="p-2 bg-amber-50 rounded-lg"><i data-lucide="users" class="w-5 h-5 text-amber-600"></i></div>
+                                <span class="text-xs font-black text-slate-400 uppercase tracking-widest">Participants</span>
+                            </div>
+                            <div class="text-3xl font-mono font-bold text-slate-900">${state.participants.length} Unités</div>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                        <!-- Main Leaderboard -->
+                        <div class="lg:col-span-2 space-y-4">
+                            <div class="flex items-center justify-between mb-2">
+                                <h2 class="text-sm font-black text-slate-900 uppercase tracking-widest flex items-center gap-2">
+                                    <i data-lucide="circle" class="w-3 h-3 fill-blue-600 text-blue-600"></i>
+                                    Classement en Direct
+                                </h2>
+                            </div>
+
+                            <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+                                <table class="w-full text-left">
+                                    <thead class="bg-slate-50 border-b border-slate-200">
+                                        <tr>
+                                            <th class="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Pos</th>
+                                            <th class="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Unité</th>
+                                            <th class="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Progression</th>
+                                            <th class="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Dernier Tour</th>
+                                            <th class="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">Temps Total</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="divide-y divide-slate-100">
+                                        ${sortedParticipants.length > 0 ? sortedParticipants.map((p, idx) => {
+                                            const position = idx + 1;
+                                            const progress = (p.currentLap / state.totalLaps) * 100;
+                                            return `
+                                                <tr class="group hover:bg-slate-50/50 transition-colors">
+                                                    <td class="px-6 py-5">
+                                                        <div class="w-8 h-8 rounded-lg flex items-center justify-center font-black text-sm ${position === 1 ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-500'}">
+                                                            ${position}
+                                                        </div>
+                                                    </td>
+                                                    <td class="px-6 py-5">
+                                                        <div class="flex items-center gap-4">
+                                                            <span class="text-lg font-black text-slate-300">#${p.carNumber.toString().padStart(2, '0')}</span>
+                                                            <span class="font-bold text-slate-900">${p.name}</span>
+                                                        </div>
+                                                    </td>
+                                                    <td class="px-6 py-5">
+                                                        <div class="w-32">
+                                                            <div class="flex justify-between text-[10px] font-bold text-slate-400 mb-1">
+                                                                <span>T${p.currentLap}</span>
+                                                                <span>${Math.round(progress)}%</span>
+                                                            </div>
+                                                            <div class="h-1.5 w-full bg-slate-100 rounded-full overflow-hidden">
+                                                                <div class="h-full bg-blue-600 progress-bar" style="width: ${Math.min(progress, 100)}%"></div>
+                                                            </div>
+                                                        </div>
+                                                    </td>
+                                                    <td class="px-6 py-5">
+                                                        <span class="font-mono text-sm font-bold text-slate-600">
+                                                            ${p.lastLapTime > 0 ? formatTime(p.lastLapTime) : '--:--.--'}
+                                                        </span>
+                                                    </td>
+                                                    <td class="px-6 py-5 text-right">
+                                                        <span class="font-mono font-bold text-slate-900 tabular-nums">
+                                                            ${formatTime(p.totalTime)}
+                                                        </span>
+                                                    </td>
+                                                </tr>
+                                            `;
+                                        }).join('') : `
+                                            <tr>
+                                                <td colspan="5" class="px-6 py-20 text-center">
+                                                    <p class="text-slate-400 font-medium">En attente des données participants...</p>
+                                                </td>
+                                            </tr>
+                                        `}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- Telemetry Column -->
+                        <div class="space-y-8">
+                            <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+                                <h3 class="text-sm font-black text-slate-900 uppercase tracking-widest mb-6 flex items-center gap-2">
+                                    <i data-lucide="trending-up" class="w-4 h-4 text-blue-600"></i>
+                                    Performance Tours
+                                </h3>
+                                <div class="h-64 flex items-center justify-center text-slate-300 text-xs font-bold uppercase tracking-widest">
+                                    Télémétrie Active
+                                </div>
+                            </div>
+
+                            <div class="bg-slate-900 p-8 rounded-xl text-white relative overflow-hidden">
+                                <div class="absolute top-0 right-0 w-32 h-32 bg-blue-500/10 rounded-full blur-3xl -mr-16 -mt-16"></div>
+                                <div class="relative">
+                                    <h3 class="text-xs font-black text-slate-400 uppercase tracking-widest mb-6">Configuration Circuit</h3>
+                                    <div class="space-y-4">
+                                        <div class="flex justify-between items-center py-3 border-b border-slate-800">
+                                            <span class="text-slate-400 text-xs font-bold uppercase">Circuit</span>
+                                            <span class="font-bold text-sm text-blue-400">Oméga Industriel</span>
+                                        </div>
+                                        <div class="flex justify-between items-center py-3 border-b border-slate-800">
+                                            <span class="text-slate-400 text-xs font-bold uppercase">Secteurs actifs</span>
+                                            <span class="font-bold text-sm">3 Actifs</span>
+                                        </div>
+                                        <div class="flex justify-between items-center py-3">
+                                            <span class="text-slate-400 text-xs font-bold uppercase">Temp. Air</span>
+                                            <span class="font-bold text-sm">24.2°C</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            ${state.raceStatus === 'finished' && sortedParticipants.length > 0 ? `
+                                <div class="bg-white p-6 rounded-xl border-2 border-blue-600 shadow-xl animate-fadeIn">
+                                    <h3 class="text-center font-black text-slate-900 uppercase tracking-widest mb-6">Classement Final</h3>
+                                    <div class="flex items-end justify-center gap-2">
+                                        ${sortedParticipants[1] ? `
+                                            <div class="flex-1">
+                                                <div class="h-16 bg-slate-100 rounded-t-lg flex items-center justify-center font-black text-slate-400">2</div>
+                                                <div class="text-[10px] font-black text-center mt-2 truncate">${sortedParticipants[1].name}</div>
+                                            </div>
+                                        ` : ''}
+                                        ${sortedParticipants[0] ? `
+                                            <div class="flex-1">
+                                                <div class="h-24 bg-blue-600 rounded-t-lg flex items-center justify-center font-black text-white">1</div>
+                                                <div class="text-[10px] font-black text-center mt-2 truncate">${sortedParticipants[0].name}</div>
+                                            </div>
+                                        ` : ''}
+                                        ${sortedParticipants[2] ? `
+                                            <div class="flex-1">
+                                                <div class="h-12 bg-slate-200 rounded-t-lg flex items-center justify-center font-black text-slate-500">3</div>
+                                                <div class="text-[10px] font-black text-center mt-2 truncate">${sortedParticipants[2].name}</div>
+                                            </div>
+                                        ` : ''}
+                                    </div>
+                                </div>
+                            ` : ''}
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('view-dashboard').innerHTML = html;
+            lucide.createIcons();
+        }
+
+        // Admin View
+        function renderAdminView() {
+            const html = `
+                <div class="p-8 max-w-[1400px] mx-auto space-y-8">
+                    <!-- Operation Dashboard Header -->
+                    <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+                        <div class="lg:col-span-3 grid grid-cols-1 md:grid-cols-3 gap-6">
+                            <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between">
+                                <div>
+                                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Mode Système</p>
+                                    <p class="text-xl font-black text-slate-900">${state.raceStatus === 'racing' ? 'OPÉRATIONNEL' : 'INACTIF'}</p>
+                                </div>
+                                <div class="w-3 h-3 rounded-full ${state.raceStatus === 'racing' ? 'bg-emerald-500 glow-emerald' : 'bg-slate-300'}"></div>
+                            </div>
+
+                            <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+                                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Compte Flotte</p>
+                                <p class="text-xl font-black text-slate-900">${state.participants.length} Nœuds Actifs</p>
+                            </div>
+
+                            <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+                                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Tours Cibles</p>
+                                <div class="flex items-center gap-2">
+                                    <input
+                                        type="number"
+                                        id="total-laps-input"
+                                        value="${state.totalLaps}"
+                                        onchange="updateTotalLaps(this.value)"
+                                        class="w-16 font-black text-xl text-slate-900 bg-transparent border-none p-0 focus:ring-0"
+                                    />
+                                    <span class="text-xs font-bold text-slate-300 uppercase">Configurés</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="bg-slate-900 p-6 rounded-xl text-white flex items-center gap-4">
+                            <i data-lucide="terminal" class="w-8 h-8 text-blue-400"></i>
+                            <div>
+                                <p class="text-[10px] font-black text-slate-500 uppercase tracking-widest leading-none">Console</p>
+                                <p class="text-sm font-bold">En attente d'entrée...</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                        <!-- Fleet Control Column -->
+                        <div class="lg:col-span-8 space-y-6">
+                            <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+                                <div class="px-6 py-4 border-b border-slate-100 bg-slate-50 flex items-center justify-between">
+                                    <h2 class="text-xs font-black text-slate-900 uppercase tracking-widest flex items-center gap-2">
+                                        <i data-lucide="users" class="w-4 h-4 text-blue-600"></i> Gestion Flotte
+                                    </h2>
+                                    <div class="flex gap-2">
+                                        <input
+                                            type="text"
+                                            id="new-participant-name"
+                                            placeholder="Nom"
+                                            class="h-9 px-3 bg-white border border-slate-200 rounded-lg text-sm font-medium focus:border-blue-500 outline-none transition-all w-40"
+                                        />
+                                        <input
+                                            type="number"
+                                            id="new-participant-number"
+                                            placeholder="#"
+                                            class="h-9 w-16 px-3 bg-white border border-slate-200 rounded-lg text-sm font-bold focus:border-blue-500 outline-none transition-all"
+                                        />
+                                        <button
+                                            onclick="addParticipant()"
+                                            class="h-9 px-4 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-black transition-all active:scale-95"
+                                        >
+                                            AJOUTER
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div class="divide-y divide-slate-100" id="participants-list">
+                                    ${state.participants.length > 0 ? state.participants.map(p => `
+                                        <div class="p-6 hover:bg-slate-50/50 transition-colors">
+                                            <div class="flex flex-col xl:flex-row xl:items-center gap-8">
+                                                <div class="flex items-center gap-4 min-w-[180px]">
+                                                    <div class="w-10 h-10 rounded-lg bg-slate-900 text-white flex items-center justify-center font-black">
+                                                        ${p.carNumber}
+                                                    </div>
+                                                    <input
+                                                        type="text"
+                                                        value="${p.name}"
+                                                        onchange="updateParticipant('${p.id}', 'name', this.value)"
+                                                        class="font-bold text-slate-900 bg-transparent border-none p-0 focus:ring-0 w-full"
+                                                    />
+                                                </div>
+
+                                                <div class="flex-1 grid grid-cols-2 md:grid-cols-3 gap-6">
+                                                    <div>
+                                                        <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1 block">Compteur Tours</label>
+                                                        <input
+                                                            type="number"
+                                                            value="${p.currentLap}"
+                                                            onchange="updateParticipant('${p.id}', 'currentLap', parseInt(this.value) || 0)"
+                                                            class="w-full h-9 px-3 bg-slate-50 border border-slate-100 rounded-lg text-sm font-bold focus:border-blue-300 outline-none"
+                                                        />
+                                                    </div>
+                                                    <div class="col-span-2">
+                                                        <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1 block">Données Temporelles (ms)</label>
+                                                        <input
+                                                            type="number"
+                                                            value="${p.totalTime}"
+                                                            onchange="updateParticipant('${p.id}', 'totalTime', parseInt(this.value) || 0)"
+                                                            class="w-full h-9 px-3 bg-slate-50 border border-slate-100 rounded-lg text-sm font-mono font-bold focus:border-blue-300 outline-none"
+                                                        />
+                                                    </div>
+                                                </div>
+
+                                                <div class="flex items-center gap-3">
+                                                    <button
+                                                        onclick="completeLap('${p.id}')"
+                                                        ${p.currentLap >= state.totalLaps ? 'disabled' : ''}
+                                                        class="flex items-center justify-center gap-2 h-10 px-6 bg-slate-900 text-white rounded-lg text-xs font-black transition-all hover:bg-slate-800 disabled:bg-slate-100 disabled:text-slate-300"
+                                                    >
+                                                        <i data-lucide="save" class="w-3.5 h-3.5"></i> IMPULSION
+                                                    </button>
+                                                    <button
+                                                        onclick="removeParticipant('${p.id}')"
+                                                        class="p-2.5 text-slate-300 hover:text-red-500 transition-colors"
+                                                    >
+                                                        <i data-lucide="trash-2" class="w-5 h-5"></i>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    `).join('') : `
+                                        <div class="p-20 text-center">
+                                            <i data-lucide="cpu" class="w-12 h-12 text-slate-200 mx-auto mb-4"></i>
+                                            <p class="text-slate-400 font-medium">Aucune unité enregistrée dans le tampon local.</p>
+                                        </div>
+                                    `}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Global Controls Column -->
+                        <div class="lg:col-span-4 space-y-6">
+                            <div class="bg-white p-8 rounded-xl border border-slate-200 shadow-sm space-y-6">
+                                <h3 class="text-xs font-black text-slate-900 uppercase tracking-widest flex items-center gap-2">
+                                    <i data-lucide="settings" class="w-4 h-4 text-blue-600"></i> Opérations Globales
+                                </h3>
+                                
+                                <div class="space-y-3">
+                                    <button
+                                        onclick="setRaceStatus('racing')"
+                                        ${state.raceStatus === 'racing' ? 'disabled' : ''}
+                                        class="w-full h-14 rounded-xl font-black text-sm tracking-widest transition-all flex items-center justify-center gap-3 ${state.raceStatus === 'racing' ? 'bg-slate-100 text-slate-300' : 'bg-blue-600 text-white hover:bg-blue-700 shadow-lg shadow-blue-200'}"
+                                    >
+                                        <i data-lucide="play" class="w-5 h-5"></i> LANCER COURSE
+                                    </button>
+
+                                    <div class="grid grid-cols-2 gap-3">
+                                        <button
+                                            onclick="setRaceStatus('waiting')"
+                                            ${state.raceStatus !== 'racing' ? 'disabled' : ''}
+                                            class="h-14 rounded-xl border-2 border-slate-200 font-black text-xs text-slate-600 hover:bg-slate-50 transition-all disabled:opacity-30 flex items-center justify-center gap-2"
+                                        >
+                                            <i data-lucide="pause" class="w-4 h-4"></i> PAUSE
+                                        </button>
+                                        <button
+                                            onclick="setRaceStatus('finished')"
+                                            class="h-14 rounded-xl border-2 border-slate-200 font-black text-xs text-slate-600 hover:bg-slate-50 transition-all flex items-center justify-center gap-2"
+                                        >
+                                            <i data-lucide="flag" class="w-4 h-4"></i> TERMINER
+                                        </button>
+                                    </div>
+
+                                    <div class="pt-6">
+                                        <button
+                                            onclick="resetRace()"
+                                            class="w-full h-12 rounded-xl bg-red-50 text-red-600 font-black text-xs hover:bg-red-100 transition-all flex items-center justify-center gap-2"
+                                        >
+                                            <i data-lucide="shield-alert" class="w-4 h-4"></i> RÉINITIALISATION D'URGENCE
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="bg-blue-50 p-6 rounded-xl border border-blue-100">
+                                <div class="flex gap-4">
+                                    <div class="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center flex-shrink-0">
+                                        <i data-lucide="terminal" class="w-5 h-5 text-white"></i>
+                                    </div>
+                                    <div>
+                                        <p class="text-xs font-black text-blue-900 uppercase tracking-widest mb-1">Rapport de Statut</p>
+                                        <p class="text-xs text-blue-700 font-medium leading-relaxed">
+                                            Le système se synchronise actuellement avec le serveur périphérique. Toutes les interventions manuelles seront enregistrées et diffusées au Moniteur de Course.
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('view-admin').innerHTML = html;
+            lucide.createIcons();
+        }
+
+        // Logs View
+        function renderLogsView() {
+            const getIcon = (type) => {
+                switch (type) {
+                    case 'success': return '<i data-lucide="check-circle" class="w-4 h-4 text-emerald-500"></i>';
+                    case 'warning': return '<i data-lucide="alert-triangle" class="w-4 h-4 text-amber-500"></i>';
+                    case 'error': return '<i data-lucide="x-circle" class="w-4 h-4 text-red-500"></i>';
+                    default: return '<i data-lucide="info" class="w-4 h-4 text-blue-500"></i>';
+                }
+            };
+
+            const html = `
+                <div class="p-8 max-w-[1400px] mx-auto space-y-6">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-4">
+                            <div class="w-10 h-10 bg-slate-900 rounded-lg flex items-center justify-center">
+                                <i data-lucide="terminal" class="w-6 h-6 text-white"></i>
+                            </div>
+                            <div>
+                                <h2 class="text-xl font-black text-slate-900 tracking-tight uppercase">Journaux Système</h2>
+                                <p class="text-xs font-bold text-slate-400 uppercase tracking-widest">Audit d'activité en temps réel</p>
+                            </div>
+                        </div>
+                        
+                        <button 
+                            onclick="clearLogs()"
+                            class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-lg text-xs font-black transition-all"
+                        >
+                            TOUT EFFACER
+                        </button>
+                    </div>
+
+                    <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden flex flex-col" style="height: calc(100vh - 250px);">
+                        <div class="p-4 border-b border-slate-100 bg-slate-50 flex items-center gap-4">
+                            <div class="relative flex-1">
+                                <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400"></i>
+                                <input 
+                                    type="text" 
+                                    placeholder="Filtrer les journaux..." 
+                                    class="w-full pl-10 pr-4 py-2 bg-white border border-slate-200 rounded-lg text-xs font-medium focus:border-blue-500 outline-none"
+                                />
+                            </div>
+                            <button class="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 rounded-lg text-[10px] font-black text-slate-400 hover:text-slate-900 transition-all uppercase tracking-widest">
+                                <i data-lucide="filter" class="w-3 h-3"></i> Filtrer
+                            </button>
+                        </div>
+
+                        <div class="flex-1 overflow-y-auto p-4 space-y-1 font-mono text-[11px]">
+                            ${state.logs.map(log => `
+                                <div class="group flex items-start gap-4 p-2 hover:bg-slate-50 rounded transition-colors">
+                                    <span class="text-slate-400 font-bold shrink-0">[${formatLogTime(log.timestamp)}]</span>
+                                    <span class="shrink-0">${getIcon(log.type)}</span>
+                                    <span class="w-24 font-black uppercase tracking-widest text-slate-400 shrink-0">${log.source}</span>
+                                    <span class="text-slate-700 font-medium">${log.message}</span>
+                                </div>
+                            `).join('')}
+                            ${state.logs.length === 0 ? `
+                                <div class="h-full flex flex-col items-center justify-center text-slate-300 py-20">
+                                    <i data-lucide="clock" class="w-12 h-12 mb-4 opacity-20"></i>
+                                    <p class="font-bold uppercase tracking-widest">Tampon vide. En attente d'événements système...</p>
+                                </div>
+                            ` : ''}
+                        </div>
+
+                        <div class="p-3 bg-slate-900 text-slate-500 text-[10px] font-bold uppercase tracking-[0.2em] flex justify-between">
+                            <span>Tampon: ${state.logs.length} entrées</span>
+                            <span class="flex items-center gap-2">
+                                <span class="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse"></span>
+                                Flux: Actif
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('view-logs').innerHTML = html;
+            lucide.createIcons();
+        }
+
+        // Connections View
+        function renderConnectionsView() {
+            const html = `
+                <div class="p-8 max-w-[1400px] mx-auto space-y-8">
+                    <div class="flex items-center gap-4">
+                        <div class="w-10 h-10 bg-slate-900 rounded-lg flex items-center justify-center">
+                            <i data-lucide="database" class="w-6 h-6 text-white"></i>
+                        </div>
+                        <div>
+                            <h2 class="text-xl font-black text-slate-900 tracking-tight uppercase">Infrastructure AWS</h2>
+                            <p class="text-xs font-bold text-slate-400 uppercase tracking-widest">Pont Capteurs DynamoDB</p>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                        <div class="lg:col-span-5 space-y-6">
+                            <div class="bg-white p-8 rounded-xl border border-slate-200 shadow-sm space-y-6">
+                                <h3 class="text-xs font-black text-slate-900 uppercase tracking-widest flex items-center gap-2">
+                                    <i data-lucide="settings" class="w-4 h-4 text-blue-600"></i> Configuration
+                                </h3>
+
+                                <div class="space-y-4">
+                                    <div>
+                                        <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 block">Région</label>
+                                        <select 
+                                            id="aws-region"
+                                            onchange="updateConnectionConfig('region', this.value)"
+                                            class="w-full h-12 px-4 bg-slate-50 border border-slate-200 rounded-lg text-sm font-bold outline-none focus:border-blue-500"
+                                        >
+                                            <option value="eu-west-1" ${state.connectionConfig.region === 'eu-west-1' ? 'selected' : ''}>eu-west-1 (Irlande)</option>
+                                            <option value="us-east-1" ${state.connectionConfig.region === 'us-east-1' ? 'selected' : ''}>us-east-1 (N. Virginie)</option>
+                                            <option value="eu-central-1" ${state.connectionConfig.region === 'eu-central-1' ? 'selected' : ''}>eu-central-1 (Francfort)</option>
+                                        </select>
+                                    </div>
+
+                                    <div>
+                                        <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 block">Nom de Table</label>
+                                        <input 
+                                            type="text"
+                                            id="table-name"
+                                            value="${state.connectionConfig.tableName}"
+                                            onchange="updateConnectionConfig('tableName', this.value)"
+                                            class="w-full h-12 px-4 bg-slate-50 border border-slate-200 rounded-lg text-sm font-bold outline-none focus:border-blue-500"
+                                            placeholder="race-telemetry-v3"
+                                        />
+                                    </div>
+
+                                    <div class="pt-4 space-y-3">
+                                        ${state.connectionConfig.status === 'disconnected' ? `
+                                            <button
+                                                onclick="connectAWS()"
+                                                class="w-full h-12 bg-slate-900 hover:bg-black text-white rounded-lg text-xs font-black tracking-widest transition-all flex items-center justify-center gap-3"
+                                            >
+                                                <i data-lucide="link-2" class="w-4 h-4"></i>
+                                                ÉTABLIR LE PONT
+                                            </button>
+                                        ` : `
+                                            <button
+                                                onclick="disconnectAWS()"
+                                                class="w-full h-12 bg-red-50 text-red-600 hover:bg-red-100 rounded-lg text-xs font-black tracking-widest transition-all flex items-center justify-center gap-3"
+                                            >
+                                                TERMINER LA CONNEXION
+                                            </button>
+                                        `}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="bg-slate-900 p-8 rounded-xl text-white relative overflow-hidden">
+                                <div class="absolute top-0 right-0 w-32 h-32 bg-blue-500/10 rounded-full blur-3xl -mr-16 -mt-16"></div>
+                                <div class="relative space-y-4">
+                                    <div class="flex items-center justify-between">
+                                        <span class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Statut Rôle IAM</span>
+                                        <span class="text-[10px] font-black text-emerald-500 uppercase tracking-widest flex items-center gap-1">
+                                            <i data-lucide="shield-check" class="w-3 h-3"></i> Autorisé
+                                        </span>
+                                    </div>
+                                    <p class="text-xs text-slate-400 leading-relaxed">
+                                        KINETIC OS utilise des permissions IAM granulaires pour interroger les données des capteurs. Assurez-vous que le rôle d'exécution dispose des droits <code class="text-blue-400">dynamodb:GetItem</code> et <code class="text-blue-400">dynamodb:Query</code>.
+                                    </p>
+                                    <div class="pt-2">
+                                        <button class="text-[10px] font-black text-blue-400 uppercase tracking-widest flex items-center gap-2 hover:text-blue-300 transition-colors">
+                                            Voir Documentation AWS <i data-lucide="external-link" class="w-3 h-3"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="lg:col-span-7 space-y-6">
+                            <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden flex flex-col min-h-[500px]">
+                                <div class="px-6 py-4 border-b border-slate-100 bg-slate-50 flex items-center justify-between">
+                                    <h3 class="text-xs font-black text-slate-900 uppercase tracking-widest flex items-center gap-2">
+                                        <i data-lucide="activity" class="w-4 h-4 text-emerald-600"></i> Explorateur de Flux en Direct
+                                    </h3>
+                                    <div class="flex items-center gap-2">
+                                        <span class="w-2 h-2 rounded-full ${state.connectionConfig.status === 'connected' ? 'bg-emerald-500 animate-pulse' : 'bg-slate-300'}"></span>
+                                        <span class="text-[10px] font-black text-slate-500 uppercase tracking-widest">
+                                            ${state.connectionConfig.status === 'connected' ? 'En Diffusion' : 'Aucun Signal'}
+                                        </span>
+                                    </div>
+                                </div>
+
+                                <div class="flex-1 p-6" id="dynamo-stream">
+                                    ${state.connectionConfig.status === 'connected' ? `
+                                        <div class="space-y-3">
+                                            ${state.mockDynamoData.map((item, idx) => `
+                                                <div class="p-4 bg-slate-50 border border-slate-100 rounded-lg flex items-center justify-between animate-fadeIn">
+                                                    <div class="flex items-center gap-4">
+                                                        <div class="w-8 h-8 bg-white border border-slate-200 rounded flex items-center justify-center">
+                                                            <i data-lucide="cpu" class="w-4 h-4 text-slate-400"></i>
+                                                        </div>
+                                                        <div>
+                                                            <p class="text-xs font-black text-slate-900">${item.sensor_id}</p>
+                                                            <p class="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Paquet Télémétrique</p>
+                                                        </div>
+                                                    </div>
+                                                    <div class="text-right">
+                                                        <p class="text-sm font-black text-blue-600 tabular-nums">${item.value}%</p>
+                                                        <p class="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Signal: ${100 - idx * 2}%</p>
+                                                    </div>
+                                                </div>
+                                            `).join('')}
+                                        </div>
+                                    ` : `
+                                        <div class="h-full flex flex-col items-center justify-center text-slate-300 py-20">
+                                            <i data-lucide="server" class="w-12 h-12 mb-4 opacity-10"></i>
+                                            <p class="font-bold uppercase tracking-widest">Établir le pont pour voir le flux</p>
+                                        </div>
+                                    `}
+                                </div>
+
+                                <div class="p-4 border-t border-slate-100 bg-slate-50">
+                                    <div class="flex justify-between items-center text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                                        <span>Partitions: 01</span>
+                                        <span>Latence: 14ms</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('view-connections').innerHTML = html;
+            lucide.createIcons();
+        }
+
+        // Modal Functions
+        function toggleSensorPanel() {
+            const modal = document.getElementById('sensor-modal');
+            if (modal.classList.contains('hidden')) {
+                modal.classList.remove('hidden');
+                document.getElementById('sensor-toggle').classList.add('bg-slate-800', 'text-blue-400', 'border', 'border-blue-400/30');
+                lucide.createIcons();
+            } else {
+                modal.classList.add('hidden');
+                document.getElementById('sensor-toggle').classList.remove('bg-slate-800', 'text-blue-400', 'border', 'border-blue-400/30');
+            }
+        }
+
+        // Race Functions
+        function setRaceStatus(status) {
+            const oldStatus = state.raceStatus;
+            state.raceStatus = status;
+            
+            if (status === 'racing' && !state.raceStartTime) {
+                state.raceStartTime = Date.now() - state.raceTime;
+                addLog('Race timer started', 'info', 'TIMER');
+            } else if (status !== 'racing') {
+                state.raceStartTime = null;
+            }
+            
+            if (oldStatus !== status) {
+                addLog(`Race status changed to ${status}`, 'info', 'SYSTEM');
+            }
+            
+            updateStatusIndicator();
+            renderCurrentView();
+        }
+
+        function resetRace() {
+            if (!confirm('Voulez-vous vraiment réinitialiser la course ?')) return;
+            
+            state.participants = [];
+            state.raceTime = 0;
+            state.raceStatus = 'waiting';
+            state.raceStartTime = null;
+            
+            addLog('Race reset by operator', 'warning', 'SYSTEM');
+            updateStatusIndicator();
+            renderCurrentView();
+        }
+
+        function updateTotalLaps(value) {
+            state.totalLaps = parseInt(value) || 1;
+            addLog(`Total laps set to ${state.totalLaps}`, 'info', 'CONFIG');
+            renderCurrentView();
+        }
+
+        // Participant Functions
+        function addParticipant() {
+            const name = document.getElementById('new-participant-name').value;
+            const number = document.getElementById('new-participant-number').value;
+            
+            if (!name || !number) return;
+            
+            if (state.participants.some(p => p.carNumber === parseInt(number))) {
+                alert(`Le numéro de voiture ${number} est déjà utilisé !`);
+                return;
+            }
+            
+            const participant = {
+                id: Date.now().toString(),
+                name,
+                carNumber: parseInt(number),
+                currentLap: 0,
+                totalTime: 0,
+                lastLapTime: 0
+            };
+            
+            state.participants.push(participant);
+            addLog(`Added participant ${name} (#${number})`, 'success', 'FLEET');
+            
+            document.getElementById('new-participant-name').value = '';
+            document.getElementById('new-participant-number').value = '';
+            
+            renderCurrentView();
+        }
+
+        function removeParticipant(id) {
+            const p = state.participants.find(x => x.id === id);
+            if (!confirm('Voulez-vous vraiment supprimer ce participant ?')) return;
+            
+            state.participants = state.participants.filter(p => p.id !== id);
+            addLog(`Removed unit ${p?.name || id}`, 'warning', 'FLEET');
+            renderCurrentView();
+        }
+
+        function updateParticipant(id, field, value) {
+            const participant = state.participants.find(p => p.id === id);
+            if (participant) {
+                participant[field] = value;
+                renderCurrentView();
+            }
+        }
+
+        function completeLap(id) {
+            const participant = state.participants.find(p => p.id === id);
+            if (participant && participant.currentLap < state.totalLaps) {
+                const lapTime = Math.random() * 20000 + 30000;
+                participant.currentLap += 1;
+                participant.totalTime += lapTime;
+                participant.lastLapTime = lapTime;
+                addLog(`Unit #${participant.carNumber} completed lap ${participant.currentLap}`, 'info', 'SENSOR');
+                renderCurrentView();
+            }
+        }
+
+        // Sensor Functions
+        function triggerLapSensor() {
+            const carNumber = document.getElementById('sensor-car-number').value;
+            if (!carNumber) return;
+            
+            const participant = state.participants.find(p => p.carNumber === parseInt(carNumber));
+            if (participant) {
+                completeLap(participant.id);
+                addLog(`Manual sensor pulse for car #${carNumber}`, 'success', 'RF_MOCK');
+                
+                const btn = document.getElementById('lap-sensor-btn');
+                btn.classList.add('bg-emerald-50', 'border-emerald-500/20');
+                setTimeout(() => {
+                    btn.classList.remove('bg-emerald-50', 'border-emerald-500/20');
+                }, 1500);
+            } else {
+                addLog(`Car #${carNumber} not found in fleet`, 'error', 'RF_MOCK');
+            }
+        }
+
+        function triggerCameraDetection() {
+            const carNumber = document.getElementById('sensor-car-number').value;
+            if (!carNumber) return;
+            
+            addLog(`Camera node detection: Unit #${carNumber}`, 'success', 'VISION');
+            
+            const btn = document.getElementById('camera-sensor-btn');
+            btn.classList.add('bg-emerald-50', 'border-emerald-500/20');
+            setTimeout(() => {
+                btn.classList.remove('bg-emerald-50', 'border-emerald-500/20');
+            }, 1500);
+        }
+
+        // Connection Functions
+        function updateConnectionConfig(field, value) {
+            state.connectionConfig[field] = value;
+            renderConnectionsView();
+        }
+
+        function connectAWS() {
+            addLog(`Attempting handshake with DynamoDB at ${state.connectionConfig.region}...`, 'info', 'AWS');
+            
+            setTimeout(() => {
+                state.connectionConfig.status = 'connected';
+                state.connectionConfig.lastSync = Date.now();
+                addLog(`Secure connection established with table: ${state.connectionConfig.tableName}`, 'success', 'AWS');
+                renderConnectionsView();
+                startDynamoStream();
+            }, 2000);
+        }
+
+        function disconnectAWS() {
+            state.connectionConfig.status = 'disconnected';
+            state.mockDynamoData = [];
+            addLog(`Disconnected from DynamoDB cluster`, 'warning', 'AWS');
+            renderConnectionsView();
+        }
+
+        function startDynamoStream() {
+            setInterval(() => {
+                if (state.connectionConfig.status === 'connected') {
+                    const newData = {
+                        sensor_id: `SN-${Math.floor(Math.random() * 1000)}`,
+                        value: (Math.random() * 100).toFixed(2),
+                        timestamp: Date.now()
+                    };
+                    state.mockDynamoData.unshift(newData);
+                    if (state.mockDynamoData.length > 5) state.mockDynamoData.pop();
+                    
+                    if (state.currentView === 'connections') {
+                        renderConnectionsView();
+                    }
+                }
+            }, 3000);
+        }
+
+        // Log Functions
+        function clearLogs() {
+            state.logs = [];
+            addLog('Log buffer cleared by operator', 'info', 'SYSTEM');
+            renderLogsView();
+        }
+
+        // Helper Functions
+        function updateStatusIndicator() {
+            const indicator = document.getElementById('status-indicator');
+            const statusText = document.getElementById('status-text');
+            
+            if (state.raceStatus === 'racing') {
+                indicator.className = 'w-2 h-2 rounded-full bg-emerald-500 animate-pulse';
+                statusText.textContent = 'Système: Actif';
+            } else {
+                indicator.className = 'w-2 h-2 rounded-full bg-slate-300';
+                statusText.textContent = 'Système: En attente';
+            }
+        }
+
+        function renderCurrentView() {
+            switch(state.currentView) {
+                case 'dashboard': renderDashboardView(); break;
+                case 'admin': renderAdminView(); break;
+                case 'logs': renderLogsView(); break;
+                case 'connections': renderConnectionsView(); break;
+            }
+        }
+
+        // Race Timer
+        setInterval(() => {
+            if (state.raceStatus === 'racing' && state.raceStartTime) {
+                state.raceTime = Date.now() - state.raceStartTime;
+                if (state.currentView === 'dashboard') {
+                    renderCurrentView();
+                }
+            }
+        }, 100);
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            lucide.createIcons();
+            addLog('KINETIC OS v3.0 initialized', 'success', 'BOOT');
+            addLog('All subsystems operational', 'info', 'SYSTEM');
+            switchView('dashboard');
+        });
+    </script>
 </body>
 </html>
-
