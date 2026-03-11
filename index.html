@@ -2,447 +2,1109 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8" />
-  <title>Dashboard Course Temps Réel</title>
+  <title>Centre de contrôle de course et télémétrie</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <!-- Typo système / Inter si dispo -->
   <style>
-    * { box-sizing: border-box; }
-    body {
-      margin: 0;
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      background: #0f172a;
-      color: #e5e7eb;
+    :root {
+      --bg-main: #050712;
+      --bg-elevated: rgba(18, 24, 38, 0.85);
+      --bg-elevated-strong: rgba(18, 24, 38, 0.95);
+      --accent: #4f46e5;
+      --accent-soft: rgba(79, 70, 229, 0.2);
+      --accent-gradient: linear-gradient(135deg, #4f46e5, #06b6d4);
+      --danger: #ef4444;
+      --warning: #f59e0b;
+      --success: #22c55e;
+      --text-main: #f9fafb;
+      --text-muted: #9ca3af;
+      --border-subtle: rgba(148, 163, 184, 0.25);
+      --card-radius: 16px;
+      --transition-fast: 0.18s ease-out;
+      --shadow-soft: 0 18px 45px rgba(15, 23, 42, 0.65);
+      --glass-blur: 18px;
     }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Inter", sans-serif;
+      background: radial-gradient(circle at top, #111827 0, #020617 45%, #000 100%);
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      overflow: hidden;
+    }
+
+    /* Layout global */
+
+    .app-shell {
+      display: grid;
+      grid-template-columns: 260px minmax(0, 1fr);
+      grid-template-rows: 64px minmax(0, 1fr);
+      grid-template-areas:
+        "sidebar header"
+        "sidebar main";
+      width: 100%;
+      height: 100vh;
+    }
+
     header {
-      background: #020617;
-      padding: 12px 20px;
+      grid-area: header;
+      backdrop-filter: blur(var(--glass-blur));
+      background: linear-gradient(90deg, rgba(15, 23, 42, 0.9), rgba(15, 23, 42, 0.6));
+      border-bottom: 1px solid var(--border-subtle);
       display: flex;
       align-items: center;
       justify-content: space-between;
-      border-bottom: 1px solid #1f2937;
+      padding: 0 24px;
+      box-shadow: 0 10px 30px rgba(15, 23, 42, 0.6);
+      z-index: 20;
     }
-    header h1 {
-      margin: 0;
-      font-size: 20px;
-      color: #f9fafb;
-    }
-    .status-indicator {
-      display: inline-flex;
+
+    .header-left {
+      display: flex;
       align-items: center;
-      gap: 8px;
-      font-size: 13px;
+      gap: 14px;
     }
+
+    .logo-pill {
+      width: 36px;
+      height: 36px;
+      border-radius: 999px;
+      background-image: var(--accent-gradient);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 0 0 1px rgba(148, 163, 184, 0.3), 0 12px 30px rgba(79, 70, 229, 0.6);
+      font-size: 18px;
+      font-weight: 700;
+    }
+
+    .header-title {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .header-title h1 {
+      font-size: 18px;
+      font-weight: 600;
+      letter-spacing: 0.02em;
+    }
+
+    .header-title span {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 18px;
+    }
+
+    .status-indicator {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 6px 12px;
+      border-radius: 999px;
+      background: rgba(15, 23, 42, 0.9);
+      border: 1px solid rgba(148, 163, 184, 0.35);
+    }
+
     .status-dot {
       width: 10px;
       height: 10px;
       border-radius: 999px;
-      background: #ef4444;
+      background: var(--success);
+      box-shadow: 0 0 12px rgba(34, 197, 94, 0.9);
+      transition: background var(--transition-fast), box-shadow var(--transition-fast);
     }
-    .status-dot.connected {
-      background: #22c55e;
+
+    .status-text {
+      font-size: 13px;
     }
-    .container {
-      display: grid;
-      grid-template-columns: 220px 1fr;
-      height: calc(100vh - 52px);
+
+    .status-label {
+      font-weight: 500;
     }
-    nav {
-      background: #020617;
-      border-right: 1px solid #1f2937;
-      padding: 12px;
+
+    .status-sub {
+      color: var(--text-muted);
+      font-size: 11px;
+    }
+
+    .user-pill {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 6px 12px;
+      border-radius: 999px;
+      background: rgba(15, 23, 42, 0.9);
+      border: 1px solid rgba(148, 163, 184, 0.35);
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+
+    .user-avatar {
+      width: 24px;
+      height: 24px;
+      border-radius: 999px;
+      background: radial-gradient(circle at 30% 0, #e5e7eb, #4b5563);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: 600;
+      color: #020617;
+    }
+
+    /* Sidebar */
+
+    .sidebar {
+      grid-area: sidebar;
+      backdrop-filter: blur(var(--glass-blur));
+      background: radial-gradient(circle at top, rgba(15, 23, 42, 0.98), rgba(15, 23, 42, 0.92));
+      border-right: 1px solid var(--border-subtle);
+      padding: 18px 16px;
       display: flex;
       flex-direction: column;
-      gap: 8px;
+      gap: 18px;
+      box-shadow: 18px 0 45px rgba(15, 23, 42, 0.9);
+      z-index: 30;
     }
-    .nav-btn {
-      border: none;
-      background: #020617;
-      color: #9ca3af;
-      padding: 10px 12px;
-      text-align: left;
-      border-radius: 6px;
-      cursor: pointer;
-      font-size: 14px;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-    .nav-btn.active {
-      background: #111827;
-      color: #f9fafb;
-      border: 1px solid #4b5563;
-    }
-    main {
-      padding: 16px 20px;
-      overflow: auto;
-    }
-    h2 {
-      margin-top: 0;
-      font-size: 18px;
-      margin-bottom: 12px;
-    }
-    .grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-      gap: 12px;
-    }
-    .card {
-      background: #020617;
-      border-radius: 8px;
-      border: 1px solid #1f2937;
-      padding: 12px;
-    }
-    .card-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 8px;
-      font-size: 14px;
-      color: #9ca3af;
-    }
-    .card-title {
-      font-weight: 600;
-      color: #e5e7eb;
-    }
-    .badge {
-      display: inline-flex;
-      align-items: center;
-      padding: 2px 8px;
-      border-radius: 999px;
+
+    .sidebar-section-title {
       font-size: 11px;
-      border: 1px solid #374151;
-      color: #9ca3af;
-    }
-    .metrics {
-      display: flex;
-      gap: 12px;
-      flex-wrap: wrap;
-    }
-    .metric {
-      flex: 1;
-      min-width: 120px;
-      background: #020617;
-      border-radius: 6px;
-      border: 1px solid #111827;
-      padding: 8px;
-    }
-    .metric-label {
-      font-size: 11px;
-      color: #9ca3af;
+      text-transform: uppercase;
+      letter-spacing: 0.16em;
+      color: var(--text-muted);
       margin-bottom: 4px;
     }
-    .metric-value {
+
+    .nav-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .nav-item {
+      border-radius: 999px;
+      padding: 8px 10px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: var(--text-muted);
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+      transition: background var(--transition-fast), color var(--transition-fast), transform var(--transition-fast), box-shadow var(--transition-fast);
+    }
+
+    .nav-item::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at 0 0, rgba(79, 70, 229, 0.25), transparent 55%);
+      opacity: 0;
+      transition: opacity var(--transition-fast);
+      pointer-events: none;
+    }
+
+    .nav-item:hover::before {
+      opacity: 1;
+    }
+
+    .nav-item:hover {
+      background: rgba(15, 23, 42, 0.9);
+      transform: translateY(-1px);
+      box-shadow: 0 10px 25px rgba(15, 23, 42, 0.7);
+      color: #e5e7eb;
+    }
+
+    .nav-item.active {
+      background: rgba(15, 23, 42, 0.98);
+      color: #e5e7eb;
+      box-shadow: 0 14px 30px rgba(15, 23, 42, 0.9);
+      border: 1px solid rgba(129, 140, 248, 0.7);
+    }
+
+    .nav-item-icon {
+      width: 26px;
+      height: 26px;
+      border-radius: 999px;
+      background: rgba(15, 23, 42, 0.95);
+      border: 1px solid rgba(148, 163, 184, 0.4);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+    }
+
+    .nav-item-label {
+      font-size: 13px;
+      font-weight: 500;
+    }
+
+    .sidebar-footer {
+      margin-top: auto;
+      padding-top: 12px;
+      border-top: 1px dashed rgba(55, 65, 81, 0.7);
+      font-size: 11px;
+      color: var(--text-muted);
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .sidebar-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 8px;
+      border-radius: 999px;
+      background: rgba(15, 23, 42, 0.95);
+      border: 1px solid rgba(148, 163, 184, 0.4);
+      font-size: 11px;
+    }
+
+    .sidebar-badge-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 999px;
+      background: var(--accent);
+      box-shadow: 0 0 10px rgba(79, 70, 229, 0.9);
+    }
+
+    /* Zone principale */
+
+    main {
+      grid-area: main;
+      padding: 18px 22px 22px;
+      overflow: auto;
+      position: relative;
+    }
+
+    .page {
+      display: none;
+      animation: fadeIn 0.25s ease-out;
+    }
+
+    .page.active {
+      display: block;
+    }
+
+    .page-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 18px;
+      gap: 12px;
+    }
+
+    .page-header-title {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .page-header-title h2 {
+      font-size: 20px;
+      font-weight: 600;
+    }
+
+    .page-header-title span {
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+
+    .page-header-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .chip {
+      padding: 4px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(148, 163, 184, 0.4);
+      font-size: 11px;
+      color: var(--text-muted);
+      background: rgba(15, 23, 42, 0.9);
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .chip-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 999px;
+      background: var(--success);
+    }
+
+    /* Cartes */
+
+    .card {
+      background: var(--bg-elevated);
+      border-radius: var(--card-radius);
+      border: 1px solid var(--border-subtle);
+      box-shadow: var(--shadow-soft);
+      padding: 14px 16px 16px;
+      position: relative;
+      overflow: hidden;
+      backdrop-filter: blur(var(--glass-blur));
+      transition: transform var(--transition-fast), box-shadow var(--transition-fast), border-color var(--transition-fast), background var(--transition-fast);
+    }
+
+    .card::before {
+      content: "";
+      position: absolute;
+      inset: -40%;
+      background: radial-gradient(circle at 0 0, rgba(79, 70, 229, 0.16), transparent 55%);
+      opacity: 0;
+      transition: opacity var(--transition-fast);
+      pointer-events: none;
+    }
+
+    .card:hover::before {
+      opacity: 1;
+    }
+
+    .card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 22px 55px rgba(15, 23, 42, 0.9);
+      border-color: rgba(129, 140, 248, 0.7);
+      background: var(--bg-elevated-strong);
+    }
+
+    .card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 10px;
+      gap: 10px;
+    }
+
+    .card-title {
+      font-size: 14px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .card-title-pill {
+      width: 18px;
+      height: 18px;
+      border-radius: 999px;
+      background: rgba(15, 23, 42, 0.95);
+      border: 1px solid rgba(148, 163, 184, 0.6);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+    }
+
+    .card-subtitle {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    .card-badge {
+      font-size: 11px;
+      padding: 3px 8px;
+      border-radius: 999px;
+      background: rgba(15, 23, 42, 0.95);
+      border: 1px solid rgba(148, 163, 184, 0.5);
+      color: var(--text-muted);
+    }
+
+    /* Grilles */
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .grid-3 {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .grid-4 {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .grid-responsive {
+      display: grid;
+      grid-template-columns: repeat(12, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .col-span-4 {
+      grid-column: span 4 / span 4;
+    }
+
+    .col-span-5 {
+      grid-column: span 5 / span 5;
+    }
+
+    .col-span-6 {
+      grid-column: span 6 / span 6;
+    }
+
+    .col-span-7 {
+      grid-column: span 7 / span 7;
+    }
+
+    .col-span-8 {
+      grid-column: span 8 / span 8;
+    }
+
+    .col-span-12 {
+      grid-column: span 12 / span 12;
+    }
+
+    /* Statistiques */
+
+    .stat-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 6px;
+    }
+
+    .stat {
+      flex: 1 1 120px;
+      min-width: 0;
+    }
+
+    .stat-label {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-bottom: 2px;
+    }
+
+    .stat-value {
       font-size: 18px;
       font-weight: 600;
     }
+
+    .stat-tag {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    /* Boutons */
+
+    .btn {
+      border-radius: 999px;
+      border: 1px solid rgba(148, 163, 184, 0.6);
+      background: rgba(15, 23, 42, 0.95);
+      color: var(--text-main);
+      padding: 6px 12px;
+      font-size: 12px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+      transition: background var(--transition-fast), transform var(--transition-fast), box-shadow var(--transition-fast), border-color var(--transition-fast), color var(--transition-fast);
+    }
+
+    .btn:hover {
+      background: rgba(15, 23, 42, 1);
+      transform: translateY(-1px);
+      box-shadow: 0 10px 25px rgba(15, 23, 42, 0.9);
+      border-color: rgba(129, 140, 248, 0.9);
+    }
+
+    .btn-primary {
+      background-image: var(--accent-gradient);
+      border-color: transparent;
+      color: #f9fafb;
+      box-shadow: 0 12px 30px rgba(79, 70, 229, 0.7);
+    }
+
+    .btn-primary:hover {
+      box-shadow: 0 16px 40px rgba(79, 70, 229, 0.9);
+      transform: translateY(-1px);
+    }
+
+    .btn-danger {
+      background: rgba(127, 29, 29, 0.95);
+      border-color: rgba(248, 113, 113, 0.8);
+      color: #fee2e2;
+    }
+
+    .btn-danger:hover {
+      background: rgba(153, 27, 27, 1);
+      box-shadow: 0 14px 35px rgba(127, 29, 29, 0.9);
+    }
+
+    .btn-ghost {
+      background: transparent;
+      border-color: rgba(148, 163, 184, 0.4);
+      color: var(--text-muted);
+    }
+
+    .btn-ghost:hover {
+      background: rgba(15, 23, 42, 0.9);
+      color: #e5e7eb;
+    }
+
+    .btn-sm {
+      padding: 4px 10px;
+      font-size: 11px;
+    }
+
+    .btn-icon {
+      width: 26px;
+      height: 26px;
+      border-radius: 999px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0;
+    }
+
+    /* Tableaux */
+
     table {
       width: 100%;
       border-collapse: collapse;
-      font-size: 13px;
+      font-size: 12px;
     }
+
+    thead {
+      background: rgba(15, 23, 42, 0.95);
+    }
+
     th, td {
       padding: 6px 8px;
-      border-bottom: 1px solid #111827;
       text-align: left;
+      border-bottom: 1px solid rgba(31, 41, 55, 0.9);
     }
+
     th {
-      background: #020617;
-      color: #9ca3af;
-      font-weight: 500;
-      position: sticky;
-      top: 0;
-      z-index: 1;
-    }
-    tr:nth-child(even) {
-      background: #020617;
-    }
-    tr:nth-child(odd) {
-      background: #020617;
-    }
-    .btn {
-      border-radius: 4px;
-      border: 1px solid #4b5563;
-      background: #111827;
-      color: #e5e7eb;
-      padding: 4px 8px;
-      font-size: 12px;
-      cursor: pointer;
-    }
-    .btn.primary {
-      background: #22c55e;
-      border-color: #16a34a;
-      color: #022c22;
-      font-weight: 600;
-    }
-    .btn.danger {
-      background: #b91c1c;
-      border-color: #7f1d1d;
-      color: #fee2e2;
-    }
-    .btn.small {
-      padding: 2px 6px;
       font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text-muted);
     }
-    .btn:disabled {
-      opacity: 0.5;
-      cursor: default;
+
+    tbody tr:hover {
+      background: rgba(15, 23, 42, 0.9);
     }
-    .controls-row {
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 2px 8px;
+      border-radius: 999px;
+      font-size: 11px;
+      border: 1px solid rgba(148, 163, 184, 0.5);
+      background: rgba(15, 23, 42, 0.95);
+      color: var(--text-muted);
+    }
+
+    .badge-success {
+      border-color: rgba(34, 197, 94, 0.7);
+      color: #bbf7d0;
+      background: rgba(22, 101, 52, 0.9);
+    }
+
+    .badge-warning {
+      border-color: rgba(245, 158, 11, 0.7);
+      color: #fef3c7;
+      background: rgba(146, 64, 14, 0.9);
+    }
+
+    .badge-danger {
+      border-color: rgba(239, 68, 68, 0.7);
+      color: #fee2e2;
+      background: rgba(127, 29, 29, 0.9);
+    }
+
+    .badge-info {
+      border-color: rgba(59, 130, 246, 0.7);
+      color: #dbeafe;
+      background: rgba(30, 64, 175, 0.9);
+    }
+
+    /* Formulaires */
+
+    .form-row {
       display: flex;
       flex-wrap: wrap;
-      gap: 8px;
+      gap: 10px;
       margin-bottom: 8px;
     }
-    .input-group {
+
+    .form-field {
+      flex: 1 1 160px;
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .form-label {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    .form-input, .form-select, .form-textarea {
+      border-radius: 999px;
+      border: 1px solid rgba(148, 163, 184, 0.6);
+      background: rgba(15, 23, 42, 0.95);
+      color: var(--text-main);
+      padding: 6px 10px;
+      font-size: 12px;
+      outline: none;
+      transition: border-color var(--transition-fast), box-shadow var(--transition-fast), background var(--transition-fast);
+    }
+
+    .form-textarea {
+      border-radius: 12px;
+      min-height: 80px;
+      resize: vertical;
+    }
+
+    .form-input:focus, .form-select:focus, .form-textarea:focus {
+      border-color: rgba(129, 140, 248, 0.9);
+      box-shadow: 0 0 0 1px rgba(129, 140, 248, 0.7);
+      background: rgba(15, 23, 42, 1);
+    }
+
+    .form-helper {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    /* Logs */
+
+    .logs-container {
+      max-height: 360px;
+      overflow-y: auto;
+      padding-right: 4px;
+      margin-top: 6px;
+    }
+
+    .log-entry {
+      display: grid;
+      grid-template-columns: 140px 90px minmax(0, 1fr);
+      gap: 8px;
+      align-items: center;
+      padding: 6px 8px;
+      border-radius: 10px;
+      background: rgba(15, 23, 42, 0.9);
+      border: 1px solid rgba(31, 41, 55, 0.9);
+      font-size: 11px;
+      margin-bottom: 4px;
+    }
+
+    .log-timestamp {
+      color: var(--text-muted);
+    }
+
+    .log-level {
+      text-transform: uppercase;
+      font-weight: 600;
+      font-size: 10px;
+    }
+
+    .log-message {
+      font-size: 11px;
+    }
+
+    /* Vidéo */
+
+    .video-layout {
+      display: grid;
+      grid-template-columns: minmax(0, 2.2fr) minmax(260px, 1.2fr);
+      gap: 14px;
+    }
+
+    .video-player-wrapper {
+      position: relative;
+      border-radius: 18px;
+      overflow: hidden;
+      background: radial-gradient(circle at top, #111827, #020617);
+      border: 1px solid rgba(148, 163, 184, 0.4);
+      box-shadow: var(--shadow-soft);
+    }
+
+    .video-player-header {
+      position: absolute;
+      inset: 0 auto auto 0;
+      padding: 10px 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      pointer-events: none;
+    }
+
+    .video-player-header span {
+      font-size: 11px;
+      color: #e5e7eb;
+      background: rgba(15, 23, 42, 0.9);
+      padding: 4px 8px;
+      border-radius: 999px;
+      border: 1px solid rgba(148, 163, 184, 0.5);
+      pointer-events: auto;
+    }
+
+    video {
+      width: 100%;
+      height: 100%;
+      display: block;
+      background: #000;
+    }
+
+    .video-list {
+      max-height: 420px;
+      overflow-y: auto;
+      margin-top: 6px;
+    }
+
+    .video-item {
+      display: grid;
+      grid-template-columns: 80px minmax(0, 1fr);
+      gap: 8px;
+      padding: 6px;
+      border-radius: 12px;
+      background: rgba(15, 23, 42, 0.9);
+      border: 1px solid rgba(31, 41, 55, 0.9);
+      cursor: pointer;
+      margin-bottom: 6px;
+      transition: background var(--transition-fast), border-color var(--transition-fast), transform var(--transition-fast), box-shadow var(--transition-fast);
+    }
+
+    .video-item:hover {
+      background: rgba(15, 23, 42, 1);
+      border-color: rgba(129, 140, 248, 0.8);
+      transform: translateY(-1px);
+      box-shadow: 0 12px 30px rgba(15, 23, 42, 0.9);
+    }
+
+    .video-item.active {
+      border-color: rgba(129, 140, 248, 1);
+      box-shadow: 0 14px 35px rgba(15, 23, 42, 0.9);
+    }
+
+    .video-thumb {
+      border-radius: 10px;
+      background: radial-gradient(circle at 30% 0, #1f2937, #020617);
+      border: 1px solid rgba(55, 65, 81, 0.9);
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      color: #9ca3af;
+    }
+
+    .video-thumb::after {
+      content: "▶";
+      position: absolute;
+      font-size: 16px;
+      color: #e5e7eb;
+      text-shadow: 0 0 10px rgba(15, 23, 42, 0.9);
+    }
+
+    .video-meta-main {
       display: flex;
       flex-direction: column;
       gap: 2px;
-      font-size: 12px;
-      color: #9ca3af;
     }
-    .input-group input, .input-group select {
-      background: #020617;
-      border-radius: 4px;
-      border: 1px solid #374151;
-      padding: 4px 6px;
-      color: #e5e7eb;
-      font-size: 12px;
+
+    .video-meta-title {
+      font-size: 13px;
+      font-weight: 500;
     }
-    .logs-container {
-      max-height: 60vh;
-      overflow: auto;
-      font-size: 12px;
-      background: #020617;
-      border-radius: 6px;
-      border: 1px solid #111827;
+
+    .video-meta-sub {
+      font-size: 11px;
+      color: var(--text-muted);
     }
-    .log-entry {
-      padding: 4px 8px;
-      border-bottom: 1px solid #111827;
+
+    .video-meta-tags {
       display: flex;
-      gap: 8px;
-      align-items: baseline;
+      flex-wrap: wrap;
+      gap: 4px;
+      margin-top: 4px;
     }
-    .log-time {
-      color: #6b7280;
-      font-size: 11px;
-      min-width: 80px;
-    }
-    .log-level {
-      font-size: 11px;
-      border-radius: 999px;
-      padding: 1px 6px;
-      border: 1px solid #374151;
-      text-transform: uppercase;
-    }
-    .log-level.info { color: #38bdf8; border-color: #0ea5e9; }
-    .log-level.success { color: #22c55e; border-color: #16a34a; }
-    .log-level.warn { color: #facc15; border-color: #eab308; }
-    .log-level.error { color: #f97373; border-color: #ef4444; }
-    .log-message {
-      flex: 1;
-    }
-    .pill {
+
+    /* AWS / DB */
+
+    .status-pill {
       display: inline-flex;
       align-items: center;
-      padding: 2px 6px;
+      gap: 6px;
+      padding: 3px 8px;
       border-radius: 999px;
       font-size: 11px;
-      border: 1px solid #374151;
-      color: #9ca3af;
-      gap: 4px;
+      border: 1px solid rgba(148, 163, 184, 0.5);
+      background: rgba(15, 23, 42, 0.95);
+      color: var(--text-muted);
     }
-    .pill-dot {
-      width: 6px;
-      height: 6px;
+
+    .status-pill-dot {
+      width: 8px;
+      height: 8px;
       border-radius: 999px;
-      background: #4b5563;
+      background: var(--warning);
+      box-shadow: 0 0 10px rgba(245, 158, 11, 0.9);
     }
-    .pill-dot.ok { background: #22c55e; }
-    .pill-dot.bad { background: #ef4444; }
-    .tag {
-      display: inline-block;
-      padding: 1px 6px;
-      border-radius: 999px;
-      font-size: 10px;
-      border: 1px solid #374151;
-      color: #9ca3af;
+
+    /* Utilitaires */
+
+    .muted {
+      color: var(--text-muted);
+      font-size: 11px;
     }
+
+    .mt-2 { margin-top: 8px; }
+    .mt-3 { margin-top: 12px; }
+    .mt-4 { margin-top: 16px; }
+
+    .flex {
+      display: flex;
+    }
+
     .flex-between {
       display: flex;
       justify-content: space-between;
       align-items: center;
     }
-    .mt-8 { margin-top: 8px; }
-    .mt-12 { margin-top: 12px; }
-    .mt-16 { margin-top: 16px; }
-    .mb-8 { margin-bottom: 8px; }
-    .scroll-y {
-      max-height: 260px;
-      overflow: auto;
+
+    .gap-2 { gap: 8px; }
+    .gap-3 { gap: 12px; }
+
+    .text-right { text-align: right; }
+
+    /* Responsive */
+
+    @media (max-width: 1100px) {
+      .app-shell {
+        grid-template-columns: 72px minmax(0, 1fr);
+      }
+      .nav-item-label {
+        display: none;
+      }
+      .sidebar-section-title {
+        display: none;
+      }
     }
-    .label {
-      font-size: 11px;
-      color: #9ca3af;
+
+    @media (max-width: 900px) {
+      .grid-responsive {
+        grid-template-columns: repeat(6, minmax(0, 1fr));
+      }
+      .col-span-8, .col-span-7, .col-span-6, .col-span-5, .col-span-4 {
+        grid-column: span 6 / span 6;
+      }
+      .video-layout {
+        grid-template-columns: minmax(0, 1fr);
+      }
     }
-    .value {
-      font-size: 13px;
-      color: #e5e7eb;
+
+    @media (max-width: 720px) {
+      .app-shell {
+        grid-template-columns: 64px minmax(0, 1fr);
+        grid-template-rows: 56px minmax(0, 1fr);
+      }
+      header {
+        padding: 0 14px;
+      }
+      .header-title h1 {
+        font-size: 15px;
+      }
+      .header-title span {
+        display: none;
+      }
+      .page-header {
+        flex-direction: column;
+        align-items: flex-start;
+      }
     }
-    .chip {
-      display: inline-flex;
-      align-items: center;
-      gap: 4px;
-      padding: 2px 6px;
-      border-radius: 999px;
-      border: 1px solid #374151;
-      font-size: 11px;
-      color: #9ca3af;
-    }
-    .chip-dot {
-      width: 6px;
-      height: 6px;
-      border-radius: 999px;
-      background: #4b5563;
-    }
-    .chip-dot.green { background: #22c55e; }
-    .chip-dot.yellow { background: #eab308; }
-    .chip-dot.red { background: #ef4444; }
-    .divider {
-      height: 1px;
-      background: #111827;
-      margin: 8px 0;
-    }
-    .code {
-      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
-      font-size: 11px;
-      background: #020617;
-      border-radius: 4px;
-      border: 1px solid #111827;
-      padding: 6px;
-      color: #9ca3af;
-      white-space: pre-wrap;
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(4px); }
+      to { opacity: 1; transform: translateY(0); }
     }
   </style>
 </head>
 <body>
-<header>
-  <h1>Centre de contrôle course & télémétrie</h1>
-  <div class="status-indicator">
-    <span class="status-dot" id="globalStatusDot"></span>
-    <span id="globalStatusText">Course arrêtée</span>
-  </div>
-</header>
+<div class="app-shell">
 
-<div class="container">
-  <nav>
-    <button class="nav-btn active" data-view="dashboardView">🏁 Dashboard</button>
-    <button class="nav-btn" data-view="adminView">🛠️ Administration</button>
-    <button class="nav-btn" data-view="awsView">☁️ Flux AWS / DynamoDB</button>
-    <button class="nav-btn" data-view="logsView">📜 Logs</button>
-  </nav>
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div>
+      <div class="sidebar-section-title">Navigation</div>
+      <ul class="nav-list">
+        <li class="nav-item active" data-page="dashboard">
+          <div class="nav-item-icon">📊</div>
+          <span class="nav-item-label">Dashboard</span>
+        </li>
+        <li class="nav-item" data-page="administration">
+          <div class="nav-item-icon">🛠</div>
+          <span class="nav-item-label">Administration</span>
+        </li>
+        <li class="nav-item" data-page="aws">
+          <div class="nav-item-icon">☁️</div>
+          <span class="nav-item-label">Flux AWS / Base</span>
+        </li>
+        <li class="nav-item" data-page="telemetrie">
+          <div class="nav-item-icon">📡</div>
+          <span class="nav-item-label">Télémétrie</span>
+        </li>
+        <li class="nav-item" data-page="video">
+          <div class="nav-item-icon">🎥</div>
+          <span class="nav-item-label">Surveillance vidéo</span>
+        </li>
+        <li class="nav-item" data-page="logs">
+          <div class="nav-item-icon">📜</div>
+          <span class="nav-item-label">Logs</span>
+        </li>
+      </ul>
+    </div>
 
+    <div class="sidebar-footer">
+      <div class="sidebar-badge">
+        <span class="sidebar-badge-dot"></span>
+        <span>Mode supervision temps réel</span>
+      </div>
+      <span>Version interface : 1.0 · Simulation locale</span>
+    </div>
+  </aside>
+
+  <!-- HEADER -->
+  <header>
+    <div class="header-left">
+      <div class="logo-pill">R</div>
+      <div class="header-title">
+        <h1>Centre de contrôle de course et télémétrie</h1>
+        <span>Supervision en temps réel · Simulation de capteurs et flux</span>
+      </div>
+    </div>
+    <div class="header-right">
+      <div class="status-indicator">
+        <div class="status-dot" id="globalStatusDot"></div>
+        <div class="status-text">
+          <div class="status-label" id="globalStatusLabel">Course en attente</div>
+          <div class="status-sub" id="globalStatusSub">Aucune course active</div>
+        </div>
+      </div>
+      <div class="user-pill">
+        <div class="user-avatar">OP</div>
+        <span>Opérateur course</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN -->
   <main>
-    <!-- DASHBOARD -->
-    <section id="dashboardView">
-      <h2>Vue générale de la course</h2>
-      <div class="grid">
-        <div class="card">
-          <div class="card-header">
-            <span class="card-title">État de la course</span>
-            <span class="badge" id="raceStateBadge">Arrêtée</span>
-          </div>
-          <div class="metrics">
-            <div class="metric">
-              <div class="metric-label">Temps écoulé</div>
-              <div class="metric-value" id="raceElapsed">00:00.0</div>
-            </div>
-            <div class="metric">
-              <div class="metric-label">Tours totaux</div>
-              <div class="metric-value" id="raceTotalLaps">0</div>
-            </div>
-            <div class="metric">
-              <div class="metric-label">Participants actifs</div>
-              <div class="metric-value" id="raceActiveParticipants">0</div>
-            </div>
-          </div>
-          <div class="mt-12">
-            <div class="controls-row">
-              <button class="btn primary" id="btnStartRace">Démarrer</button>
-              <button class="btn" id="btnPauseRace" disabled>Pause</button>
-              <button class="btn danger" id="btnStopRace" disabled>Arrêter</button>
-              <button class="btn danger" id="btnEmergencyReset">Reset d'urgence</button>
-            </div>
-            <div class="label mt-8">
-              Dernier événement : <span class="value" id="lastEventLabel">Aucun</span>
-            </div>
-          </div>
-        </div>
 
-        <div class="card">
-          <div class="card-header">
-            <span class="card-title">Capteurs simulés</span>
-            <span class="badge">Mode test</span>
-          </div>
-          <div class="controls-row">
-            <div class="input-group">
-              <label for="simCarSelect">Participant</label>
-              <select id="simCarSelect"></select>
-            </div>
-            <div class="input-group">
-              <label>&nbsp;</label>
-              <button class="btn primary" id="btnSimLap">Simuler passage tour</button>
-            </div>
-          </div>
-          <div class="mt-8">
-            <button class="btn small" id="btnSimCamera">Simuler détection caméra</button>
-            <button class="btn small" id="btnSimError">Simuler erreur capteur</button>
-          </div>
-          <div class="mt-12">
-            <div class="label">Dernier paquet télémétrique simulé :</div>
-            <div class="code" id="lastTelemetryPayload">
-              Aucun paquet reçu.
-            </div>
-          </div>
+    <!-- PAGE DASHBOARD -->
+    <section class="page active" id="page-dashboard">
+      <div class="page-header">
+        <div class="page-header-title">
+          <h2>Vue d’ensemble de la course</h2>
+          <span>Suivi global de l’état de la course, des participants et de la télémétrie.</span>
         </div>
-
-        <div class="card">
-          <div class="card-header">
-            <span class="card-title">Résumé télémétrie</span>
-            <span class="badge">Temps réel</span>
+        <div class="page-header-actions">
+          <div class="chip">
+            <span class="chip-dot" id="chipRaceDot"></span>
+            <span id="chipRaceText">Course en attente</span>
           </div>
-          <div class="metrics">
-            <div class="metric">
-              <div class="metric-label">Paquets reçus</div>
-              <div class="metric-value" id="telemetryCount">0</div>
-            </div>
-            <div class="metric">
-              <div class="metric-label">Paquets en tampon</div>
-              <div class="metric-value" id="bufferedCount">0</div>
-            </div>
-            <div class="metric">
-              <div class="metric-label">État flux</div>
-              <div class="metric-value">
-                <span class="chip">
-                  <span class="chip-dot" id="streamStatusDot"></span>
-                  <span id="streamStatusText">Déconnecté</span>
-                </span>
-              </div>
-            </div>
-          </div>
-          <div class="mt-12">
-            <div class="label">Dernière synchronisation :</div>
-            <div class="value" id="lastSyncTime">Jamais</div>
-          </div>
+          <button class="btn btn-sm btn-ghost" id="btnDashboardForceTick">Simuler un événement</button>
         </div>
       </div>
 
-      <div class="card mt-16">
-        <div class="card-header">
-          <span class="card-title">Participants</span>
-          <span class="badge" id="participantsCountBadge">0 participants</span>
+      <div class="grid-responsive">
+        <!-- Carte état de la course -->
+        <div class="card col-span-4">
+          <div class="card-header">
+            <div>
+              <div class="card-title">
+                <div class="card-title-pill">🏁</div>
+                <span>État de la course</span>
+              </div>
+              <div class="card-subtitle">Contrôle en temps réel de la session en cours.</div>
+            </div>
+            <span class="card-badge" id="raceStateBadge">Course en attente</span>
+          </div>
+
+          <div class="stat-row">
+            <div class="stat">
+              <div class="stat-label">Temps écoulé</div>
+              <div class="stat-value" id="raceElapsed">00:00:00</div>
+              <div class="stat-tag">Depuis le dernier départ</div>
+            </div>
+            <div class="stat">
+              <div class="stat-label">Tours complétés (total)</div>
+              <div class="stat-value" id="raceTotalLaps">0</div>
+              <div class="stat-tag">Tous participants confondus</div>
+            </div>
+          </div>
+
+          <div class="stat-row mt-3">
+            <div class="stat">
+              <div class="stat-label">Participants actifs</div>
+              <div class="stat-value" id="raceActiveParticipants">0</div>
+              <div class="stat-tag">Sur la piste</div>
+            </div>
+            <div class="stat">
+              <div class="stat-label">Dernier événement</div>
+              <div class="stat-value" id="raceLastEvent">—</div>
+              <div class="stat-tag">Horodatage</div>
+            </div>
+          </div>
+
+          <div class="mt-3 flex-between gap-3">
+            <div class="flex gap-2">
+              <button class="btn btn-primary" id="btnRaceStart">Démarrer la course</button>
+              <button class="btn" id="btnRacePause">Pause</button>
+              <button class="btn" id="btnRaceStop">Arrêter</button>
+            </div>
+            <button class="btn btn-danger btn-sm" id="btnRaceReset">Reset d’urgence</button>
+          </div>
         </div>
-        <div class="scroll-y">
-          <table>
-            <thead>
+
+        <!-- Carte participants -->
+        <div class="card col-span-8">
+          <div class="card-header">
+            <div>
+              <div class="card-title">
+                <div class="card-title-pill">👥</div>
+                <span>Participants</span>
+              </div>
+              <div class="card-subtitle">Suivi des tours, passages et état de chaque participant.</div>
+            </div>
+            <span class="card-badge" id="participantsCountBadge">0 participant</span>
+          </div>
+
+          <div class="muted mt-2">Les participants peuvent être ajoutés depuis l’onglet « Administration ».</div>
+
+          <div class="mt-2" style="overflow-x:auto;">
+            <table>
+              <thead>
               <tr>
                 <th>ID</th>
                 <th>Nom</th>
@@ -450,719 +1112,1248 @@
                 <th>Dernier passage</th>
                 <th>État</th>
               </tr>
-            </thead>
-            <tbody id="participantsTableBody">
-              <!-- Rempli dynamiquement -->
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </section>
-
-    <!-- ADMIN -->
-    <section id="adminView" style="display:none;">
-      <h2>Administration de la course</h2>
-      <div class="grid">
-        <div class="card">
-          <div class="card-header">
-            <span class="card-title">Gestion des participants</span>
-            <span class="badge">CRUD</span>
-          </div>
-          <div class="controls-row">
-            <div class="input-group">
-              <label for="newParticipantName">Nom du participant</label>
-              <input id="newParticipantName" type="text" placeholder="Voiture 1, Pilote A..." />
-            </div>
-            <div class="input-group">
-              <label>&nbsp;</label>
-              <button class="btn primary" id="btnAddParticipant">Ajouter</button>
-            </div>
-          </div>
-          <div class="mt-12 scroll-y" style="max-height:220px;">
-            <table>
-              <thead>
-                <tr>
-                  <th>ID</th>
-                  <th>Nom</th>
-                  <th>Tours</th>
-                  <th>Actions</th>
-                </tr>
               </thead>
-              <tbody id="adminParticipantsTableBody">
-                <!-- Rempli dynamiquement -->
+              <tbody id="participantsTableBody">
+              <!-- Lignes générées dynamiquement -->
               </tbody>
             </table>
           </div>
         </div>
 
-        <div class="card">
+        <!-- Carte résumé télémétrie -->
+        <div class="card col-span-4">
           <div class="card-header">
-            <span class="card-title">Contrôle global</span>
-            <span class="badge">Course</span>
+            <div>
+              <div class="card-title">
+                <div class="card-title-pill">📡</div>
+                <span>Résumé télémétrie</span>
+              </div>
+              <div class="card-subtitle">Flux de données capteurs et état de la connexion.</div>
+            </div>
+            <span class="card-badge" id="telemetryStatusBadge">Flux inactif</span>
           </div>
-          <div class="controls-row">
-            <button class="btn primary" id="btnAdminStart">Démarrer</button>
-            <button class="btn" id="btnAdminPause">Pause</button>
-            <button class="btn danger" id="btnAdminStop">Arrêter</button>
-            <button class="btn danger" id="btnAdminReset">Reset d'urgence</button>
+
+          <div class="stat-row">
+            <div class="stat">
+              <div class="stat-label">Paquets reçus</div>
+              <div class="stat-value" id="telemetryPackets">0</div>
+              <div class="stat-tag">Depuis le chargement</div>
+            </div>
+            <div class="stat">
+              <div class="stat-label">Paquets en attente</div>
+              <div class="stat-value" id="telemetryPending">0</div>
+              <div class="stat-tag">Tampon local</div>
+            </div>
           </div>
-          <div class="divider"></div>
-          <div class="label">Résumé :</div>
-          <div class="value" id="adminSummary">
-            Course arrêtée. Aucun participant actif.
+
+          <div class="stat-row mt-3">
+            <div class="stat">
+              <div class="stat-label">État du flux</div>
+              <div class="stat-value" id="telemetryConnectionState">Déconnecté</div>
+              <div class="stat-tag">Connexion simulée</div>
+            </div>
+            <div class="stat">
+              <div class="stat-label">Dernière synchronisation</div>
+              <div class="stat-value" id="telemetryLastSync">—</div>
+              <div class="stat-tag">Vers la base de données</div>
+            </div>
           </div>
-          <div class="mt-12">
-            <div class="label">Dernière action admin :</div>
-            <div class="value" id="lastAdminAction">Aucune</div>
+        </div>
+
+        <!-- Carte capteurs simulés -->
+        <div class="card col-span-8">
+          <div class="card-header">
+            <div>
+              <div class="card-title">
+                <div class="card-title-pill">🧪</div>
+                <span>Capteurs simulés</span>
+              </div>
+              <div class="card-subtitle">Génération manuelle d’événements télémétriques pour tests.</div>
+            </div>
+            <span class="card-badge">Simulation locale</span>
+          </div>
+
+          <div class="form-row">
+            <div class="form-field">
+              <label class="form-label" for="simParticipantSelect">Participant ciblé</label>
+              <select class="form-select" id="simParticipantSelect">
+                <option value="">Sélectionner un participant…</option>
+              </select>
+              <div class="form-helper">Les événements de passage de tour nécessitent un participant.</div>
+            </div>
+          </div>
+
+          <div class="mt-2 flex gap-2">
+            <button class="btn btn-sm" id="btnSimLap">Simuler passage de tour</button>
+            <button class="btn btn-sm" id="btnSimCamera">Simuler détection caméra</button>
+            <button class="btn btn-sm btn-danger" id="btnSimError">Simuler erreur capteur</button>
+          </div>
+
+          <div class="muted mt-3">
+            Chaque événement simulé met à jour les statistiques, les participants et les logs système.
           </div>
         </div>
       </div>
     </section>
 
-    <!-- AWS / DYNAMODB -->
-    <section id="awsView" style="display:none;">
-      <h2>Connexion aux flux AWS / DynamoDB</h2>
-      <div class="grid">
-        <div class="card">
-          <div class="card-header">
-            <span class="card-title">Configuration connexion</span>
-            <span class="badge">AWS / DynamoDB</span>
-          </div>
-          <div class="controls-row">
-            <div class="input-group">
-              <label for="awsRegion">Région</label>
-              <input id="awsRegion" type="text" placeholder="eu-west-1" value="eu-west-1" />
-            </div>
-            <div class="input-group">
-              <label for="awsTable">Nom de la table</label>
-              <input id="awsTable" type="text" placeholder="RaceTelemetry" value="RaceTelemetry" />
-            </div>
-          </div>
-          <div class="controls-row mt-8">
-            <button class="btn primary" id="btnConnectAws">Se connecter</button>
-            <button class="btn" id="btnDisconnectAws" disabled>Se déconnecter</button>
-          </div>
-          <div class="mt-12">
-            <div class="label">État de la connexion :</div>
-            <div class="value">
-              <span class="chip">
-                <span class="chip-dot" id="awsStatusDot"></span>
-                <span id="awsStatusText">Déconnecté</span>
-              </span>
-            </div>
-          </div>
-          <div class="mt-12">
-            <div class="label">Tampon local :</div>
-            <div class="value">
-              <span class="pill">
-                <span class="pill-dot" id="bufferStatusDot"></span>
-                <span id="bufferStatusText">Vide</span>
-              </span>
-            </div>
-          </div>
+    <!-- PAGE ADMINISTRATION -->
+    <section class="page" id="page-administration">
+      <div class="page-header">
+        <div class="page-header-title">
+          <h2>Administration de la course</h2>
+          <span>Gestion des participants et contrôle global de la session.</span>
         </div>
-
-        <div class="card">
-          <div class="card-header">
-            <span class="card-title">Flux télémétriques</span>
-            <span class="badge">Derniers paquets</span>
-          </div>
-          <div class="logs-container" id="awsTelemetryList">
-            <!-- Paquets télémétriques affichés ici -->
+        <div class="page-header-actions">
+          <div class="chip">
+            <span>Dernière action : <span id="adminLastAction">Aucune</span></span>
           </div>
         </div>
       </div>
 
-      <div class="card mt-16">
-        <div class="card-header">
-          <span class="card-title">Intégration réelle avec ta base</span>
-          <span class="badge">À adapter</span>
+      <div class="grid-2">
+        <!-- Gestion des participants -->
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <div class="card-title">
+                <div class="card-title-pill">➕</div>
+                <span>Gestion des participants</span>
+              </div>
+              <div class="card-subtitle">Ajouter, supprimer et visualiser les participants.</div>
+            </div>
+          </div>
+
+          <div class="form-row mt-2">
+            <div class="form-field">
+              <label class="form-label" for="adminParticipantName">Nom du participant</label>
+              <input class="form-input" id="adminParticipantName" placeholder="Ex. Voiture 12 · Pilote A" />
+            </div>
+            <div class="form-field" style="max-width:160px;">
+              <label class="form-label">&nbsp;</label>
+              <button class="btn btn-primary" id="btnAdminAddParticipant">Ajouter</button>
+            </div>
+          </div>
+
+          <div class="mt-2" style="overflow-x:auto;">
+            <table>
+              <thead>
+              <tr>
+                <th>ID</th>
+                <th>Nom</th>
+                <th>Tours</th>
+                <th>État</th>
+                <th class="text-right">Actions</th>
+              </tr>
+              </thead>
+              <tbody id="adminParticipantsTableBody">
+              <!-- Lignes générées dynamiquement -->
+              </tbody>
+            </table>
+          </div>
         </div>
-        <div class="code">
+
+        <!-- Contrôle global -->
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <div class="card-title">
+                <div class="card-title-pill">⚙️</div>
+                <span>Contrôle global</span>
+              </div>
+              <div class="card-subtitle">Actions administrateur sur la course en cours.</div>
+            </div>
+          </div>
+
+          <div class="mt-2 flex gap-2">
+            <button class="btn btn-primary" id="btnAdminStart">Démarrer la course</button>
+            <button class="btn" id="btnAdminPause">Mettre en pause</button>
+            <button class="btn" id="btnAdminStop">Arrêter la course</button>
+            <button class="btn btn-danger" id="btnAdminReset">Reset d’urgence</button>
+          </div>
+
+          <div class="mt-3">
+            <div class="stat-row">
+              <div class="stat">
+                <div class="stat-label">Résumé de la course</div>
+                <div class="stat-value" id="adminRaceSummary">Aucune course active</div>
+                <div class="stat-tag">État global</div>
+              </div>
+              <div class="stat">
+                <div class="stat-label">Participants inscrits</div>
+                <div class="stat-value" id="adminParticipantsCount">0</div>
+                <div class="stat-tag">Total</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="mt-3">
+            <div class="form-label">Journal rapide</div>
+            <div class="muted" id="adminQuickLog">En attente d’actions administrateur…</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- PAGE AWS / BASE DE DONNÉES -->
+    <section class="page" id="page-aws">
+      <div class="page-header">
+        <div class="page-header-title">
+          <h2>Flux AWS / Base de données</h2>
+          <span>Simulation de connexion à une table DynamoDB et gestion du tampon.</span>
+        </div>
+        <div class="page-header-actions">
+          <div class="chip">
+            <span>État connexion : <span id="awsConnectionStateText">Déconnecté</span></span>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <!-- Paramètres connexion -->
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <div class="card-title">
+                <div class="card-title-pill">☁️</div>
+                <span>Paramètres AWS simulés</span>
+              </div>
+              <div class="card-subtitle">Configuration de la région et de la table DynamoDB.</div>
+            </div>
+          </div>
+
+          <div class="form-row mt-2">
+            <div class="form-field">
+              <label class="form-label" for="awsRegion">Région AWS</label>
+              <select class="form-select" id="awsRegion">
+                <option value="eu-west-1">eu-west-1 (Irlande)</option>
+                <option value="eu-central-1">eu-central-1 (Francfort)</option>
+                <option value="eu-west-3">eu-west-3 (Paris)</option>
+                <option value="us-east-1">us-east-1 (Virginie)</option>
+              </select>
+            </div>
+            <div class="form-field">
+              <label class="form-label" for="awsTableName">Nom de la table DynamoDB</label>
+              <input class="form-input" id="awsTableName" placeholder="Ex. course-telemetrie" value="course-telemetrie-demo" />
+            </div>
+          </div>
+
+          <div class="mt-2 flex gap-2">
+            <button class="btn btn-primary" id="btnAwsConnect">Connecter</button>
+            <button class="btn btn-ghost" id="btnAwsDisconnect">Déconnecter</button>
+          </div>
+
+          <div class="mt-3">
+            <div class="form-label">État de la connexion</div>
+            <div class="status-pill" id="awsStatusPill">
+              <span class="status-pill-dot" id="awsStatusDot"></span>
+              <span id="awsStatusText">Déconnecté · Tampon actif</span>
+            </div>
+            <div class="muted mt-2">
+              Les événements sont envoyés via <code>sendToDatabase(payload)</code>. En cas d’échec, ils sont stockés dans un tampon local puis vidés via <code>flushBuffer()</code>.
+            </div>
+          </div>
+        </div>
+
+        <!-- Statut tampon -->
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <div class="card-title">
+                <div class="card-title-pill">📦</div>
+                <span>Tampon d’événements</span>
+              </div>
+              <div class="card-subtitle">Suivi des événements en attente de synchronisation.</div>
+            </div>
+          </div>
+
+          <div class="stat-row mt-2">
+            <div class="stat">
+              <div class="stat-label">Événements en tampon</div>
+              <div class="stat-value" id="awsBufferCount">0</div>
+              <div class="stat-tag">En attente d’envoi</div>
+            </div>
+            <div class="stat">
+              <div class="stat-label">Dernière synchronisation</div>
+              <div class="stat-value" id="awsLastSync">—</div>
+              <div class="stat-tag">Vers la base simulée</div>
+            </div>
+          </div>
+
+          <div class="mt-3 flex gap-2">
+            <button class="btn btn-sm" id="btnAwsFlush">Forcer la vidange du tampon</button>
+            <button class="btn btn-sm btn-ghost" id="btnAwsSimFailure">Simuler une erreur de connexion</button>
+          </div>
+
+          <div class="mt-3">
+            <div class="form-label">Journal du flux</div>
+            <div class="muted" id="awsLog">Aucun événement traité pour le moment.</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- PAGE TÉLÉMÉTRIE -->
+    <section class="page" id="page-telemetrie">
+      <div class="page-header">
+        <div class="page-header-title">
+          <h2>Télémétrie détaillée</h2>
+          <span>Visualisation des événements capteurs et du flux en temps réel.</span>
+        </div>
+        <div class="page-header-actions">
+          <button class="btn btn-sm btn-ghost" id="btnTelemetrySimEvent">Simuler un événement aléatoire</button>
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <!-- Statistiques télémétrie -->
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <div class="card-title">
+                <div class="card-title-pill">📈</div>
+                <span>Statistiques du flux</span>
+              </div>
+              <div class="card-subtitle">Vue synthétique des événements reçus.</div>
+            </div>
+          </div>
+
+          <div class="grid-3 mt-2">
+            <div class="stat">
+              <div class="stat-label">Passages de ligne</div>
+              <div class="stat-value" id="telemetryLapEvents">0</div>
+              <div class="stat-tag">Événements « passage de ligne »</div>
+            </div>
+            <div class="stat">
+              <div class="stat-label">Détections caméra</div>
+              <div class="stat-value" id="telemetryCameraEvents">0</div>
+              <div class="stat-tag">Événements vidéo</div>
+            </div>
+            <div class="stat">
+              <div class="stat-label">Erreurs capteurs</div>
+              <div class="stat-value" id="telemetryErrorEvents">0</div>
+              <div class="stat-tag">Anomalies détectées</div>
+            </div>
+          </div>
+
+          <div class="mt-3">
+            <div class="form-label">Dernier événement télémétrique</div>
+            <div class="muted" id="telemetryLastEvent">Aucun événement reçu pour le moment.</div>
+          </div>
+        </div>
+
+        <!-- Liste des derniers événements -->
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <div class="card-title">
+                <div class="card-title-pill">🧾</div>
+                <span>Derniers événements</span>
+              </div>
+              <div class="card-subtitle">Historique court des événements télémétriques.</div>
+            </div>
+          </div>
+
+          <div class="logs-container" id="telemetryEventsList">
+            <!-- Événements télémétrie récents -->
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- PAGE VIDÉO -->
+    <section class="page" id="page-video">
+      <div class="page-header">
+        <div class="page-header-title">
+          <h2>Surveillance vidéo</h2>
+          <span>Visualisation des vidéos enregistrées par les caméras et capteurs.</span>
+        </div>
+        <div class="page-header-actions">
+          <div class="chip">
+            <span>Vidéos disponibles : <span id="videoCount">0</span></span>
+          </div>
+        </div>
+      </div>
+
+      <div class="video-layout">
+        <!-- Lecteur vidéo -->
+        <div class="video-player-wrapper">
+          <div class="video-player-header">
+            <span id="videoCurrentInfo">Aucune vidéo sélectionnée</span>
+            <span>Lecteur HTML5 · Contrôles natifs</span>
+          </div>
           <!--
-            ICI TU BRANCHES TA VRAIE LOGIQUE DE BASE DE DONNÉES / AWS.
-
-            Exemple d’approche (pseudo-code) côté frontend + backend :
-
-            1) Frontend (ce fichier) :
-               - Quand un événement important se produit (tour, ajout participant, etc.),
-                 on appelle une API REST de ton backend :
-                   fetch('/api/telemetry', {
-                     method: 'POST',
-                     headers: { 'Content-Type': 'application/json' },
-                     body: JSON.stringify(eventPayload)
-                   })
-
-            2) Backend (Node, Python, etc.) :
-               - Reçoit le payload et utilise le SDK AWS pour écrire dans DynamoDB :
-                 const { DynamoDBClient, PutItemCommand } = require('@aws-sdk/client-dynamodb');
-                 const client = new DynamoDBClient({ region: 'eu-west-1' });
-                 await client.send(new PutItemCommand({
-                   TableName: 'RaceTelemetry',
-                   Item: {
-                     id: { S: uuid() },
-                     type: { S: payload.type },
-                     timestamp: { N: String(Date.now()) },
-                     data: { S: JSON.stringify(payload) }
-                   }
-                 }));
-
-            3) Gestion des coupures :
-               - Si l’appel à l’API échoue, tu peux :
-                 - stocker l’événement dans un buffer local (IndexedDB, localStorage, mémoire),
-                 - réessayer périodiquement,
-                 - vider le buffer dès que la connexion est rétablie.
-
-            Dans ce HTML, les fonctions sendToDatabase() et flushBuffer()
-            sont prévues pour que tu branches cette logique.
+            Le lecteur vidéo utilise les contrôles natifs HTML5.
+            L’application se contente de charger la bonne source selon la vidéo sélectionnée.
           -->
+          <video id="videoPlayer" controls preload="metadata">
+            <source id="videoSource" src="" type="video/mp4" />
+            Votre navigateur ne supporte pas la balise vidéo.
+          </video>
+        </div>
+
+        <!-- Liste des vidéos -->
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <div class="card-title">
+                <div class="card-title-pill">🎞</div>
+                <span>Liste des vidéos enregistrées</span>
+              </div>
+              <div class="card-subtitle">Sélectionnez une vidéo pour la charger dans le lecteur.</div>
+            </div>
+          </div>
+
+          <div class="form-row mt-2">
+            <div class="form-field">
+              <label class="form-label" for="videoFilterType">Filtrer par type d’événement</label>
+              <select class="form-select" id="videoFilterType">
+                <option value="all">Tous les événements</option>
+                <option value="passage">Passage de ligne</option>
+                <option value="camera">Détection caméra</option>
+                <option value="incident">Incident / erreur</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="video-list" id="videoList">
+            <!-- Éléments vidéo générés dynamiquement -->
+          </div>
+
+          <div class="muted mt-2">
+            Améliorations possibles : miniatures réelles, marqueurs d’événements sur la timeline, multi-caméras synchronisées.
+          </div>
         </div>
       </div>
     </section>
 
-    <!-- LOGS -->
-    <section id="logsView" style="display:none;">
-      <h2>Journal d’activité</h2>
+    <!-- PAGE LOGS -->
+    <section class="page" id="page-logs">
+      <div class="page-header">
+        <div class="page-header-title">
+          <h2>Logs système</h2>
+          <span>Journalisation en temps réel des événements de la course et de l’infrastructure.</span>
+        </div>
+        <div class="page-header-actions">
+          <button class="btn btn-sm btn-ghost" id="btnLogsClear">Effacer les logs</button>
+        </div>
+      </div>
+
       <div class="card">
         <div class="card-header">
-          <span class="card-title">Logs système</span>
-          <span class="badge" id="logsCountBadge">0 événements</span>
+          <div>
+            <div class="card-title">
+              <div class="card-title-pill">📜</div>
+              <span>Flux de logs</span>
+            </div>
+            <div class="card-subtitle">Les événements critiques, avertissements et informations sont listés ci-dessous.</div>
+          </div>
         </div>
+
         <div class="logs-container" id="logsContainer">
-          <!-- Entrées de log -->
+          <!-- Logs générés dynamiquement -->
         </div>
       </div>
     </section>
+
   </main>
 </div>
 
 <script>
-  // --- ÉTAT GLOBAL ---------------------------------------------------------
+  // =========================
+  // ÉTAT GLOBAL DE L’APPLICATION
+  // =========================
+
   const state = {
     race: {
-      running: false,
-      paused: false,
+      status: "idle", // idle | running | paused | stopped
       startTime: null,
       elapsedMs: 0,
       totalLaps: 0,
       lastEvent: null
     },
     participants: [],
-    logs: [],
     telemetry: {
-      count: 0,
-      buffered: [],
-      lastPayload: null,
-      lastSync: null
+      packets: 0,
+      pending: 0,
+      connectionState: "disconnected", // disconnected | connected
+      lastSync: null,
+      lapEvents: 0,
+      cameraEvents: 0,
+      errorEvents: 0,
+      lastEventDescription: null,
+      recentEvents: [] // {timestamp, type, description}
     },
     aws: {
       connected: false,
-      region: 'eu-west-1',
-      table: 'RaceTelemetry'
-    }
+      region: "eu-west-1",
+      tableName: "course-telemetrie-demo",
+      buffer: [],
+      lastSync: null,
+      simulateFailure: false
+    },
+    video: {
+      list: [],
+      currentId: null,
+      filterType: "all"
+    },
+    logs: []
   };
 
   let raceTimerInterval = null;
 
-  // --- UTILITAIRES ---------------------------------------------------------
-  function formatTime(ms) {
+  // =========================
+  // UTILITAIRES
+  // =========================
+
+  function formatTime(date) {
+    const d = date instanceof Date ? date : new Date(date);
+    const h = String(d.getHours()).padStart(2, "0");
+    const m = String(d.getMinutes()).padStart(2, "0");
+    const s = String(d.getSeconds()).padStart(2, "0");
+    return `${h}:${m}:${s}`;
+  }
+
+  function formatDuration(ms) {
     const totalSeconds = Math.floor(ms / 1000);
-    const minutes = Math.floor(totalSeconds / 60);
-    const seconds = totalSeconds % 60;
-    const tenths = Math.floor((ms % 1000) / 100);
-    return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}.${tenths}`;
+    const h = String(Math.floor(totalSeconds / 3600)).padStart(2, "0");
+    const m = String(Math.floor((totalSeconds % 3600) / 60)).padStart(2, "0");
+    const s = String(totalSeconds % 60).padStart(2, "0");
+    return `${h}:${m}:${s}`;
   }
 
   function nowIso() {
     return new Date().toISOString();
   }
 
-  function addLog(level, message, meta = {}) {
+  function log(level, message) {
     const entry = {
-      time: nowIso(),
+      timestamp: new Date(),
       level,
-      message,
-      meta
+      message
     };
-    state.logs.unshift(entry);
+    state.logs.push(entry);
+    if (state.logs.length > 300) {
+      state.logs.shift();
+    }
     renderLogs();
   }
 
-  function updateGlobalStatus() {
-    const dot = document.getElementById('globalStatusDot');
-    const text = document.getElementById('globalStatusText');
-    if (state.race.running && !state.race.paused) {
-      dot.classList.add('connected');
-      text.textContent = 'Course en cours';
-    } else if (state.race.paused) {
-      dot.classList.remove('connected');
-      text.textContent = 'Course en pause';
-    } else {
-      dot.classList.remove('connected');
-      text.textContent = 'Course arrêtée';
+  function addTelemetryEvent(type, description) {
+    const event = {
+      timestamp: new Date(),
+      type,
+      description
+    };
+    state.telemetry.recentEvents.unshift(event);
+    if (state.telemetry.recentEvents.length > 50) {
+      state.telemetry.recentEvents.pop();
     }
+    state.telemetry.lastEventDescription = `${type.toUpperCase()} · ${description}`;
+    renderTelemetry();
   }
 
-  function updateRaceTimer() {
-    if (!state.race.running) return;
-    const now = Date.now();
-    const elapsed = state.race.elapsedMs + (now - state.race.startTime);
-    document.getElementById('raceElapsed').textContent = formatTime(elapsed);
-  }
+  // =========================
+  // GESTION DE LA COURSE
+  // =========================
 
   function startRace() {
-    if (state.race.running && !state.race.paused) return;
+    if (state.race.status === "running") return;
     const now = Date.now();
-    state.race.running = true;
-    state.race.paused = false;
-    state.race.startTime = now;
-    addLog('info', 'Course démarrée');
-    state.race.lastEvent = 'Course démarrée';
-    if (raceTimerInterval) clearInterval(raceTimerInterval);
-    raceTimerInterval = setInterval(updateRaceTimer, 100);
-    renderRaceState();
+    if (!state.race.startTime || state.race.status === "stopped") {
+      state.race.startTime = now;
+      state.race.elapsedMs = 0;
+    } else if (state.race.status === "paused") {
+      state.race.startTime = now - state.race.elapsedMs;
+    }
+    state.race.status = "running";
+    state.race.lastEvent = "Course démarrée";
+    log("INFO", "Course démarrée.");
+    updateAdminLastAction("Course démarrée");
+    ensureRaceTimer();
+    renderRace();
   }
 
   function pauseRace() {
-    if (!state.race.running || state.race.paused) return;
-    const now = Date.now();
-    state.race.elapsedMs += now - state.race.startTime;
-    state.race.paused = true;
-    state.race.running = false;
-    state.race.startTime = null;
-    addLog('info', 'Course mise en pause');
-    state.race.lastEvent = 'Course mise en pause';
-    if (raceTimerInterval) clearInterval(raceTimerInterval);
-    renderRaceState();
+    if (state.race.status !== "running") return;
+    state.race.status = "paused";
+    state.race.elapsedMs = Date.now() - state.race.startTime;
+    state.race.lastEvent = "Course mise en pause";
+    clearInterval(raceTimerInterval);
+    raceTimerInterval = null;
+    log("INFO", "Course mise en pause.");
+    updateAdminLastAction("Course mise en pause");
+    renderRace();
   }
 
   function stopRace() {
-    if (!state.race.running && !state.race.paused) return;
-    const now = Date.now();
-    if (state.race.running) {
-      state.race.elapsedMs += now - state.race.startTime;
+    if (state.race.status === "idle" || state.race.status === "stopped") return;
+    if (state.race.status === "running") {
+      state.race.elapsedMs = Date.now() - state.race.startTime;
     }
-    state.race.running = false;
-    state.race.paused = false;
-    state.race.startTime = null;
-    addLog('warn', 'Course arrêtée');
-    state.race.lastEvent = 'Course arrêtée';
-    if (raceTimerInterval) clearInterval(raceTimerInterval);
-    renderRaceState();
+    state.race.status = "stopped";
+    state.race.lastEvent = "Course arrêtée";
+    clearInterval(raceTimerInterval);
+    raceTimerInterval = null;
+    log("WARNING", "Course arrêtée.");
+    updateAdminLastAction("Course arrêtée");
+    renderRace();
   }
 
-  function emergencyReset() {
-    state.race.running = false;
-    state.race.paused = false;
+  function resetRace() {
+    state.race.status = "idle";
     state.race.startTime = null;
     state.race.elapsedMs = 0;
     state.race.totalLaps = 0;
-    state.race.lastEvent = 'Reset d\'urgence';
+    state.race.lastEvent = "Reset d’urgence effectué";
+    clearInterval(raceTimerInterval);
+    raceTimerInterval = null;
+    // Réinitialiser les tours des participants
     state.participants.forEach(p => {
       p.laps = 0;
-      p.lastLapTime = null;
+      p.lastPassage = null;
+      p.status = "actif";
     });
-    state.telemetry.count = 0;
-    state.telemetry.buffered = [];
-    state.telemetry.lastPayload = null;
-    state.telemetry.lastSync = null;
-    addLog('error', 'Reset d\'urgence exécuté', { scope: 'global' });
-    if (raceTimerInterval) clearInterval(raceTimerInterval);
-    renderAll();
+    log("ERROR", "Reset d’urgence de la course et des participants.");
+    updateAdminLastAction("Reset d’urgence");
+    renderRace();
+    renderParticipants();
   }
 
+  function ensureRaceTimer() {
+    if (raceTimerInterval) return;
+    raceTimerInterval = setInterval(() => {
+      if (state.race.status === "running") {
+        state.race.elapsedMs = Date.now() - state.race.startTime;
+        renderRaceTimeOnly();
+      }
+    }, 1000);
+  }
+
+  // =========================
+  // GESTION DES PARTICIPANTS
+  // =========================
+
+  let nextParticipantId = 1;
+
   function addParticipant(name) {
-    const id = 'P' + String(state.participants.length + 1).padStart(2, '0');
+    if (!name.trim()) return;
     const participant = {
-      id,
-      name,
+      id: nextParticipantId++,
+      name: name.trim(),
       laps: 0,
-      lastLapTime: null,
-      active: true
+      lastPassage: null,
+      status: "actif"
     };
     state.participants.push(participant);
-    addLog('success', `Participant ajouté : ${name}`, { id });
+    log("INFO", `Participant ajouté : ${participant.name} (#${participant.id}).`);
+    updateAdminLastAction(`Participant ajouté : ${participant.name}`);
     renderParticipants();
   }
 
   function removeParticipant(id) {
-    const idx = state.participants.findIndex(p => p.id === id);
-    if (idx === -1) return;
-    const [removed] = state.participants.splice(idx, 1);
-    addLog('warn', `Participant supprimé : ${removed.name}`, { id });
+    const index = state.participants.findIndex(p => p.id === id);
+    if (index === -1) return;
+    const [removed] = state.participants.splice(index, 1);
+    log("WARNING", `Participant supprimé : ${removed.name} (#${removed.id}).`);
+    updateAdminLastAction(`Participant supprimé : ${removed.name}`);
     renderParticipants();
   }
 
-  function simulateLap(participantId) {
+  function incrementLap(participantId) {
     const p = state.participants.find(x => x.id === participantId);
     if (!p) return;
     p.laps += 1;
-    p.lastLapTime = nowIso();
+    p.lastPassage = new Date();
     state.race.totalLaps += 1;
-    state.race.lastEvent = `Tour enregistré pour ${p.name}`;
-    addLog('success', `Tour enregistré pour ${p.name}`, { id: p.id, laps: p.laps });
-
-    const payload = {
-      type: 'lap',
+    state.race.lastEvent = `Passage de ligne pour ${p.name}`;
+    state.telemetry.packets += 1;
+    state.telemetry.lapEvents += 1;
+    addTelemetryEvent("passage", `Passage de ligne pour ${p.name} (#${p.id}).`);
+    sendTelemetryToDatabase({
+      type: "passage",
       participantId: p.id,
       name: p.name,
-      lapNumber: p.laps,
-      raceTotalLaps: state.race.totalLaps,
-      timestamp: p.lastLapTime
-    };
-    handleTelemetry(payload);
-    renderAll();
+      timestamp: nowIso(),
+      lap: p.laps
+    });
+    log("SUCCESS", `Passage de ligne enregistré pour ${p.name} (#${p.id}), tour ${p.laps}.`);
+    renderRace();
+    renderParticipants();
+    renderTelemetry();
   }
 
-  function simulateCameraDetection() {
-    if (state.participants.length === 0) return;
-    const random = state.participants[Math.floor(Math.random() * state.participants.length)];
-    const payload = {
-      type: 'camera_detection',
-      participantId: random.id,
-      name: random.name,
+  // =========================
+  // TÉLÉMÉTRIE & CAPTEURS
+  // =========================
+
+  function simulateCameraEvent(participantId) {
+    const p = state.participants.find(x => x.id === participantId);
+    const label = p ? `${p.name} (#${p.id})` : "caméra globale";
+    state.telemetry.packets += 1;
+    state.telemetry.cameraEvents += 1;
+    addTelemetryEvent("camera", `Détection caméra pour ${label}.`);
+    sendTelemetryToDatabase({
+      type: "camera",
+      participantId: p ? p.id : null,
+      name: p ? p.name : null,
       timestamp: nowIso()
-    };
-    addLog('info', `Détection caméra pour ${random.name}`, { id: random.id });
-    handleTelemetry(payload);
-    renderAll();
+    });
+    log("INFO", `Événement caméra détecté pour ${label}.`);
+    renderTelemetry();
   }
 
-  function simulateSensorError() {
-    const payload = {
-      type: 'sensor_error',
-      code: 'CAMERA_TIMEOUT',
-      message: 'Timeout sur la caméra de ligne d\'arrivée',
+  function simulateSensorError(participantId) {
+    const p = state.participants.find(x => x.id === participantId);
+    const label = p ? `${p.name} (#${p.id})` : "capteur global";
+    state.telemetry.packets += 1;
+    state.telemetry.errorEvents += 1;
+    addTelemetryEvent("erreur", `Erreur capteur détectée pour ${label}.`);
+    sendTelemetryToDatabase({
+      type: "erreur",
+      participantId: p ? p.id : null,
+      name: p ? p.name : null,
       timestamp: nowIso()
-    };
-    addLog('error', 'Erreur capteur simulée', { code: payload.code });
-    handleTelemetry(payload);
-    renderAll();
+    });
+    log("ERROR", `Erreur capteur pour ${label}.`);
+    renderTelemetry();
   }
 
-  // --- TÉLÉMÉTRIE & BUFFER -------------------------------------------------
-  function handleTelemetry(payload) {
-    state.telemetry.count += 1;
-    state.telemetry.lastPayload = payload;
-    document.getElementById('lastTelemetryPayload').textContent =
-      JSON.stringify(payload, null, 2);
+  function simulateRandomTelemetryEvent() {
+    const types = ["passage", "camera", "erreur"];
+    const type = types[Math.floor(Math.random() * types.length)];
+    const participant = state.participants.length
+      ? state.participants[Math.floor(Math.random() * state.participants.length)]
+      : null;
 
-    // Envoi vers la "base" (à adapter)
-    sendToDatabase(payload);
-    renderTelemetrySummary();
-    renderAwsTelemetryList();
+    if (type === "passage" && participant) {
+      incrementLap(participant.id);
+    } else if (type === "camera") {
+      simulateCameraEvent(participant ? participant.id : null);
+    } else {
+      simulateSensorError(participant ? participant.id : null);
+    }
   }
 
-  // ICI tu branches ta vraie logique de base / API / SDK
+  // =========================
+  // AWS / BASE DE DONNÉES (SIMULÉ)
+  // =========================
+
+  // Fonction prévue pour intégration réelle ultérieure
   function sendToDatabase(payload) {
-    if (!state.aws.connected) {
-      // Pas connecté : on met en tampon
-      state.telemetry.buffered.push(payload);
-      addLog('warn', 'Connexion AWS indisponible, événement mis en tampon', { type: payload.type });
-      renderTelemetrySummary();
-      renderAwsStatus();
+    // Simulation : on renvoie une promesse résolue ou rejetée selon l’état
+    return new Promise((resolve, reject) => {
+      if (!state.aws.connected || state.aws.simulateFailure) {
+        reject(new Error("Connexion AWS simulée indisponible."));
+      } else {
+        // Latence simulée
+        setTimeout(() => {
+          resolve({ ok: true });
+        }, 150);
+      }
+    });
+  }
+
+  // Fonction prévue pour intégration réelle ultérieure
+  function flushBuffer() {
+    if (!state.aws.buffer.length) return;
+    const bufferCopy = [...state.aws.buffer];
+    state.aws.buffer = [];
+    state.aws.lastSync = new Date();
+    state.telemetry.lastSync = state.aws.lastSync;
+    state.telemetry.pending = 0;
+    document.getElementById("awsBufferCount").textContent = "0";
+    document.getElementById("awsLastSync").textContent = formatTime(state.aws.lastSync);
+    document.getElementById("telemetryLastSync").textContent = formatTime(state.telemetry.lastSync);
+    document.getElementById("awsLog").textContent =
+      `Tampon vidé : ${bufferCopy.length} événement(s) synchronisé(s) avec la base simulée.`;
+    log("SUCCESS", `Tampon vidé : ${bufferCopy.length} événement(s) envoyé(s) vers la base simulée.`);
+  }
+
+  function sendTelemetryToDatabase(payload) {
+    state.telemetry.packets += 0; // déjà incrémenté ailleurs, mais gardé pour cohérence
+    if (!state.aws.connected || state.aws.simulateFailure) {
+      // Stocker dans le tampon local
+      state.aws.buffer.push(payload);
+      state.telemetry.pending = state.aws.buffer.length;
+      document.getElementById("awsBufferCount").textContent = String(state.aws.buffer.length);
+      document.getElementById("awsLog").textContent =
+        `Connexion indisponible : événement ajouté au tampon (total : ${state.aws.buffer.length}).`;
       return;
     }
 
-    // Exemple : ici on simule un envoi réussi
-    // Dans la vraie vie, tu ferais un fetch() vers ton backend ou un appel direct au SDK.
-    addLog('info', 'Événement envoyé à la base', { type: payload.type });
-    state.telemetry.lastSync = nowIso();
-    renderTelemetrySummary();
-    renderAwsStatus();
-
-    // On tente aussi de vider le tampon si non vide
-    flushBuffer();
+    sendToDatabase(payload)
+      .then(() => {
+        state.aws.lastSync = new Date();
+        state.telemetry.lastSync = state.aws.lastSync;
+        document.getElementById("awsLastSync").textContent = formatTime(state.aws.lastSync);
+        document.getElementById("telemetryLastSync").textContent = formatTime(state.telemetry.lastSync);
+        document.getElementById("awsLog").textContent = "Événement envoyé à la base simulée.";
+      })
+      .catch(() => {
+        // En cas d’échec, on repasse en tampon
+        state.aws.buffer.push(payload);
+        state.telemetry.pending = state.aws.buffer.length;
+        document.getElementById("awsBufferCount").textContent = String(state.aws.buffer.length);
+        document.getElementById("awsLog").textContent =
+          `Erreur d’envoi : événement ajouté au tampon (total : ${state.aws.buffer.length}).`;
+        log("ERROR", "Échec de l’envoi vers la base simulée, bascule en tampon.");
+      });
   }
 
-  function flushBuffer() {
-    if (!state.aws.connected) return;
-    if (state.telemetry.buffered.length === 0) return;
-
-    const bufferedCopy = [...state.telemetry.buffered];
-    state.telemetry.buffered = [];
-    addLog('info', `Vidage du tampon (${bufferedCopy.length} événements)`, {});
-    state.telemetry.lastSync = nowIso();
-    renderTelemetrySummary();
-    renderAwsStatus();
-  }
-
-  // --- AWS / DYNAMODB ------------------------------------------------------
   function connectAws() {
-    state.aws.region = document.getElementById('awsRegion').value || 'eu-west-1';
-    state.aws.table = document.getElementById('awsTable').value || 'RaceTelemetry';
+    state.aws.region = document.getElementById("awsRegion").value;
+    state.aws.tableName = document.getElementById("awsTableName").value || "course-telemetrie-demo";
     state.aws.connected = true;
-    addLog('success', `Connexion AWS établie (region=${state.aws.region}, table=${state.aws.table})`);
-    renderAwsStatus();
-    flushBuffer();
+    state.aws.simulateFailure = false;
+    state.telemetry.connectionState = "connected";
+    document.getElementById("awsConnectionStateText").textContent = "Connecté";
+    document.getElementById("awsStatusText").textContent =
+      `Connecté à ${state.aws.region} · Table : ${state.aws.tableName}`;
+    document.getElementById("awsStatusDot").style.background = "var(--success)";
+    document.getElementById("awsStatusDot").style.boxShadow = "0 0 10px rgba(34,197,94,0.9)";
+    document.getElementById("telemetryConnectionState").textContent = "Connecté";
+    document.getElementById("telemetryStatusBadge").textContent = "Flux actif";
+    log("INFO", `Connexion AWS simulée établie sur ${state.aws.region}, table ${state.aws.tableName}.`);
+    // Tenter de vider le tampon si nécessaire
+    if (state.aws.buffer.length) {
+      flushBuffer();
+    }
   }
 
   function disconnectAws() {
     state.aws.connected = false;
-    addLog('warn', 'Connexion AWS interrompue');
-    renderAwsStatus();
+    state.telemetry.connectionState = "disconnected";
+    document.getElementById("awsConnectionStateText").textContent = "Déconnecté";
+    document.getElementById("awsStatusText").textContent = "Déconnecté · Tampon actif";
+    document.getElementById("awsStatusDot").style.background = "var(--warning)";
+    document.getElementById("awsStatusDot").style.boxShadow = "0 0 10px rgba(245,158,11,0.9)";
+    document.getElementById("telemetryConnectionState").textContent = "Déconnecté";
+    document.getElementById("telemetryStatusBadge").textContent = "Flux inactif";
+    log("WARNING", "Connexion AWS simulée fermée.");
   }
 
-  // --- RENDU ---------------------------------------------------------------
-  function renderRaceState() {
-    const badge = document.getElementById('raceStateBadge');
-    const elapsedEl = document.getElementById('raceElapsed');
-    const totalLapsEl = document.getElementById('raceTotalLaps');
-    const activeParticipantsEl = document.getElementById('raceActiveParticipants');
-    const lastEventLabel = document.getElementById('lastEventLabel');
+  // =========================
+  // VIDÉO
+  // =========================
 
-    if (state.race.running && !state.race.paused) {
-      badge.textContent = 'En cours';
-      badge.style.color = '#22c55e';
-    } else if (state.race.paused) {
-      badge.textContent = 'En pause';
-      badge.style.color = '#eab308';
-    } else {
-      badge.textContent = 'Arrêtée';
-      badge.style.color = '#f97373';
+  function initVideoList() {
+    // Données de démonstration (les URLs peuvent être remplacées par de vraies vidéos)
+    state.video.list = [
+      {
+        id: 1,
+        src: "https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4",
+        timestamp: "2026-03-11T09:15:23Z",
+        cameraId: "CAM-01",
+        type: "passage",
+        label: "Passage de ligne - Voiture 12",
+      },
+      {
+        id: 2,
+        src: "https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4",
+        timestamp: "2026-03-11T09:18:47Z",
+        cameraId: "CAM-02",
+        type: "camera",
+        label: "Détection caméra - Zone virage 3",
+      },
+      {
+        id: 3,
+        src: "https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4",
+        timestamp: "2026-03-11T09:21:02Z",
+        cameraId: "CAM-03",
+        type: "incident",
+        label: "Incident - Sortie de piste",
+      }
+    ];
+    document.getElementById("videoCount").textContent = String(state.video.list.length);
+    renderVideoList();
+  }
+
+  function renderVideoList() {
+    const container = document.getElementById("videoList");
+    container.innerHTML = "";
+    const filter = state.video.filterType;
+    const filtered = state.video.list.filter(v => filter === "all" || v.type === filter);
+
+    if (!filtered.length) {
+      const div = document.createElement("div");
+      div.className = "muted";
+      div.textContent = "Aucune vidéo ne correspond au filtre sélectionné.";
+      container.appendChild(div);
+      return;
     }
 
-    const elapsed = state.race.running
-      ? state.race.elapsedMs + (Date.now() - state.race.startTime)
-      : state.race.elapsedMs;
-    elapsedEl.textContent = formatTime(elapsed);
-    totalLapsEl.textContent = state.race.totalLaps;
-    activeParticipantsEl.textContent = state.participants.length;
-    lastEventLabel.textContent = state.race.lastEvent || 'Aucun';
+    filtered.forEach(video => {
+      const item = document.createElement("div");
+      item.className = "video-item" + (state.video.currentId === video.id ? " active" : "");
+      item.dataset.id = video.id;
 
-    document.getElementById('btnStartRace').disabled = state.race.running && !state.race.paused;
-    document.getElementById('btnPauseRace').disabled = !state.race.running || state.race.paused;
-    document.getElementById('btnStopRace').disabled = !state.race.running && !state.race.paused;
+      const thumb = document.createElement("div");
+      thumb.className = "video-thumb";
 
-    document.getElementById('btnAdminStart').disabled = state.race.running && !state.race.paused;
-    document.getElementById('btnAdminPause').disabled = !state.race.running || state.race.paused;
-    document.getElementById('btnAdminStop').disabled = !state.race.running && !state.race.paused;
+      const meta = document.createElement("div");
+      meta.className = "video-meta-main";
 
-    updateGlobalStatus();
+      const title = document.createElement("div");
+      title.className = "video-meta-title";
+      title.textContent = video.label;
 
-    const adminSummary = document.getElementById('adminSummary');
-    const statusText = state.race.running
-      ? 'Course en cours'
-      : state.race.paused
-        ? 'Course en pause'
-        : 'Course arrêtée';
-    adminSummary.textContent = `${statusText}. ${state.participants.length} participant(s), ${state.race.totalLaps} tour(s) total(aux).`;
+      const sub = document.createElement("div");
+      sub.className = "video-meta-sub";
+      sub.textContent = `${formatTime(new Date(video.timestamp))} · ${video.cameraId}`;
+
+      const tags = document.createElement("div");
+      tags.className = "video-meta-tags";
+
+      const typeBadge = document.createElement("span");
+      typeBadge.className = "badge badge-info";
+      if (video.type === "passage") typeBadge.textContent = "Passage de ligne";
+      else if (video.type === "camera") typeBadge.textContent = "Détection caméra";
+      else typeBadge.textContent = "Incident / erreur";
+
+      tags.appendChild(typeBadge);
+      meta.appendChild(title);
+      meta.appendChild(sub);
+      meta.appendChild(tags);
+
+      item.appendChild(thumb);
+      item.appendChild(meta);
+
+      item.addEventListener("click", () => {
+        loadVideo(video.id);
+      });
+
+      container.appendChild(item);
+    });
+  }
+
+  function loadVideo(id) {
+    const video = state.video.list.find(v => v.id === id);
+    if (!video) return;
+    state.video.currentId = id;
+
+    const player = document.getElementById("videoPlayer");
+    const source = document.getElementById("videoSource");
+    source.src = video.src;
+    player.load();
+    player.play().catch(() => {});
+
+    const info = document.getElementById("videoCurrentInfo");
+    info.textContent = `${video.label} · ${formatTime(new Date(video.timestamp))} · ${video.cameraId}`;
+
+    renderVideoList();
+  }
+
+  // =========================
+  // RENDU UI
+  // =========================
+
+  function renderRace() {
+    const statusLabel = document.getElementById("globalStatusLabel");
+    const statusSub = document.getElementById("globalStatusSub");
+    const dot = document.getElementById("globalStatusDot");
+    const chipDot = document.getElementById("chipRaceDot");
+    const chipText = document.getElementById("chipRaceText");
+    const badge = document.getElementById("raceStateBadge");
+
+    let label, sub, color, glow;
+    switch (state.race.status) {
+      case "running":
+        label = "Course en cours";
+        sub = "Chronomètre actif";
+        color = "var(--success)";
+        glow = "0 0 12px rgba(34,197,94,0.9)";
+        break;
+      case "paused":
+        label = "Course en pause";
+        sub = "Chronomètre suspendu";
+        color = "var(--warning)";
+        glow = "0 0 12px rgba(245,158,11,0.9)";
+        break;
+      case "stopped":
+        label = "Course arrêtée";
+        sub = "Session terminée";
+        color = "var(--danger)";
+        glow = "0 0 12px rgba(239,68,68,0.9)";
+        break;
+      default:
+        label = "Course en attente";
+        sub = "Aucune course active";
+        color = "var(--accent)";
+        glow = "0 0 12px rgba(79,70,229,0.9)";
+    }
+
+    statusLabel.textContent = label;
+    statusSub.textContent = sub;
+    chipText.textContent = label;
+    badge.textContent = label;
+
+    dot.style.background = color;
+    dot.style.boxShadow = glow;
+    chipDot.style.background = color;
+
+    document.getElementById("raceElapsed").textContent = formatDuration(state.race.elapsedMs);
+    document.getElementById("raceTotalLaps").textContent = String(state.race.totalLaps);
+    document.getElementById("raceActiveParticipants").textContent = String(state.participants.length);
+    document.getElementById("raceLastEvent").textContent =
+      state.race.lastEvent ? state.race.lastEvent : "—";
+
+    document.getElementById("adminRaceSummary").textContent = label;
+  }
+
+  function renderRaceTimeOnly() {
+    document.getElementById("raceElapsed").textContent = formatDuration(state.race.elapsedMs);
   }
 
   function renderParticipants() {
-    const tbody = document.getElementById('participantsTableBody');
-    const adminTbody = document.getElementById('adminParticipantsTableBody');
-    const select = document.getElementById('simCarSelect');
-    const badge = document.getElementById('participantsCountBadge');
+    const bodyDashboard = document.getElementById("participantsTableBody");
+    const bodyAdmin = document.getElementById("adminParticipantsTableBody");
+    const selectSim = document.getElementById("simParticipantSelect");
 
-    tbody.innerHTML = '';
-    adminTbody.innerHTML = '';
-    select.innerHTML = '';
+    bodyDashboard.innerHTML = "";
+    bodyAdmin.innerHTML = "";
+    selectSim.innerHTML = '<option value="">Sélectionner un participant…</option>';
 
     state.participants.forEach(p => {
-      // Dashboard table
-      const tr = document.createElement('tr');
-      tr.innerHTML = `
-        <td>${p.id}</td>
+      // Dashboard
+      const trDash = document.createElement("tr");
+      trDash.innerHTML = `
+        <td>#${p.id}</td>
         <td>${p.name}</td>
         <td>${p.laps}</td>
-        <td>${p.lastLapTime ? p.lastLapTime : '-'}</td>
+        <td>${p.lastPassage ? formatTime(p.lastPassage) : "—"}</td>
         <td>
-          <span class="tag">${p.active ? 'Actif' : 'Inactif'}</span>
+          <span class="badge ${p.status === "actif" ? "badge-success" : "badge-warning"}">
+            ${p.status === "actif" ? "Actif" : "Inactif"}
+          </span>
         </td>
       `;
-      tbody.appendChild(tr);
+      bodyDashboard.appendChild(trDash);
 
-      // Admin table
-      const trAdmin = document.createElement('tr');
+      // Administration
+      const trAdmin = document.createElement("tr");
+      const statusBadgeClass = p.status === "actif" ? "badge-success" : "badge-warning";
       trAdmin.innerHTML = `
-        <td>${p.id}</td>
+        <td>#${p.id}</td>
         <td>${p.name}</td>
         <td>${p.laps}</td>
-        <td>
-          <button class="btn small danger" data-remove="${p.id}">Supprimer</button>
+        <td><span class="badge ${statusBadgeClass}">${p.status === "actif" ? "Actif" : "Inactif"}</span></td>
+        <td class="text-right">
+          <button class="btn btn-sm btn-ghost" data-remove="${p.id}">Supprimer</button>
         </td>
       `;
-      adminTbody.appendChild(trAdmin);
+      bodyAdmin.appendChild(trAdmin);
 
-      // Select
-      const opt = document.createElement('option');
+      const opt = document.createElement("option");
       opt.value = p.id;
-      opt.textContent = `${p.id} - ${p.name}`;
-      select.appendChild(opt);
+      opt.textContent = `#${p.id} · ${p.name}`;
+      selectSim.appendChild(opt);
     });
 
-    badge.textContent = `${state.participants.length} participant(s)`;
+    document.getElementById("participantsCountBadge").textContent =
+      state.participants.length === 1
+        ? "1 participant"
+        : `${state.participants.length} participants`;
+    document.getElementById("adminParticipantsCount").textContent = String(state.participants.length);
 
-    adminTbody.querySelectorAll('button[data-remove]').forEach(btn => {
-      btn.addEventListener('click', () => {
-        const id = btn.getAttribute('data-remove');
+    // Boutons supprimer
+    bodyAdmin.querySelectorAll("button[data-remove]").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const id = Number(btn.getAttribute("data-remove"));
         removeParticipant(id);
       });
     });
+  }
 
-    renderRaceState();
+  function renderTelemetry() {
+    document.getElementById("telemetryPackets").textContent = String(state.telemetry.packets);
+    document.getElementById("telemetryPending").textContent = String(state.telemetry.pending);
+    document.getElementById("telemetryConnectionState").textContent =
+      state.telemetry.connectionState === "connected" ? "Connecté" : "Déconnecté";
+    document.getElementById("telemetryLastSync").textContent =
+      state.telemetry.lastSync ? formatTime(state.telemetry.lastSync) : "—";
+
+    document.getElementById("telemetryLapEvents").textContent = String(state.telemetry.lapEvents);
+    document.getElementById("telemetryCameraEvents").textContent = String(state.telemetry.cameraEvents);
+    document.getElementById("telemetryErrorEvents").textContent = String(state.telemetry.errorEvents);
+    document.getElementById("telemetryLastEvent").textContent =
+      state.telemetry.lastEventDescription || "Aucun événement reçu pour le moment.";
+
+    const list = document.getElementById("telemetryEventsList");
+    list.innerHTML = "";
+    state.telemetry.recentEvents.forEach(ev => {
+      const div = document.createElement("div");
+      div.className = "log-entry";
+      const levelBadgeClass =
+        ev.type === "erreur" ? "badge-danger" : ev.type === "camera" ? "badge-info" : "badge-success";
+      const levelLabel =
+        ev.type === "erreur" ? "ERREUR" : ev.type === "camera" ? "CAMÉRA" : "PASSAGE";
+
+      div.innerHTML = `
+        <div class="log-timestamp">${formatTime(ev.timestamp)}</div>
+        <div class="log-level">
+          <span class="badge ${levelBadgeClass}">${levelLabel}</span>
+        </div>
+        <div class="log-message">${ev.description}</div>
+      `;
+      list.appendChild(div);
+    });
   }
 
   function renderLogs() {
-    const container = document.getElementById('logsContainer');
-    const badge = document.getElementById('logsCountBadge');
-    container.innerHTML = '';
-    state.logs.forEach(log => {
-      const div = document.createElement('div');
-      div.className = 'log-entry';
-      const levelClass =
-        log.level === 'info' ? 'info' :
-        log.level === 'success' ? 'success' :
-        log.level === 'warn' ? 'warn' : 'error';
+    const container = document.getElementById("logsContainer");
+    container.innerHTML = "";
+    state.logs.slice().reverse().forEach(logEntry => {
+      const div = document.createElement("div");
+      div.className = "log-entry";
+
+      let badgeClass = "badge-info";
+      if (logEntry.level === "SUCCESS") badgeClass = "badge-success";
+      else if (logEntry.level === "WARNING") badgeClass = "badge-warning";
+      else if (logEntry.level === "ERROR") badgeClass = "badge-danger";
+
       div.innerHTML = `
-        <span class="log-time">${log.time}</span>
-        <span class="log-level ${levelClass}">${log.level}</span>
-        <span class="log-message">${log.message}</span>
+        <div class="log-timestamp">${formatTime(logEntry.timestamp)}</div>
+        <div class="log-level">
+          <span class="badge ${badgeClass}">${logEntry.level}</span>
+        </div>
+        <div class="log-message">${logEntry.message}</div>
       `;
       container.appendChild(div);
     });
-    badge.textContent = `${state.logs.length} événement(s)`;
   }
 
-  function renderTelemetrySummary() {
-    document.getElementById('telemetryCount').textContent = state.telemetry.count;
-    document.getElementById('bufferedCount').textContent = state.telemetry.buffered.length;
-    document.getElementById('lastSyncTime').textContent =
-      state.telemetry.lastSync || 'Jamais';
-
-    const dot = document.getElementById('streamStatusDot');
-    const text = document.getElementById('streamStatusText');
-    if (state.aws.connected) {
-      dot.classList.add('green');
-      text.textContent = 'Connecté';
-    } else {
-      dot.classList.remove('green');
-      text.textContent = 'Déconnecté';
-    }
+  function updateAdminLastAction(text) {
+    document.getElementById("adminLastAction").textContent = text;
+    document.getElementById("adminQuickLog").textContent = text;
   }
 
-  function renderAwsStatus() {
-    const dot = document.getElementById('awsStatusDot');
-    const text = document.getElementById('awsStatusText');
-    const bufferDot = document.getElementById('bufferStatusDot');
-    const bufferText = document.getElementById('bufferStatusText');
+  // =========================
+  // NAVIGATION
+  // =========================
 
-    if (state.aws.connected) {
-      dot.classList.add('green');
-      text.textContent = `Connecté (${state.aws.region}/${state.aws.table})`;
-      document.getElementById('btnConnectAws').disabled = true;
-      document.getElementById('btnDisconnectAws').disabled = false;
-    } else {
-      dot.classList.remove('green');
-      text.textContent = 'Déconnecté';
-      document.getElementById('btnConnectAws').disabled = false;
-      document.getElementById('btnDisconnectAws').disabled = true;
-    }
-
-    if (state.telemetry.buffered.length > 0) {
-      bufferDot.classList.add('bad');
-      bufferText.textContent = `${state.telemetry.buffered.length} événement(s) en attente`;
-    } else {
-      bufferDot.classList.remove('bad');
-      bufferText.textContent = 'Vide';
-    }
-  }
-
-  function renderAwsTelemetryList() {
-    const container = document.getElementById('awsTelemetryList');
-    container.innerHTML = '';
-    const last = state.telemetry.lastPayload;
-    if (!last) {
-      container.innerHTML = '<div class="log-entry"><span class="log-message">Aucun paquet reçu.</span></div>';
-      return;
-    }
-    const div = document.createElement('div');
-    div.className = 'log-entry';
-    div.innerHTML = `
-      <span class="log-time">${last.timestamp || nowIso()}</span>
-      <span class="log-message">${JSON.stringify(last)}</span>
-    `;
-    container.appendChild(div);
-  }
-
-  function renderAll() {
-    renderRaceState();
-    renderParticipants();
-    renderLogs();
-    renderTelemetrySummary();
-    renderAwsStatus();
-    renderAwsTelemetryList();
-  }
-
-  // --- NAVIGATION ----------------------------------------------------------
-  function setupNavigation() {
-    const buttons = document.querySelectorAll('.nav-btn');
-    const views = {
-      dashboardView: document.getElementById('dashboardView'),
-      adminView: document.getElementById('adminView'),
-      awsView: document.getElementById('awsView'),
-      logsView: document.getElementById('logsView')
+  function initNavigation() {
+    const navItems = document.querySelectorAll(".nav-item");
+    const pages = {
+      dashboard: document.getElementById("page-dashboard"),
+      administration: document.getElementById("page-administration"),
+      aws: document.getElementById("page-aws"),
+      telemetrie: document.getElementById("page-telemetrie"),
+      video: document.getElementById("page-video"),
+      logs: document.getElementById("page-logs")
     };
 
-    buttons.forEach(btn => {
-      btn.addEventListener('click', () => {
-        const view = btn.getAttribute('data-view');
-        Object.values(views).forEach(v => v.style.display = 'none');
-        views[view].style.display = 'block';
-        buttons.forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
+    navItems.forEach(item => {
+      item.addEventListener("click", () => {
+        const pageKey = item.getAttribute("data-page");
+        navItems.forEach(i => i.classList.remove("active"));
+        item.classList.add("active");
+        Object.values(pages).forEach(p => p.classList.remove("active"));
+        const pageEl = pages[pageKey];
+        if (pageEl) pageEl.classList.add("active");
       });
     });
   }
 
-  // --- INIT ----------------------------------------------------------------
-  function init() {
-    setupNavigation();
+  // =========================
+  // ÉCOUTEURS D’ÉVÉNEMENTS
+  // =========================
 
-    // Boutons course
-    document.getElementById('btnStartRace').addEventListener('click', startRace);
-    document.getElementById('btnPauseRace').addEventListener('click', pauseRace);
-    document.getElementById('btnStopRace').addEventListener('click', stopRace);
-    document.getElementById('btnEmergencyReset').addEventListener('click', emergencyReset);
+  function initEventListeners() {
+    // Contrôles course (dashboard)
+    document.getElementById("btnRaceStart").addEventListener("click", startRace);
+    document.getElementById("btnRacePause").addEventListener("click", pauseRace);
+    document.getElementById("btnRaceStop").addEventListener("click", stopRace);
+    document.getElementById("btnRaceReset").addEventListener("click", resetRace);
 
-    document.getElementById('btnAdminStart').addEventListener('click', startRace);
-    document.getElementById('btnAdminPause').addEventListener('click', pauseRace);
-    document.getElementById('btnAdminStop').addEventListener('click', stopRace);
-    document.getElementById('btnAdminReset').addEventListener('click', emergencyReset);
+    // Contrôles course (admin)
+    document.getElementById("btnAdminStart").addEventListener("click", startRace);
+    document.getElementById("btnAdminPause").addEventListener("click", pauseRace);
+    document.getElementById("btnAdminStop").addEventListener("click", stopRace);
+    document.getElementById("btnAdminReset").addEventListener("click", resetRace);
 
-    // Participants
-    document.getElementById('btnAddParticipant').addEventListener('click', () => {
-      const nameInput = document.getElementById('newParticipantName');
-      const name = nameInput.value.trim();
-      if (!name) return;
-      addParticipant(name);
-      nameInput.value = '';
+    // Ajout participant
+    document.getElementById("btnAdminAddParticipant").addEventListener("click", () => {
+      const input = document.getElementById("adminParticipantName");
+      addParticipant(input.value || `Participant ${nextParticipantId}`);
+      input.value = "";
     });
 
     // Capteurs simulés
-    document.getElementById('btnSimLap').addEventListener('click', () => {
-      const select = document.getElementById('simCarSelect');
-      const id = select.value;
-      if (!id) return;
-      simulateLap(id);
+    document.getElementById("btnSimLap").addEventListener("click", () => {
+      const id = Number(document.getElementById("simParticipantSelect").value);
+      if (!id) {
+        log("WARNING", "Simulation de passage de tour sans participant sélectionné.");
+        return;
+      }
+      incrementLap(id);
     });
-    document.getElementById('btnSimCamera').addEventListener('click', simulateCameraDetection);
-    document.getElementById('btnSimError').addEventListener('click', simulateSensorError);
+
+    document.getElementById("btnSimCamera").addEventListener("click", () => {
+      const id = Number(document.getElementById("simParticipantSelect").value) || null;
+      simulateCameraEvent(id);
+    });
+
+    document.getElementById("btnSimError").addEventListener("click", () => {
+      const id = Number(document.getElementById("simParticipantSelect").value) || null;
+      simulateSensorError(id);
+    });
 
     // AWS
-    document.getElementById('btnConnectAws').addEventListener('click', connectAws);
-    document.getElementById('btnDisconnectAws').addEventListener('click', disconnectAws);
+    document.getElementById("btnAwsConnect").addEventListener("click", connectAws);
+    document.getElementById("btnAwsDisconnect").addEventListener("click", disconnectAws);
+    document.getElementById("btnAwsFlush").addEventListener("click", flushBuffer);
+    document.getElementById("btnAwsSimFailure").addEventListener("click", () => {
+      state.aws.simulateFailure = !state.aws.simulateFailure;
+      const text = state.aws.simulateFailure
+        ? "Mode échec simulé activé."
+        : "Mode échec simulé désactivé.";
+      document.getElementById("awsLog").textContent = text;
+      log("INFO", text);
+    });
 
-    // Participants de démo
-    addParticipant('Voiture 1');
-    addParticipant('Voiture 2');
-    addParticipant('Voiture 3');
+    // Télémétrie
+    document.getElementById("btnTelemetrySimEvent").addEventListener("click", simulateRandomTelemetryEvent);
 
-    renderAll();
+    // Dashboard quick simulate
+    document.getElementById("btnDashboardForceTick").addEventListener("click", simulateRandomTelemetryEvent);
+
+    // Logs
+    document.getElementById("btnLogsClear").addEventListener("click", () => {
+      state.logs = [];
+      renderLogs();
+    });
+
+    // Vidéo
+    document.getElementById("videoFilterType").addEventListener("change", e => {
+      state.video.filterType = e.target.value;
+      renderVideoList();
+    });
   }
 
-  window.addEventListener('DOMContentLoaded', init);
+  // =========================
+  // INITIALISATION
+  // =========================
+
+  function initDemoData() {
+    // Quelques participants de démonstration
+    addParticipant("Voiture 12 · Pilote A");
+    addParticipant("Voiture 7 · Pilote B");
+    addParticipant("Voiture 21 · Pilote C");
+  }
+
+  function init() {
+    initNavigation();
+    initEventListeners();
+    initDemoData();
+    initVideoList();
+    renderRace();
+    renderParticipants();
+    renderTelemetry();
+    renderLogs();
+  }
+
+  document.addEventListener("DOMContentLoaded", init);
 </script>
 </body>
 </html>
+
