@@ -1,8 +1,8 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="fr">
 <head>
   <meta charset="UTF-8" />
-  <title>Race Control & Telemetry Center</title>
+  <title>Centre de contrôle de course et télémétrie</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <style>
     :root {
@@ -881,7 +881,7 @@
 <body>
 <div class="app-shell">
 
-  <!-- SIDEBAR -->
+  <!-- BARRE LATERALE (NAVIGATION) -->
   <aside class="sidebar">
     <div>
       <div class="sidebar-section-title">Navigation</div>
@@ -894,17 +894,17 @@
           <div class="nav-item-icon">🛠</div>
           <span class="nav-item-label">Administration</span>
         </li>
-        <li class="nav-item" data-page="aws">
-          <div class="nav-item-icon">☁️</div>
-          <span class="nav-item-label">AWS / Database</span>
-        </li>
         <li class="nav-item" data-page="telemetry">
           <div class="nav-item-icon">📡</div>
-          <span class="nav-item-label">Telemetry</span>
+          <span class="nav-item-label">Télémétrie</span>
         </li>
         <li class="nav-item" data-page="video">
           <div class="nav-item-icon">🎥</div>
-          <span class="nav-item-label">Video Monitoring</span>
+          <span class="nav-item-label">Surveillance vidéo</span>
+        </li>
+        <li class="nav-item" data-page="tech">
+          <div class="nav-item-icon">☁️</div>
+          <span class="nav-item-label">Paramètres techniques</span>
         </li>
         <li class="nav-item" data-page="logs">
           <div class="nav-item-icon">📜</div>
@@ -916,106 +916,106 @@
     <div class="sidebar-footer">
       <div class="sidebar-badge">
         <span class="sidebar-badge-dot"></span>
-        <span>Real-time monitoring mode</span>
+        <span>Mode supervision temps réel</span>
       </div>
-      <span>UI version: 1.0 · Local simulation</span>
+      <span>Version UI : 1.0 · Simulation locale</span>
     </div>
   </aside>
 
-  <!-- HEADER -->
+  <!-- EN-TÊTE -->
   <header>
     <div class="header-left">
-      <div class="logo-pill">R</div>
+      <div class="logo-pill">C</div>
       <div class="header-title">
-        <h1>Race Control & Telemetry Center</h1>
-        <span>Real-time race operations · Sensor and camera telemetry simulation</span>
+        <h1>Centre de contrôle de course et télémétrie</h1>
+        <span>Supervision temps réel · Télémétrie capteurs et caméras</span>
       </div>
     </div>
     <div class="header-right">
       <div class="status-indicator">
         <div class="status-dot" id="globalStatusDot"></div>
         <div class="status-text">
-          <div class="status-label" id="globalStatusLabel">Race idle</div>
-          <div class="status-sub" id="globalStatusSub">No active race</div>
+          <div class="status-label" id="globalStatusLabel">Course en attente</div>
+          <div class="status-sub" id="globalStatusSub">Aucune course active</div>
         </div>
       </div>
       <div class="user-pill">
         <div class="user-avatar">OP</div>
-        <span>Race operator</span>
+        <span>Opérateur course</span>
       </div>
     </div>
   </header>
 
-  <!-- MAIN -->
+  <!-- CONTENU PRINCIPAL -->
   <main>
 
-    <!-- DASHBOARD PAGE -->
+    <!-- PAGE DASHBOARD (INFORMATIONS DE COURSE) -->
     <section class="page active" id="page-dashboard">
       <div class="page-header">
         <div class="page-header-title">
-          <h2>Race overview</h2>
-          <span>Global monitoring of race state, participants, and telemetry.</span>
+          <h2>Vue d’ensemble de la course</h2>
+          <span>Suivi global de l’état de la course, des participants et de la télémétrie.</span>
         </div>
         <div class="page-header-actions">
           <div class="chip">
             <span class="chip-dot" id="chipRaceDot"></span>
-            <span id="chipRaceText">Race idle</span>
+            <span id="chipRaceText">Course en attente</span>
           </div>
-          <button class="btn btn-sm btn-ghost" id="btnDashboardForceTick">Simulate random event</button>
+          <button class="btn btn-sm btn-ghost" id="btnDashboardForceTick">Simuler un événement aléatoire</button>
         </div>
       </div>
 
       <div class="grid-responsive">
-        <!-- Race status card -->
+        <!-- Carte état de la course -->
         <div class="card col-span-4">
           <div class="card-header">
             <div>
               <div class="card-title">
                 <div class="card-title-pill">🏁</div>
-                <span>Race status</span>
+                <span>État de la course</span>
               </div>
-              <div class="card-subtitle">Real-time control of the current session.</div>
+              <div class="card-subtitle">Contrôle temps réel de la session en cours.</div>
             </div>
-            <span class="card-badge" id="raceStateBadge">Race idle</span>
+            <span class="card-badge" id="raceStateBadge">Course en attente</span>
           </div>
 
           <div class="stat-row">
             <div class="stat">
-              <div class="stat-label">Elapsed time</div>
+              <div class="stat-label">Temps écoulé</div>
               <div class="stat-value" id="raceElapsed">00:00:00</div>
-              <div class="stat-tag">Since last start</div>
+              <div class="stat-tag">Depuis le dernier départ</div>
             </div>
             <div class="stat">
-              <div class="stat-label">Total laps</div>
+              <div class="stat-label">Nombre total de tours</div>
               <div class="stat-value" id="raceTotalLaps">0</div>
-              <div class="stat-tag">All participants</div>
+              <div class="stat-tag">Tous participants</div>
             </div>
           </div>
 
           <div class="stat-row mt-3">
             <div class="stat">
-              <div class="stat-label">Active participants</div>
+              <div class="stat-label">Participants actifs</div>
               <div class="stat-value" id="raceActiveParticipants">0</div>
-              <div class="stat-tag">On track</div>
+              <div class="stat-tag">Sur la piste</div>
             </div>
             <div class="stat">
-              <div class="stat-label">Last event</div>
+              <div class="stat-label">Dernier événement</div>
               <div class="stat-value" id="raceLastEvent">—</div>
-              <div class="stat-tag">Timestamp</div>
+              <div class="stat-tag">Horodatage</div>
             </div>
           </div>
 
           <div class="mt-3 flex-between gap-3">
             <div class="flex gap-2">
-              <button class="btn btn-primary" id="btnRaceStart">Start race</button>
+              <button class="btn btn-primary" id="btnRaceStart">Démarrer la course</button>
               <button class="btn" id="btnRacePause">Pause</button>
-              <button class="btn" id="btnRaceStop">Stop</button>
+              <button class="btn" id="btnRaceStop">Arrêter</button>
             </div>
-            <button class="btn btn-danger btn-sm" id="btnRaceReset">Emergency reset</button>
+            <button class="btn btn-danger btn-sm" id="btnRaceReset">Reset d’urgence</button>
           </div>
         </div>
 
-        <!-- Participants card -->
+        <!-- Carte participants -->
         <div class="card col-span-8">
           <div class="card-header">
             <div>
@@ -1023,22 +1023,22 @@
                 <div class="card-title-pill">👥</div>
                 <span>Participants</span>
               </div>
-              <div class="card-subtitle">Lap count, last lap time, and status per participant.</div>
+              <div class="card-subtitle">Tours, dernier passage et état par participant.</div>
             </div>
-            <span class="card-badge" id="participantsCountBadge">0 participants</span>
+            <span class="card-badge" id="participantsCountBadge">0 participant</span>
           </div>
 
-          <div class="muted mt-2">Participants can be added from the “Administration” tab.</div>
+          <div class="muted mt-2">Les participants peuvent être ajoutés depuis l’onglet « Administration ».</div>
 
           <div class="mt-2" style="overflow-x:auto;">
             <table>
               <thead>
               <tr>
                 <th>ID</th>
-                <th>Name</th>
-                <th>Laps</th>
-                <th>Last lap time</th>
-                <th>Status</th>
+                <th>Nom</th>
+                <th>Tours</th>
+                <th>Dernier passage</th>
+                <th>État</th>
               </tr>
               </thead>
               <tbody id="participantsTableBody">
@@ -1047,117 +1047,117 @@
           </div>
         </div>
 
-        <!-- Telemetry summary card -->
+        <!-- Carte résumé télémétrie -->
         <div class="card col-span-4">
           <div class="card-header">
             <div>
               <div class="card-title">
                 <div class="card-title-pill">📡</div>
-                <span>Telemetry summary</span>
+                <span>Résumé télémétrie</span>
               </div>
-              <div class="card-subtitle">Sensor data stream and connection state.</div>
+              <div class="card-subtitle">Flux de données capteurs et état de connexion.</div>
             </div>
-            <span class="card-badge" id="telemetryStatusBadge">Stream inactive</span>
+            <span class="card-badge" id="telemetryStatusBadge">Flux inactif</span>
           </div>
 
           <div class="stat-row">
             <div class="stat">
-              <div class="stat-label">Packets received</div>
+              <div class="stat-label">Paquets reçus</div>
               <div class="stat-value" id="telemetryPackets">0</div>
-              <div class="stat-tag">Since page load</div>
+              <div class="stat-tag">Depuis le chargement</div>
             </div>
             <div class="stat">
-              <div class="stat-label">Buffered packets</div>
+              <div class="stat-label">Paquets en attente</div>
               <div class="stat-value" id="telemetryPending">0</div>
-              <div class="stat-tag">Local buffer</div>
+              <div class="stat-tag">Buffer local</div>
             </div>
           </div>
 
           <div class="stat-row mt-3">
             <div class="stat">
-              <div class="stat-label">Stream state</div>
-              <div class="stat-value" id="telemetryConnectionState">Disconnected</div>
-              <div class="stat-tag">Simulated connection</div>
+              <div class="stat-label">État du flux</div>
+              <div class="stat-value" id="telemetryConnectionState">Déconnecté</div>
+              <div class="stat-tag">Connexion simulée</div>
             </div>
             <div class="stat">
-              <div class="stat-label">Last sync</div>
+              <div class="stat-label">Dernière synchronisation</div>
               <div class="stat-value" id="telemetryLastSync">—</div>
-              <div class="stat-tag">To database</div>
+              <div class="stat-tag">Vers la base</div>
             </div>
           </div>
         </div>
 
-        <!-- Sensor simulation card -->
+        <!-- Carte capteurs simulés -->
         <div class="card col-span-8">
           <div class="card-header">
             <div>
               <div class="card-title">
                 <div class="card-title-pill">🧪</div>
-                <span>Sensor simulation</span>
+                <span>Simulation de capteurs</span>
               </div>
-              <div class="card-subtitle">Manually generate telemetry events for testing.</div>
+              <div class="card-subtitle">Générer manuellement des événements télémétriques.</div>
             </div>
-            <span class="card-badge">Local simulation</span>
+            <span class="card-badge">Simulation locale</span>
           </div>
 
           <div class="form-row">
             <div class="form-field">
-              <label class="form-label" for="simParticipantSelect">Target participant</label>
+              <label class="form-label" for="simParticipantSelect">Participant cible</label>
               <select class="form-select" id="simParticipantSelect">
-                <option value="">Select a participant…</option>
+                <option value="">Sélectionner un participant…</option>
               </select>
-              <div class="form-helper">Lap events require a participant.</div>
+              <div class="form-helper">Les événements de tour nécessitent un participant.</div>
             </div>
           </div>
 
           <div class="mt-2 flex gap-2">
-            <button class="btn btn-sm" id="btnSimLap">Simulate lap crossing</button>
-            <button class="btn btn-sm" id="btnSimCamera">Simulate camera detection</button>
-            <button class="btn btn-sm btn-danger" id="btnSimError">Simulate sensor error</button>
+            <button class="btn btn-sm" id="btnSimLap">Simuler un passage de tour</button>
+            <button class="btn btn-sm" id="btnSimCamera">Simuler une détection caméra</button>
+            <button class="btn btn-sm btn-danger" id="btnSimError">Simuler une erreur capteur</button>
           </div>
 
           <div class="muted mt-3">
-            Each simulated event updates statistics, participants, and system logs.
+            Chaque événement simulé met à jour les statistiques, les participants et les logs système.
           </div>
         </div>
       </div>
     </section>
 
-    <!-- ADMINISTRATION PAGE -->
+    <!-- PAGE ADMINISTRATION (GESTION COURSE / PARTICIPANTS) -->
     <section class="page" id="page-administration">
       <div class="page-header">
         <div class="page-header-title">
-          <h2>Race administration</h2>
-          <span>Participant management and global race control.</span>
+          <h2>Administration de la course</h2>
+          <span>Gestion des participants et contrôle global de la course.</span>
         </div>
         <div class="page-header-actions">
           <div class="chip">
-            <span>Last admin action: <span id="adminLastAction">None</span></span>
+            <span>Dernière action admin : <span id="adminLastAction">Aucune</span></span>
           </div>
         </div>
       </div>
 
       <div class="grid-2">
-        <!-- Participant management -->
+        <!-- Gestion des participants -->
         <div class="card">
           <div class="card-header">
             <div>
               <div class="card-title">
                 <div class="card-title-pill">➕</div>
-                <span>Participant management</span>
+                <span>Gestion des participants</span>
               </div>
-              <div class="card-subtitle">Add, remove, and view participants.</div>
+              <div class="card-subtitle">Ajouter, supprimer et visualiser les participants.</div>
             </div>
           </div>
 
           <div class="form-row mt-2">
             <div class="form-field">
-              <label class="form-label" for="adminParticipantName">Participant name</label>
-              <input class="form-input" id="adminParticipantName" placeholder="e.g. Car 12 · Driver A" />
+              <label class="form-label" for="adminParticipantName">Nom du participant</label>
+              <input class="form-input" id="adminParticipantName" placeholder="ex : Voiture 12 · Pilote A" />
             </div>
             <div class="form-field" style="max-width:160px;">
               <label class="form-label">&nbsp;</label>
-              <button class="btn btn-primary" id="btnAdminAddParticipant">Add</button>
+              <button class="btn btn-primary" id="btnAdminAddParticipant">Ajouter</button>
             </div>
           </div>
 
@@ -1166,9 +1166,9 @@
               <thead>
               <tr>
                 <th>ID</th>
-                <th>Name</th>
-                <th>Laps</th>
-                <th>Status</th>
+                <th>Nom</th>
+                <th>Tours</th>
+                <th>État</th>
                 <th class="text-right">Actions</th>
               </tr>
               </thead>
@@ -1178,34 +1178,34 @@
           </div>
         </div>
 
-        <!-- Global race control -->
+        <!-- Contrôle global course -->
         <div class="card">
           <div class="card-header">
             <div>
               <div class="card-title">
                 <div class="card-title-pill">⚙️</div>
-                <span>Global race control</span>
+                <span>Contrôle global de la course</span>
               </div>
-              <div class="card-subtitle">Admin actions on the current race session.</div>
+              <div class="card-subtitle">Actions administrateur sur la session en cours.</div>
             </div>
           </div>
 
           <div class="mt-2 flex gap-2">
-            <button class="btn btn-primary" id="btnAdminStart">Start race</button>
-            <button class="btn" id="btnAdminPause">Pause race</button>
-            <button class="btn" id="btnAdminStop">Stop race</button>
-            <button class="btn btn-danger" id="btnAdminReset">Emergency reset</button>
+            <button class="btn btn-primary" id="btnAdminStart">Démarrer la course</button>
+            <button class="btn" id="btnAdminPause">Mettre en pause</button>
+            <button class="btn" id="btnAdminStop">Arrêter la course</button>
+            <button class="btn btn-danger" id="btnAdminReset">Reset d’urgence</button>
           </div>
 
           <div class="mt-3">
             <div class="stat-row">
               <div class="stat">
-                <div class="stat-label">Race summary</div>
-                <div class="stat-value" id="adminRaceSummary">No active race</div>
-                <div class="stat-tag">Global state</div>
+                <div class="stat-label">Résumé de la course</div>
+                <div class="stat-value" id="adminRaceSummary">Aucune course active</div>
+                <div class="stat-tag">État global</div>
               </div>
               <div class="stat">
-                <div class="stat-label">Registered participants</div>
+                <div class="stat-label">Participants enregistrés</div>
                 <div class="stat-value" id="adminParticipantsCount">0</div>
                 <div class="stat-tag">Total</div>
               </div>
@@ -1213,169 +1213,71 @@
           </div>
 
           <div class="mt-3">
-            <div class="form-label">Quick admin log</div>
-            <div class="muted" id="adminQuickLog">Waiting for admin actions…</div>
+            <div class="form-label">Journal rapide admin</div>
+            <div class="muted" id="adminQuickLog">En attente d’actions administrateur…</div>
           </div>
         </div>
       </div>
     </section>
 
-    <!-- AWS / DATABASE PAGE -->
-    <section class="page" id="page-aws">
-      <div class="page-header">
-        <div class="page-header-title">
-          <h2>AWS / Database</h2>
-          <span>Simulated DynamoDB connection and event buffer management.</span>
-        </div>
-        <div class="page-header-actions">
-          <div class="chip">
-            <span>Connection state: <span id="awsConnectionStateText">Disconnected</span></span>
-          </div>
-        </div>
-      </div>
-
-      <div class="grid-2">
-        <!-- Connection settings -->
-        <div class="card">
-          <div class="card-header">
-            <div>
-              <div class="card-title">
-                <div class="card-title-pill">☁️</div>
-                <span>AWS configuration (simulated)</span>
-              </div>
-              <div class="card-subtitle">Configure region and DynamoDB table.</div>
-            </div>
-          </div>
-
-          <div class="form-row mt-2">
-            <div class="form-field">
-              <label class="form-label" for="awsRegion">AWS region</label>
-              <select class="form-select" id="awsRegion">
-                <option value="eu-west-1">eu-west-1 (Ireland)</option>
-                <option value="eu-central-1">eu-central-1 (Frankfurt)</option>
-                <option value="eu-west-3">eu-west-3 (Paris)</option>
-                <option value="us-east-1">us-east-1 (N. Virginia)</option>
-              </select>
-            </div>
-            <div class="form-field">
-              <label class="form-label" for="awsTableName">DynamoDB table name</label>
-              <input class="form-input" id="awsTableName" placeholder="e.g. race-telemetry" value="race-telemetry-demo" />
-            </div>
-          </div>
-
-          <div class="mt-2 flex gap-2">
-            <button class="btn btn-primary" id="btnAwsConnect">Connect</button>
-            <button class="btn btn-ghost" id="btnAwsDisconnect">Disconnect</button>
-          </div>
-
-          <div class="mt-3">
-            <div class="form-label">Connection status</div>
-            <div class="status-pill" id="awsStatusPill">
-              <span class="status-pill-dot" id="awsStatusDot"></span>
-              <span id="awsStatusText">Disconnected · Buffer active</span>
-            </div>
-            <div class="muted mt-2">
-              Events are sent via <code>sendToDatabase(payload)</code>. On failure, they are stored in a local buffer and later flushed via <code>flushBuffer()</code>.
-            </div>
-          </div>
-        </div>
-
-        <!-- Buffer status -->
-        <div class="card">
-          <div class="card-header">
-            <div>
-              <div class="card-title">
-                <div class="card-title-pill">📦</div>
-                <span>Event buffer</span>
-              </div>
-              <div class="card-subtitle">Pending events waiting for synchronization.</div>
-            </div>
-          </div>
-
-          <div class="stat-row mt-2">
-            <div class="stat">
-              <div class="stat-label">Buffered events</div>
-              <div class="stat-value" id="awsBufferCount">0</div>
-              <div class="stat-tag">Waiting to be sent</div>
-            </div>
-            <div class="stat">
-              <div class="stat-label">Last sync</div>
-              <div class="stat-value" id="awsLastSync">—</div>
-              <div class="stat-tag">To simulated DB</div>
-            </div>
-          </div>
-
-          <div class="mt-3 flex gap-2">
-            <button class="btn btn-sm" id="btnAwsFlush">Force buffer flush</button>
-            <button class="btn btn-sm btn-ghost" id="btnAwsSimFailure">Toggle simulated failure</button>
-          </div>
-
-          <div class="mt-3">
-            <div class="form-label">Stream log</div>
-            <div class="muted" id="awsLog">No events processed yet.</div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- TELEMETRY PAGE -->
+    <!-- PAGE TÉLÉMÉTRIE (DETAILS) -->
     <section class="page" id="page-telemetry">
       <div class="page-header">
         <div class="page-header-title">
-          <h2>Telemetry details</h2>
-          <span>Live view of sensor and camera events.</span>
+          <h2>Détails télémétrie</h2>
+          <span>Vue en direct des événements capteurs et caméras.</span>
         </div>
         <div class="page-header-actions">
-          <button class="btn btn-sm btn-ghost" id="btnTelemetrySimEvent">Simulate random telemetry event</button>
+          <button class="btn btn-sm btn-ghost" id="btnTelemetrySimEvent">Simuler un événement télémétrique</button>
         </div>
       </div>
 
       <div class="grid-2">
-        <!-- Telemetry stats -->
+        <!-- Statistiques télémétrie -->
         <div class="card">
           <div class="card-header">
             <div>
               <div class="card-title">
                 <div class="card-title-pill">📈</div>
-                <span>Stream statistics</span>
+                <span>Statistiques du flux</span>
               </div>
-              <div class="card-subtitle">Synthetic view of received events.</div>
+              <div class="card-subtitle">Vue synthétique des événements reçus.</div>
             </div>
           </div>
 
           <div class="grid-3 mt-2">
             <div class="stat">
-              <div class="stat-label">Lap crossings</div>
+              <div class="stat-label">Passages de tour</div>
               <div class="stat-value" id="telemetryLapEvents">0</div>
-              <div class="stat-tag">Lap detection events</div>
+              <div class="stat-tag">Événements de ligne d’arrivée</div>
             </div>
             <div class="stat">
-              <div class="stat-label">Camera detections</div>
+              <div class="stat-label">Détections caméra</div>
               <div class="stat-value" id="telemetryCameraEvents">0</div>
-              <div class="stat-tag">Video-related events</div>
+              <div class="stat-tag">Événements vidéo</div>
             </div>
             <div class="stat">
-              <div class="stat-label">Sensor errors</div>
+              <div class="stat-label">Erreurs capteurs</div>
               <div class="stat-value" id="telemetryErrorEvents">0</div>
-              <div class="stat-tag">Detected anomalies</div>
+              <div class="stat-tag">Anomalies détectées</div>
             </div>
           </div>
 
           <div class="mt-3">
-            <div class="form-label">Last telemetry event</div>
-            <div class="muted" id="telemetryLastEvent">No telemetry events yet.</div>
+            <div class="form-label">Dernier événement télémétrique</div>
+            <div class="muted" id="telemetryLastEvent">Aucun événement télémétrique pour le moment.</div>
           </div>
         </div>
 
-        <!-- Recent telemetry events -->
+        <!-- Historique récent télémétrie -->
         <div class="card">
           <div class="card-header">
             <div>
               <div class="card-title">
                 <div class="card-title-pill">🧾</div>
-                <span>Recent events</span>
+                <span>Événements récents</span>
               </div>
-              <div class="card-subtitle">Short history of telemetry events.</div>
+              <div class="card-subtitle">Historique court des événements télémétriques.</div>
             </div>
           </div>
 
@@ -1385,53 +1287,53 @@
       </div>
     </section>
 
-    <!-- VIDEO MONITORING PAGE -->
+    <!-- PAGE SURVEILLANCE VIDÉO -->
     <section class="page" id="page-video">
       <div class="page-header">
         <div class="page-header-title">
-          <h2>Video monitoring</h2>
-          <span>View recorded footage from race cameras and sensors.</span>
+          <h2>Surveillance vidéo</h2>
+          <span>Visualisation des vidéos enregistrées par les caméras et capteurs.</span>
         </div>
         <div class="page-header-actions">
           <div class="chip">
-            <span>Available videos: <span id="videoCount">0</span></span>
+            <span>Vidéos disponibles : <span id="videoCount">0</span></span>
           </div>
         </div>
       </div>
 
       <div class="video-layout">
-        <!-- Video player -->
+        <!-- Lecteur vidéo -->
         <div class="video-player-wrapper">
           <div class="video-player-header">
-            <span id="videoCurrentInfo">No video selected</span>
-            <span>HTML5 player · Native controls</span>
+            <span id="videoCurrentInfo">Aucune vidéo sélectionnée</span>
+            <span>Lecteur HTML5 · Contrôles natifs</span>
           </div>
           <video id="videoPlayer" controls preload="metadata">
             <source id="videoSource" src="" type="video/mp4" />
-            Your browser does not support the video tag.
+            Votre navigateur ne supporte pas la balise vidéo.
           </video>
         </div>
 
-        <!-- Video list -->
+        <!-- Liste des vidéos -->
         <div class="card">
           <div class="card-header">
             <div>
               <div class="card-title">
                 <div class="card-title-pill">🎞</div>
-                <span>Recorded videos</span>
+                <span>Vidéos enregistrées</span>
               </div>
-              <div class="card-subtitle">Select a video to load it into the player.</div>
+              <div class="card-subtitle">Sélectionnez une vidéo pour la charger dans le lecteur.</div>
             </div>
           </div>
 
           <div class="form-row mt-2">
             <div class="form-field">
-              <label class="form-label" for="videoFilterType">Filter by event type</label>
+              <label class="form-label" for="videoFilterType">Filtrer par type d’événement</label>
               <select class="form-select" id="videoFilterType">
-                <option value="all">All events</option>
-                <option value="lap">Lap crossing</option>
-                <option value="camera">Camera detection</option>
-                <option value="incident">Incident / error</option>
+                <option value="all">Tous les événements</option>
+                <option value="lap">Passage de tour</option>
+                <option value="camera">Détection caméra</option>
+                <option value="incident">Incident / erreur</option>
               </select>
             </div>
           </div>
@@ -1440,21 +1342,150 @@
           </div>
 
           <div class="muted mt-2">
-            Possible enhancements: real thumbnails, timeline markers, multi-camera synchronization.
+            Améliorations possibles : miniatures réelles, marqueurs sur la timeline, synchronisation multi-caméras.
           </div>
         </div>
       </div>
     </section>
 
-    <!-- LOGS PAGE -->
+    <!-- PAGE PARAMÈTRES TECHNIQUES (AWS / DYNAMODB) -->
+    <section class="page" id="page-tech">
+      <div class="page-header">
+        <div class="page-header-title">
+          <h2>Paramètres techniques</h2>
+          <span>Configuration AWS / DynamoDB et gestion du buffer local.</span>
+        </div>
+        <div class="page-header-actions">
+          <div class="chip">
+            <span>État connexion AWS : <span id="awsConnectionStateText">Déconnecté</span></span>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <!-- Configuration AWS -->
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <div class="card-title">
+                <div class="card-title-pill">☁️</div>
+                <span>Configuration AWS (simulée)</span>
+              </div>
+              <div class="card-subtitle">Préparation à l’intégration avec DynamoDB et flux télémétrie.</div>
+            </div>
+          </div>
+
+          <div class="form-row mt-2">
+            <div class="form-field">
+              <label class="form-label" for="awsAccessKey">AWS Access Key ID</label>
+              <input class="form-input" id="awsAccessKey" placeholder="AKIA..." />
+            </div>
+            <div class="form-field">
+              <label class="form-label" for="awsSecretKey">AWS Secret Access Key</label>
+              <input class="form-input" id="awsSecretKey" placeholder="****************" />
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-field">
+              <label class="form-label" for="awsRegion">Région AWS</label>
+              <select class="form-select" id="awsRegion">
+                <option value="eu-west-1">eu-west-1 (Irlande)</option>
+                <option value="eu-central-1">eu-central-1 (Francfort)</option>
+                <option value="eu-west-3">eu-west-3 (Paris)</option>
+                <option value="us-east-1">us-east-1 (N. Virginia)</option>
+              </select>
+            </div>
+            <div class="form-field">
+              <label class="form-label" for="awsTableName">Nom de la table DynamoDB</label>
+              <input class="form-input" id="awsTableName" placeholder="ex : race-telemetry" value="race-telemetry-demo" />
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-field">
+              <label class="form-label" for="awsEndpoint">Endpoint DynamoDB (optionnel)</label>
+              <input class="form-input" id="awsEndpoint" placeholder="ex : http://localhost:8000" />
+            </div>
+            <div class="form-field">
+              <label class="form-label" for="awsStreamName">Nom du flux télémétrie</label>
+              <input class="form-input" id="awsStreamName" placeholder="ex : race-telemetry-stream" />
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-field">
+              <label class="form-label" for="awsSyncInterval">Intervalle de synchronisation (ms)</label>
+              <input class="form-input" id="awsSyncInterval" type="number" min="500" step="500" value="5000" />
+              <div class="form-helper">Intervalle de flush automatique du buffer (simulation).</div>
+            </div>
+          </div>
+
+          <div class="mt-2 flex gap-2">
+            <button class="btn btn-primary" id="btnAwsConnect">Connecter à AWS</button>
+            <button class="btn btn-ghost" id="btnAwsDisconnect">Déconnecter</button>
+            <button class="btn btn-sm" id="btnAwsTest">Tester la connexion</button>
+          </div>
+
+          <div class="mt-3">
+            <div class="form-label">Statut de connexion</div>
+            <div class="status-pill" id="awsStatusPill">
+              <span class="status-pill-dot" id="awsStatusDot"></span>
+              <span id="awsStatusText">Déconnecté · Buffer local actif</span>
+            </div>
+            <div class="muted mt-2">
+              Les événements sont envoyés via <code>sendToDatabase(payload)</code>. En cas d’échec, ils sont stockés dans un buffer local puis envoyés via <code>flushBuffer()</code> dès que la connexion est rétablie.
+            </div>
+          </div>
+        </div>
+
+        <!-- Statut du buffer -->
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <div class="card-title">
+                <div class="card-title-pill">📦</div>
+                <span>Buffer d’événements</span>
+              </div>
+              <div class="card-subtitle">Événements en attente de synchronisation.</div>
+            </div>
+          </div>
+
+          <div class="stat-row mt-2">
+            <div class="stat">
+              <div class="stat-label">Événements en buffer</div>
+              <div class="stat-value" id="awsBufferCount">0</div>
+              <div class="stat-tag">En attente d’envoi</div>
+            </div>
+            <div class="stat">
+              <div class="stat-label">Dernière synchronisation</div>
+              <div class="stat-value" id="awsLastSync">—</div>
+              <div class="stat-tag">Vers la base simulée</div>
+            </div>
+          </div>
+
+          <div class="mt-3 flex gap-2">
+            <button class="btn btn-sm" id="btnAwsFlush">Forcer le flush du buffer</button>
+            <button class="btn btn-sm btn-ghost" id="btnAwsSimFailure">Basculer en mode échec simulé</button>
+          </div>
+
+          <div class="mt-3">
+            <div class="form-label">Journal du flux</div>
+            <div class="muted" id="awsLog">Aucun événement traité pour le moment.</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- PAGE LOGS -->
     <section class="page" id="page-logs">
       <div class="page-header">
         <div class="page-header-title">
-          <h2>System logs</h2>
-          <span>Real-time logging of race and infrastructure events.</span>
+          <h2>Logs système</h2>
+          <span>Journal temps réel des événements de course et d’infrastructure.</span>
         </div>
         <div class="page-header-actions">
-          <button class="btn btn-sm btn-ghost" id="btnLogsClear">Clear logs</button>
+          <button class="btn btn-sm btn-ghost" id="btnLogsClear">Effacer les logs</button>
         </div>
       </div>
 
@@ -1463,9 +1494,9 @@
           <div>
             <div class="card-title">
               <div class="card-title-pill">📜</div>
-              <span>Log stream</span>
+              <span>Flux de logs</span>
             </div>
-            <div class="card-subtitle">Critical events, warnings, and informational messages.</div>
+            <div class="card-subtitle">Événements critiques, avertissements et messages d’information.</div>
           </div>
         </div>
 
@@ -1478,29 +1509,29 @@
 </div>
 
 <script>
-  // =========================
-  // GLOBAL STATE
-  // =========================
+  // ============================================================
+  // ÉTAT GLOBAL DE L’APPLICATION
+  // ============================================================
 
   const state = {
-    race: {
-      status: "idle", // idle | running | paused | stopped
+    course: {
+      statut: "idle", // idle | running | paused | stopped
       startTime: null,
       elapsedMs: 0,
-      totalLaps: 0,
-      lastEvent: null
+      totalTours: 0,
+      dernierEvenement: null
     },
     participants: [],
     telemetry: {
-      packets: 0,
-      pending: 0,
-      connectionState: "disconnected", // disconnected | connected
-      lastSync: null,
-      lapEvents: 0,
-      cameraEvents: 0,
-      errorEvents: 0,
-      lastEventDescription: null,
-      recentEvents: [] // {timestamp, type, description}
+      paquets: 0,
+      enAttente: 0,
+      connexion: "disconnected", // disconnected | connected
+      derniereSync: null,
+      nbTours: 0,
+      nbCamera: 0,
+      nbErreurs: 0,
+      dernierEvenementDescription: null,
+      evenementsRecents: [] // {timestamp, type, description}
     },
     aws: {
       connected: false,
@@ -1508,7 +1539,9 @@
       tableName: "race-telemetry-demo",
       buffer: [],
       lastSync: null,
-      simulateFailure: false
+      simulateFailure: false,
+      syncIntervalMs: 5000,
+      syncTimer: null
     },
     video: {
       list: [],
@@ -1520,9 +1553,9 @@
 
   let raceTimerInterval = null;
 
-  // =========================
-  // UTILITIES
-  // =========================
+  // ============================================================
+  // FONCTIONS UTILITAIRES
+  // ============================================================
 
   function formatTime(date) {
     const d = date instanceof Date ? date : new Date(date);
@@ -1544,6 +1577,7 @@
     return new Date().toISOString();
   }
 
+  // Ajout d’une entrée dans le journal système
   function log(level, message) {
     const entry = {
       timestamp: new Date(),
@@ -1557,82 +1591,83 @@
     renderLogs();
   }
 
+  // Ajout d’un événement télémétrique dans l’historique
   function addTelemetryEvent(type, description) {
     const event = {
       timestamp: new Date(),
       type,
       description
     };
-    state.telemetry.recentEvents.unshift(event);
-    if (state.telemetry.recentEvents.length > 50) {
-      state.telemetry.recentEvents.pop();
+    state.telemetry.evenementsRecents.unshift(event);
+    if (state.telemetry.evenementsRecents.length > 50) {
+      state.telemetry.evenementsRecents.pop();
     }
-    state.telemetry.lastEventDescription = `${type.toUpperCase()} · ${description}`;
+    state.telemetry.dernierEvenementDescription = `${type.toUpperCase()} · ${description}`;
     renderTelemetry();
   }
 
-  // =========================
-  // RACE MANAGEMENT
-  // =========================
+  // ============================================================
+  // LOGIQUE DE COURSE
+  // ============================================================
 
   function startRace() {
-    if (state.race.status === "running") return;
+    if (state.course.statut === "running") return;
     const now = Date.now();
-    if (!state.race.startTime || state.race.status === "stopped") {
-      state.race.startTime = now;
-      state.race.elapsedMs = 0;
-    } else if (state.race.status === "paused") {
-      state.race.startTime = now - state.race.elapsedMs;
+    if (!state.course.startTime || state.course.statut === "stopped") {
+      state.course.startTime = now;
+      state.course.elapsedMs = 0;
+    } else if (state.course.statut === "paused") {
+      state.course.startTime = now - state.course.elapsedMs;
     }
-    state.race.status = "running";
-    state.race.lastEvent = "Race started";
-    log("INFO", "Race started.");
-    updateAdminLastAction("Race started");
+    state.course.statut = "running";
+    state.course.dernierEvenement = "Course démarrée";
+    log("INFO", "Course démarrée.");
+    updateAdminLastAction("Course démarrée");
     ensureRaceTimer();
     renderRace();
   }
 
   function pauseRace() {
-    if (state.race.status !== "running") return;
-    state.race.status = "paused";
-    state.race.elapsedMs = Date.now() - state.race.startTime;
-    state.race.lastEvent = "Race paused";
+    if (state.course.statut !== "running") return;
+    state.course.statut = "paused";
+    state.course.elapsedMs = Date.now() - state.course.startTime;
+    state.course.dernierEvenement = "Course mise en pause";
     clearInterval(raceTimerInterval);
     raceTimerInterval = null;
-    log("INFO", "Race paused.");
-    updateAdminLastAction("Race paused");
+    log("INFO", "Course mise en pause.");
+    updateAdminLastAction("Course mise en pause");
     renderRace();
   }
 
   function stopRace() {
-    if (state.race.status === "idle" || state.race.status === "stopped") return;
-    if (state.race.status === "running") {
-      state.race.elapsedMs = Date.now() - state.race.startTime;
+    if (state.course.statut === "idle" || state.course.statut === "stopped") return;
+    if (state.course.statut === "running") {
+      state.course.elapsedMs = Date.now() - state.course.startTime;
     }
-    state.race.status = "stopped";
-    state.race.lastEvent = "Race stopped";
+    state.course.statut = "stopped";
+    state.course.dernierEvenement = "Course arrêtée";
     clearInterval(raceTimerInterval);
     raceTimerInterval = null;
-    log("WARNING", "Race stopped.");
-    updateAdminLastAction("Race stopped");
+    log("WARNING", "Course arrêtée.");
+    updateAdminLastAction("Course arrêtée");
     renderRace();
   }
 
   function resetRace() {
-    state.race.status = "idle";
-    state.race.startTime = null;
-    state.race.elapsedMs = 0;
-    state.race.totalLaps = 0;
-    state.race.lastEvent = "Emergency reset performed";
+    state.course.statut = "idle";
+    state.course.startTime = null;
+    state.course.elapsedMs = 0;
+    state.course.totalTours = 0;
+    state.course.dernierEvenement = "Reset d’urgence effectué";
     clearInterval(raceTimerInterval);
     raceTimerInterval = null;
     state.participants.forEach(p => {
       p.laps = 0;
       p.lastPassage = null;
-      p.status = "active";
+      p.status = "actif";
     });
-    log("ERROR", "Emergency reset of race and participants.");
-    updateAdminLastAction("Emergency reset");
+    log("ERROR", "Reset d’urgence de la course et des participants.");
+    updateAdminLastAction("Reset d’urgence");
     renderRace();
     renderParticipants();
   }
@@ -1640,16 +1675,16 @@
   function ensureRaceTimer() {
     if (raceTimerInterval) return;
     raceTimerInterval = setInterval(() => {
-      if (state.race.status === "running") {
-        state.race.elapsedMs = Date.now() - state.race.startTime;
+      if (state.course.statut === "running") {
+        state.course.elapsedMs = Date.now() - state.course.startTime;
         renderRaceTimeOnly();
       }
     }, 1000);
   }
 
-  // =========================
-  // PARTICIPANT MANAGEMENT
-  // =========================
+  // ============================================================
+  // GESTION DES PARTICIPANTS
+  // ============================================================
 
   let nextParticipantId = 1;
 
@@ -1660,11 +1695,11 @@
       name: name.trim(),
       laps: 0,
       lastPassage: null,
-      status: "active"
+      status: "actif"
     };
     state.participants.push(participant);
-    log("INFO", `Participant added: ${participant.name} (#${participant.id}).`);
-    updateAdminLastAction(`Participant added: ${participant.name}`);
+    log("INFO", `Participant ajouté : ${participant.name} (#${participant.id}).`);
+    updateAdminLastAction(`Participant ajouté : ${participant.name}`);
     renderParticipants();
   }
 
@@ -1672,8 +1707,8 @@
     const index = state.participants.findIndex(p => p.id === id);
     if (index === -1) return;
     const [removed] = state.participants.splice(index, 1);
-    log("WARNING", `Participant removed: ${removed.name} (#${removed.id}).`);
-    updateAdminLastAction(`Participant removed: ${removed.name}`);
+    log("WARNING", `Participant supprimé : ${removed.name} (#${removed.id}).`);
+    updateAdminLastAction(`Participant supprimé : ${removed.name}`);
     renderParticipants();
   }
 
@@ -1682,11 +1717,11 @@
     if (!p) return;
     p.laps += 1;
     p.lastPassage = new Date();
-    state.race.totalLaps += 1;
-    state.race.lastEvent = `Lap crossing for ${p.name}`;
-    state.telemetry.packets += 1;
-    state.telemetry.lapEvents += 1;
-    addTelemetryEvent("lap", `Lap crossing for ${p.name} (#${p.id}).`);
+    state.course.totalTours += 1;
+    state.course.dernierEvenement = `Passage de tour pour ${p.name}`;
+    state.telemetry.paquets += 1;
+    state.telemetry.nbTours += 1;
+    addTelemetryEvent("tour", `Passage de tour pour ${p.name} (#${p.id}).`);
     sendTelemetryToDatabase({
       type: "lap",
       participantId: p.id,
@@ -1694,45 +1729,45 @@
       timestamp: nowIso(),
       lap: p.laps
     });
-    log("SUCCESS", `Lap recorded for ${p.name} (#${p.id}), lap ${p.laps}.`);
+    log("SUCCESS", `Tour enregistré pour ${p.name} (#${p.id}), tour ${p.laps}.`);
     renderRace();
     renderParticipants();
     renderTelemetry();
   }
 
-  // =========================
-  // TELEMETRY & SENSORS
-  // =========================
+  // ============================================================
+  // GESTION TÉLÉMÉTRIE / CAPTEURS
+  // ============================================================
 
   function simulateCameraEvent(participantId) {
     const p = state.participants.find(x => x.id === participantId);
-    const label = p ? `${p.name} (#${p.id})` : "global camera";
-    state.telemetry.packets += 1;
-    state.telemetry.cameraEvents += 1;
-    addTelemetryEvent("camera", `Camera detection for ${label}.`);
+    const label = p ? `${p.name} (#${p.id})` : "caméra globale";
+    state.telemetry.paquets += 1;
+    state.telemetry.nbCamera += 1;
+    addTelemetryEvent("camera", `Détection caméra pour ${label}.`);
     sendTelemetryToDatabase({
       type: "camera",
       participantId: p ? p.id : null,
       name: p ? p.name : null,
       timestamp: nowIso()
     });
-    log("INFO", `Camera event detected for ${label}.`);
+    log("INFO", `Événement caméra détecté pour ${label}.`);
     renderTelemetry();
   }
 
   function simulateSensorError(participantId) {
     const p = state.participants.find(x => x.id === participantId);
-    const label = p ? `${p.name} (#${p.id})` : "global sensor";
-    state.telemetry.packets += 1;
-    state.telemetry.errorEvents += 1;
-    addTelemetryEvent("error", `Sensor error detected for ${label}.`);
+    const label = p ? `${p.name} (#${p.id})` : "capteur global";
+    state.telemetry.paquets += 1;
+    state.telemetry.nbErreurs += 1;
+    addTelemetryEvent("erreur", `Erreur capteur détectée pour ${label}.`);
     sendTelemetryToDatabase({
       type: "error",
       participantId: p ? p.id : null,
       name: p ? p.name : null,
       timestamp: nowIso()
     });
-    log("ERROR", `Sensor error for ${label}.`);
+    log("ERROR", `Erreur capteur pour ${label}.`);
     renderTelemetry();
   }
 
@@ -1752,14 +1787,15 @@
     }
   }
 
-  // =========================
-  // DATABASE SIMULATION (AWS)
-  // =========================
+  // ============================================================
+  // COMMUNICATION BASE DE DONNÉES (SIMULATION AWS / DYNAMODB)
+  // ============================================================
 
+  // Simulation d’envoi vers une base (DynamoDB)
   function sendToDatabase(payload) {
     return new Promise((resolve, reject) => {
       if (!state.aws.connected || state.aws.simulateFailure) {
-        reject(new Error("Simulated AWS connection unavailable."));
+        reject(new Error("Connexion AWS simulée indisponible."));
       } else {
         setTimeout(() => {
           resolve({ ok: true });
@@ -1768,83 +1804,118 @@
     });
   }
 
+  // Flush du buffer local vers la base simulée
   function flushBuffer() {
     if (!state.aws.buffer.length) return;
     const bufferCopy = [...state.aws.buffer];
     state.aws.buffer = [];
     state.aws.lastSync = new Date();
-    state.telemetry.lastSync = state.aws.lastSync;
-    state.telemetry.pending = 0;
+    state.telemetry.derniereSync = state.aws.lastSync;
+    state.telemetry.enAttente = 0;
     document.getElementById("awsBufferCount").textContent = "0";
     document.getElementById("awsLastSync").textContent = formatTime(state.aws.lastSync);
-    document.getElementById("telemetryLastSync").textContent = formatTime(state.telemetry.lastSync);
+    document.getElementById("telemetryLastSync").textContent = formatTime(state.telemetry.derniereSync);
     document.getElementById("awsLog").textContent =
-      `Buffer flushed: ${bufferCopy.length} event(s) synced to simulated DB.`;
-    log("SUCCESS", `Buffer flushed: ${bufferCopy.length} event(s) sent to simulated DB.`);
+      `Buffer vidé : ${bufferCopy.length} événement(s) synchronisé(s) vers la base simulée.`;
+    log("SUCCESS", `Buffer vidé : ${bufferCopy.length} événement(s) envoyés vers la base simulée.`);
   }
 
+  // Envoi d’un événement télémétrique vers la base (ou buffer)
   function sendTelemetryToDatabase(payload) {
     if (!state.aws.connected || state.aws.simulateFailure) {
       state.aws.buffer.push(payload);
-      state.telemetry.pending = state.aws.buffer.length;
+      state.telemetry.enAttente = state.aws.buffer.length;
       document.getElementById("awsBufferCount").textContent = String(state.aws.buffer.length);
       document.getElementById("awsLog").textContent =
-        `Connection unavailable: event added to buffer (total: ${state.aws.buffer.length}).`;
+        `Connexion indisponible : événement ajouté au buffer (total : ${state.aws.buffer.length}).`;
       return;
     }
 
     sendToDatabase(payload)
       .then(() => {
         state.aws.lastSync = new Date();
-        state.telemetry.lastSync = state.aws.lastSync;
+        state.telemetry.derniereSync = state.aws.lastSync;
         document.getElementById("awsLastSync").textContent = formatTime(state.aws.lastSync);
-        document.getElementById("telemetryLastSync").textContent = formatTime(state.telemetry.lastSync);
-        document.getElementById("awsLog").textContent = "Event sent to simulated database.";
+        document.getElementById("telemetryLastSync").textContent = formatTime(state.telemetry.derniereSync);
+        document.getElementById("awsLog").textContent = "Événement envoyé à la base simulée.";
       })
       .catch(() => {
         state.aws.buffer.push(payload);
-        state.telemetry.pending = state.aws.buffer.length;
+        state.telemetry.enAttente = state.aws.buffer.length;
         document.getElementById("awsBufferCount").textContent = String(state.aws.buffer.length);
         document.getElementById("awsLog").textContent =
-          `Send error: event added to buffer (total: ${state.aws.buffer.length}).`;
-        log("ERROR", "Failed to send to simulated DB, falling back to buffer.");
+          `Erreur d’envoi : événement ajouté au buffer (total : ${state.aws.buffer.length}).`;
+        log("ERROR", "Échec d’envoi vers la base simulée, bascule vers le buffer local.");
       });
   }
 
+  // Démarrage du flush automatique du buffer
+  function startAutoSync() {
+    const intervalInput = document.getElementById("awsSyncInterval");
+    const value = Number(intervalInput.value) || 5000;
+    state.aws.syncIntervalMs = value;
+    if (state.aws.syncTimer) {
+      clearInterval(state.aws.syncTimer);
+    }
+    state.aws.syncTimer = setInterval(() => {
+      if (state.aws.connected && !state.aws.simulateFailure && state.aws.buffer.length) {
+        flushBuffer();
+      }
+    }, state.aws.syncIntervalMs);
+  }
+
+  // Connexion AWS simulée
   function connectAws() {
     state.aws.region = document.getElementById("awsRegion").value;
     state.aws.tableName = document.getElementById("awsTableName").value || "race-telemetry-demo";
     state.aws.connected = true;
     state.aws.simulateFailure = false;
-    state.telemetry.connectionState = "connected";
-    document.getElementById("awsConnectionStateText").textContent = "Connected";
+    state.telemetry.connexion = "connected";
+    document.getElementById("awsConnectionStateText").textContent = "Connecté";
     document.getElementById("awsStatusText").textContent =
-      `Connected to ${state.aws.region} · Table: ${state.aws.tableName}`;
+      `Connecté à ${state.aws.region} · Table : ${state.aws.tableName}`;
     document.getElementById("awsStatusDot").style.background = "var(--success)";
     document.getElementById("awsStatusDot").style.boxShadow = "0 0 10px rgba(34,197,94,0.9)";
-    document.getElementById("telemetryConnectionState").textContent = "Connected";
-    document.getElementById("telemetryStatusBadge").textContent = "Stream active";
-    log("INFO", `Simulated AWS connection established on ${state.aws.region}, table ${state.aws.tableName}.`);
+    document.getElementById("telemetryConnectionState").textContent = "Connecté";
+    document.getElementById("telemetryStatusBadge").textContent = "Flux actif";
+    log("INFO", `Connexion AWS simulée établie sur ${state.aws.region}, table ${state.aws.tableName}.`);
     if (state.aws.buffer.length) {
       flushBuffer();
     }
+    startAutoSync();
   }
 
+  // Déconnexion AWS simulée
   function disconnectAws() {
     state.aws.connected = false;
-    state.telemetry.connectionState = "disconnected";
-    document.getElementById("awsConnectionStateText").textContent = "Disconnected";
-    document.getElementById("awsStatusText").textContent = "Disconnected · Buffer active";
+    state.telemetry.connexion = "disconnected";
+    document.getElementById("awsConnectionStateText").textContent = "Déconnecté";
+    document.getElementById("awsStatusText").textContent = "Déconnecté · Buffer local actif";
     document.getElementById("awsStatusDot").style.background = "var(--warning)";
     document.getElementById("awsStatusDot").style.boxShadow = "0 0 10px rgba(245,158,11,0.9)";
-    document.getElementById("telemetryConnectionState").textContent = "Disconnected";
-    document.getElementById("telemetryStatusBadge").textContent = "Stream inactive";
-    log("WARNING", "Simulated AWS connection closed.");
+    document.getElementById("telemetryConnectionState").textContent = "Déconnecté";
+    document.getElementById("telemetryStatusBadge").textContent = "Flux inactif";
+    log("WARNING", "Connexion AWS simulée fermée.");
+    if (state.aws.syncTimer) {
+      clearInterval(state.aws.syncTimer);
+      state.aws.syncTimer = null;
+    }
   }
 
-  // =========================
-  // VIDEO MONITORING
-  // =========================
+  // Test de connexion (simulé)
+  function testAwsConnection() {
+    if (state.aws.connected && !state.aws.simulateFailure) {
+      document.getElementById("awsLog").textContent = "Test de connexion réussi (simulation).";
+      log("SUCCESS", "Test de connexion AWS simulée réussi.");
+    } else {
+      document.getElementById("awsLog").textContent = "Test de connexion échoué (simulation).";
+      log("WARNING", "Test de connexion AWS simulée échoué.");
+    }
+  }
+
+  // ============================================================
+  // SURVEILLANCE VIDÉO
+  // ============================================================
 
   function initVideoList() {
     state.video.list = [
@@ -1854,7 +1925,7 @@
         timestamp: "2026-03-11T09:15:23Z",
         cameraId: "CAM-01",
         type: "lap",
-        label: "Lap crossing - Car 12"
+        label: "Passage de tour - Voiture 12"
       },
       {
         id: 2,
@@ -1862,7 +1933,7 @@
         timestamp: "2026-03-11T09:18:47Z",
         cameraId: "CAM-02",
         type: "camera",
-        label: "Camera detection - Turn 3"
+        label: "Détection caméra - Virage 3"
       },
       {
         id: 3,
@@ -1870,7 +1941,7 @@
         timestamp: "2026-03-11T09:21:02Z",
         cameraId: "CAM-03",
         type: "incident",
-        label: "Incident - Off-track excursion"
+        label: "Incident - Sortie de piste"
       }
     ];
     document.getElementById("videoCount").textContent = String(state.video.list.length);
@@ -1886,7 +1957,7 @@
     if (!filtered.length) {
       const div = document.createElement("div");
       div.className = "muted";
-      div.textContent = "No videos match the selected filter.";
+      div.textContent = "Aucune vidéo ne correspond au filtre sélectionné.";
       container.appendChild(div);
       return;
     }
@@ -1915,9 +1986,9 @@
 
       const typeBadge = document.createElement("span");
       typeBadge.className = "badge badge-info";
-      if (video.type === "lap") typeBadge.textContent = "Lap crossing";
-      else if (video.type === "camera") typeBadge.textContent = "Camera detection";
-      else typeBadge.textContent = "Incident / error";
+      if (video.type === "lap") typeBadge.textContent = "Passage de tour";
+      else if (video.type === "camera") typeBadge.textContent = "Détection caméra";
+      else typeBadge.textContent = "Incident / erreur";
 
       tags.appendChild(typeBadge);
       meta.appendChild(title);
@@ -1952,9 +2023,9 @@
     renderVideoList();
   }
 
-  // =========================
-  // UI RENDERING
-  // =========================
+  // ============================================================
+  // RENDU UI : COURSE / PARTICIPANTS / TÉLÉMÉTRIE / LOGS
+  // ============================================================
 
   function renderRace() {
     const statusLabel = document.getElementById("globalStatusLabel");
@@ -1965,28 +2036,28 @@
     const badge = document.getElementById("raceStateBadge");
 
     let label, sub, color, glow;
-    switch (state.race.status) {
+    switch (state.course.statut) {
       case "running":
-        label = "Race running";
-        sub = "Timer active";
+        label = "Course en cours";
+        sub = "Chronomètre actif";
         color = "var(--success)";
         glow = "0 0 12px rgba(34,197,94,0.9)";
         break;
       case "paused":
-        label = "Race paused";
-        sub = "Timer paused";
+        label = "Course en pause";
+        sub = "Chronomètre en pause";
         color = "var(--warning)";
         glow = "0 0 12px rgba(245,158,11,0.9)";
         break;
       case "stopped":
-        label = "Race stopped";
-        sub = "Session ended";
+        label = "Course arrêtée";
+        sub = "Session terminée";
         color = "var(--danger)";
         glow = "0 0 12px rgba(239,68,68,0.9)";
         break;
       default:
-        label = "Race idle";
-        sub = "No active race";
+        label = "Course en attente";
+        sub = "Aucune course active";
         color = "var(--accent)";
         glow = "0 0 12px rgba(79,70,229,0.9)";
     }
@@ -2000,17 +2071,17 @@
     dot.style.boxShadow = glow;
     chipDot.style.background = color;
 
-    document.getElementById("raceElapsed").textContent = formatDuration(state.race.elapsedMs);
-    document.getElementById("raceTotalLaps").textContent = String(state.race.totalLaps);
+    document.getElementById("raceElapsed").textContent = formatDuration(state.course.elapsedMs);
+    document.getElementById("raceTotalLaps").textContent = String(state.course.totalTours);
     document.getElementById("raceActiveParticipants").textContent = String(state.participants.length);
     document.getElementById("raceLastEvent").textContent =
-      state.race.lastEvent ? state.race.lastEvent : "—";
+      state.course.dernierEvenement ? state.course.dernierEvenement : "—";
 
     document.getElementById("adminRaceSummary").textContent = label;
   }
 
   function renderRaceTimeOnly() {
-    document.getElementById("raceElapsed").textContent = formatDuration(state.race.elapsedMs);
+    document.getElementById("raceElapsed").textContent = formatDuration(state.course.elapsedMs);
   }
 
   function renderParticipants() {
@@ -2020,7 +2091,7 @@
 
     bodyDashboard.innerHTML = "";
     bodyAdmin.innerHTML = "";
-    selectSim.innerHTML = '<option value="">Select a participant…</option>';
+    selectSim.innerHTML = '<option value="">Sélectionner un participant…</option>';
 
     state.participants.forEach(p => {
       const trDash = document.createElement("tr");
@@ -2030,22 +2101,22 @@
         <td>${p.laps}</td>
         <td>${p.lastPassage ? formatTime(p.lastPassage) : "—"}</td>
         <td>
-          <span class="badge ${p.status === "active" ? "badge-success" : "badge-warning"}">
-            ${p.status === "active" ? "Active" : "Inactive"}
+          <span class="badge ${p.status === "actif" ? "badge-success" : "badge-warning"}">
+            ${p.status === "actif" ? "Actif" : "Inactif"}
           </span>
         </td>
       `;
       bodyDashboard.appendChild(trDash);
 
       const trAdmin = document.createElement("tr");
-      const statusBadgeClass = p.status === "active" ? "badge-success" : "badge-warning";
+      const statusBadgeClass = p.status === "actif" ? "badge-success" : "badge-warning";
       trAdmin.innerHTML = `
         <td>#${p.id}</td>
         <td>${p.name}</td>
         <td>${p.laps}</td>
-        <td><span class="badge ${statusBadgeClass}">${p.status === "active" ? "Active" : "Inactive"}</span></td>
+        <td><span class="badge ${statusBadgeClass}">${p.status === "actif" ? "Actif" : "Inactif"}</span></td>
         <td class="text-right">
-          <button class="btn btn-sm btn-ghost" data-remove="${p.id}">Remove</button>
+          <button class="btn btn-sm btn-ghost" data-remove="${p.id}">Supprimer</button>
         </td>
       `;
       bodyAdmin.appendChild(trAdmin);
@@ -2071,28 +2142,36 @@
   }
 
   function renderTelemetry() {
-    document.getElementById("telemetryPackets").textContent = String(state.telemetry.packets);
-    document.getElementById("telemetryPending").textContent = String(state.telemetry.pending);
+    document.getElementById("telemetryPackets").textContent = String(state.telemetry.paquets);
+    document.getElementById("telemetryPending").textContent = String(state.telemetry.enAttente);
     document.getElementById("telemetryConnectionState").textContent =
-      state.telemetry.connectionState === "connected" ? "Connected" : "Disconnected";
+      state.telemetry.connexion === "connected" ? "Connecté" : "Déconnecté";
     document.getElementById("telemetryLastSync").textContent =
-      state.telemetry.lastSync ? formatTime(state.telemetry.lastSync) : "—";
+      state.telemetry.derniereSync ? formatTime(state.telemetry.derniereSync) : "—";
 
-    document.getElementById("telemetryLapEvents").textContent = String(state.telemetry.lapEvents);
-    document.getElementById("telemetryCameraEvents").textContent = String(state.telemetry.cameraEvents);
-    document.getElementById("telemetryErrorEvents").textContent = String(state.telemetry.errorEvents);
+    document.getElementById("telemetryLapEvents").textContent = String(state.telemetry.nbTours);
+    document.getElementById("telemetryCameraEvents").textContent = String(state.telemetry.nbCamera);
+    document.getElementById("telemetryErrorEvents").textContent = String(state.telemetry.nbErreurs);
     document.getElementById("telemetryLastEvent").textContent =
-      state.telemetry.lastEventDescription || "No telemetry events yet.";
+      state.telemetry.dernierEvenementDescription || "Aucun événement télémétrique pour le moment.";
 
     const list = document.getElementById("telemetryEventsList");
     list.innerHTML = "";
-    state.telemetry.recentEvents.forEach(ev => {
+    state.telemetry.evenementsRecents.forEach(ev => {
       const div = document.createElement("div");
       div.className = "log-entry";
-      const levelBadgeClass =
-        ev.type === "error" ? "badge-danger" : ev.type === "camera" ? "badge-info" : "badge-success";
-      const levelLabel =
-        ev.type === "error" ? "ERROR" : ev.type === "camera" ? "CAMERA" : "LAP";
+      let levelBadgeClass;
+      let levelLabel;
+      if (ev.type === "erreur") {
+        levelBadgeClass = "badge-danger";
+        levelLabel = "ERREUR";
+      } else if (ev.type === "camera") {
+        levelBadgeClass = "badge-info";
+        levelLabel = "CAMÉRA";
+      } else {
+        levelBadgeClass = "badge-success";
+        levelLabel = "TOUR";
+      }
 
       div.innerHTML = `
         <div class="log-timestamp">${formatTime(ev.timestamp)}</div>
@@ -2133,18 +2212,18 @@
     document.getElementById("adminQuickLog").textContent = text;
   }
 
-  // =========================
-  // NAVIGATION
-  // =========================
+  // ============================================================
+  // NAVIGATION ENTRE LES PAGES
+  // ============================================================
 
   function initNavigation() {
     const navItems = document.querySelectorAll(".nav-item");
     const pages = {
       dashboard: document.getElementById("page-dashboard"),
       administration: document.getElementById("page-administration"),
-      aws: document.getElementById("page-aws"),
       telemetry: document.getElementById("page-telemetry"),
       video: document.getElementById("page-video"),
+      tech: document.getElementById("page-tech"),
       logs: document.getElementById("page-logs")
     };
 
@@ -2160,35 +2239,35 @@
     });
   }
 
-  // =========================
-  // EVENT LISTENERS
-  // =========================
+  // ============================================================
+  // GESTION DES ÉVÉNEMENTS UI
+  // ============================================================
 
   function initEventListeners() {
-    // Race controls (dashboard)
+    // Contrôles course (dashboard)
     document.getElementById("btnRaceStart").addEventListener("click", startRace);
     document.getElementById("btnRacePause").addEventListener("click", pauseRace);
     document.getElementById("btnRaceStop").addEventListener("click", stopRace);
     document.getElementById("btnRaceReset").addEventListener("click", resetRace);
 
-    // Race controls (admin)
+    // Contrôles course (admin)
     document.getElementById("btnAdminStart").addEventListener("click", startRace);
     document.getElementById("btnAdminPause").addEventListener("click", pauseRace);
     document.getElementById("btnAdminStop").addEventListener("click", stopRace);
     document.getElementById("btnAdminReset").addEventListener("click", resetRace);
 
-    // Add participant
+    // Ajout participant
     document.getElementById("btnAdminAddParticipant").addEventListener("click", () => {
       const input = document.getElementById("adminParticipantName");
       addParticipant(input.value || `Participant ${nextParticipantId}`);
       input.value = "";
     });
 
-    // Sensor simulation
+    // Simulation capteurs
     document.getElementById("btnSimLap").addEventListener("click", () => {
       const id = Number(document.getElementById("simParticipantSelect").value);
       if (!id) {
-        log("WARNING", "Lap simulation without selected participant.");
+        log("WARNING", "Simulation de passage de tour sans participant sélectionné.");
         return;
       }
       incrementLap(id);
@@ -2204,23 +2283,25 @@
       simulateSensorError(id);
     });
 
-    // AWS
+    // AWS / Paramètres techniques
     document.getElementById("btnAwsConnect").addEventListener("click", connectAws);
     document.getElementById("btnAwsDisconnect").addEventListener("click", disconnectAws);
     document.getElementById("btnAwsFlush").addEventListener("click", flushBuffer);
     document.getElementById("btnAwsSimFailure").addEventListener("click", () => {
       state.aws.simulateFailure = !state.aws.simulateFailure;
       const text = state.aws.simulateFailure
-        ? "Simulated failure mode enabled."
-        : "Simulated failure mode disabled.";
+        ? "Mode échec simulé activé."
+        : "Mode échec simulé désactivé.";
       document.getElementById("awsLog").textContent = text;
       log("INFO", text);
     });
+    document.getElementById("btnAwsTest").addEventListener("click", testAwsConnection);
+    document.getElementById("awsSyncInterval").addEventListener("change", startAutoSync);
 
-    // Telemetry
+    // Télémétrie
     document.getElementById("btnTelemetrySimEvent").addEventListener("click", simulateRandomTelemetryEvent);
 
-    // Dashboard quick simulate
+    // Dashboard : simulation rapide
     document.getElementById("btnDashboardForceTick").addEventListener("click", simulateRandomTelemetryEvent);
 
     // Logs
@@ -2229,21 +2310,21 @@
       renderLogs();
     });
 
-    // Video
+    // Vidéo
     document.getElementById("videoFilterType").addEventListener("change", e => {
       state.video.filterType = e.target.value;
       renderVideoList();
     });
   }
 
-  // =========================
-  // INITIALIZATION
-  // =========================
+  // ============================================================
+  // INITIALISATION (DEMO / DONNÉES)
+  // ============================================================
 
   function initDemoData() {
-    addParticipant("Car 12 · Driver A");
-    addParticipant("Car 7 · Driver B");
-    addParticipant("Car 21 · Driver C");
+    addParticipant("Voiture 12 · Pilote A");
+    addParticipant("Voiture 7 · Pilote B");
+    addParticipant("Voiture 21 · Pilote C");
   }
 
   function init() {
