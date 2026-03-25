@@ -1,2344 +1,1929 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8" />
-  <title>Centre de contrôle de course et télémétrie</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <style>
-    :root {
-      --bg-main: #050712;
-      --bg-elevated: rgba(18, 24, 38, 0.85);
-      --bg-elevated-strong: rgba(18, 24, 38, 0.95);
-      --accent: #4f46e5;
-      --accent-soft: rgba(79, 70, 229, 0.2);
-      --accent-gradient: linear-gradient(135deg, #4f46e5, #06b6d4);
-      --danger: #ef4444;
-      --warning: #f59e0b;
-      --success: #22c55e;
-      --text-main: #f9fafb;
-      --text-muted: #9ca3af;
-      --border-subtle: rgba(148, 163, 184, 0.25);
-      --card-radius: 16px;
-      --transition-fast: 0.18s ease-out;
-      --shadow-soft: 0 18px 45px rgba(15, 23, 42, 0.65);
-      --glass-blur: 18px;
-    }
-
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-
-    body {
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Inter", sans-serif;
-      background: radial-gradient(circle at top, #111827 0, #020617 45%, #000 100%);
-      color: var(--text-main);
-      min-height: 100vh;
-      display: flex;
-      overflow: hidden;
-    }
-
-    .app-shell {
-      display: grid;
-      grid-template-columns: 260px minmax(0, 1fr);
-      grid-template-rows: 64px minmax(0, 1fr);
-      grid-template-areas:
-        "sidebar header"
-        "sidebar main";
-      width: 100%;
-      height: 100vh;
-    }
-
-    header {
-      grid-area: header;
-      backdrop-filter: blur(var(--glass-blur));
-      background: linear-gradient(90deg, rgba(15, 23, 42, 0.9), rgba(15, 23, 42, 0.6));
-      border-bottom: 1px solid var(--border-subtle);
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 0 24px;
-      box-shadow: 0 10px 30px rgba(15, 23, 42, 0.6);
-      z-index: 20;
-    }
-
-    .header-left {
-      display: flex;
-      align-items: center;
-      gap: 14px;
-    }
-
-    .logo-pill {
-      width: 36px;
-      height: 36px;
-      border-radius: 999px;
-      background-image: var(--accent-gradient);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      box-shadow: 0 0 0 1px rgba(148, 163, 184, 0.3), 0 12px 30px rgba(79, 70, 229, 0.6);
-      font-size: 18px;
-      font-weight: 700;
-    }
-
-    .header-title {
-      display: flex;
-      flex-direction: column;
-      gap: 2px;
-    }
-
-    .header-title h1 {
-      font-size: 18px;
-      font-weight: 600;
-      letter-spacing: 0.02em;
-    }
-
-    .header-title span {
-      font-size: 12px;
-      color: var(--text-muted);
-    }
-
-    .header-right {
-      display: flex;
-      align-items: center;
-      gap: 18px;
-    }
-
-    .status-indicator {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      padding: 6px 12px;
-      border-radius: 999px;
-      background: rgba(15, 23, 42, 0.9);
-      border: 1px solid rgba(148, 163, 184, 0.35);
-    }
-
-    .status-dot {
-      width: 10px;
-      height: 10px;
-      border-radius: 999px;
-      background: var(--success);
-      box-shadow: 0 0 12px rgba(34, 197, 94, 0.9);
-      transition: background var(--transition-fast), box-shadow var(--transition-fast);
-    }
-
-    .status-text {
-      font-size: 13px;
-    }
-
-    .status-label {
-      font-weight: 500;
-    }
-
-    .status-sub {
-      color: var(--text-muted);
-      font-size: 11px;
-    }
-
-    .user-pill {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      padding: 6px 12px;
-      border-radius: 999px;
-      background: rgba(15, 23, 42, 0.9);
-      border: 1px solid rgba(148, 163, 184, 0.35);
-      font-size: 13px;
-      color: var(--text-muted);
-    }
-
-    .user-avatar {
-      width: 24px;
-      height: 24px;
-      border-radius: 999px;
-      background: radial-gradient(circle at 30% 0, #e5e7eb, #4b5563);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 12px;
-      font-weight: 600;
-      color: #020617;
-    }
-
-    .sidebar {
-      grid-area: sidebar;
-      backdrop-filter: blur(var(--glass-blur));
-      background: radial-gradient(circle at top, rgba(15, 23, 42, 0.98), rgba(15, 23, 42, 0.92));
-      border-right: 1px solid var(--border-subtle);
-      padding: 18px 16px;
-      display: flex;
-      flex-direction: column;
-      gap: 18px;
-      box-shadow: 18px 0 45px rgba(15, 23, 42, 0.9);
-      z-index: 30;
-    }
-
-    .sidebar-section-title {
-      font-size: 11px;
-      text-transform: uppercase;
-      letter-spacing: 0.16em;
-      color: var(--text-muted);
-      margin-bottom: 4px;
-    }
-
-    .nav-list {
-      list-style: none;
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-    }
-
-    .nav-item {
-      border-radius: 999px;
-      padding: 8px 10px;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      color: var(--text-muted);
-      cursor: pointer;
-      position: relative;
-      overflow: hidden;
-      transition: background var(--transition-fast), color var(--transition-fast), transform var(--transition-fast), box-shadow var(--transition-fast);
-    }
-
-    .nav-item::before {
-      content: "";
-      position: absolute;
-      inset: 0;
-      background: radial-gradient(circle at 0 0, rgba(79, 70, 229, 0.25), transparent 55%);
-      opacity: 0;
-      transition: opacity var(--transition-fast);
-      pointer-events: none;
-    }
-
-    .nav-item:hover::before {
-      opacity: 1;
-    }
-
-    .nav-item:hover {
-      background: rgba(15, 23, 42, 0.9);
-      transform: translateY(-1px);
-      box-shadow: 0 10px 25px rgba(15, 23, 42, 0.7);
-      color: #e5e7eb;
-    }
-
-    .nav-item.active {
-      background: rgba(15, 23, 42, 0.98);
-      color: #e5e7eb;
-      box-shadow: 0 14px 30px rgba(15, 23, 42, 0.9);
-      border: 1px solid rgba(129, 140, 248, 0.7);
-    }
-
-    .nav-item-icon {
-      width: 26px;
-      height: 26px;
-      border-radius: 999px;
-      background: rgba(15, 23, 42, 0.95);
-      border: 1px solid rgba(148, 163, 184, 0.4);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 14px;
-    }
-
-    .nav-item-label {
-      font-size: 13px;
-      font-weight: 500;
-    }
-
-    .sidebar-footer {
-      margin-top: auto;
-      padding-top: 12px;
-      border-top: 1px dashed rgba(55, 65, 81, 0.7);
-      font-size: 11px;
-      color: var(--text-muted);
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-    }
-
-    .sidebar-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      padding: 4px 8px;
-      border-radius: 999px;
-      background: rgba(15, 23, 42, 0.95);
-      border: 1px solid rgba(148, 163, 184, 0.4);
-      font-size: 11px;
-    }
-
-    .sidebar-badge-dot {
-      width: 8px;
-      height: 8px;
-      border-radius: 999px;
-      background: var(--accent);
-      box-shadow: 0 0 10px rgba(79, 70, 229, 0.9);
-    }
-
-    main {
-      grid-area: main;
-      padding: 18px 22px 22px;
-      overflow: auto;
-      position: relative;
-    }
-
-    .page {
-      display: none;
-      animation: fadeIn 0.25s ease-out;
-    }
-
-    .page.active {
-      display: block;
-    }
-
-    .page-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 18px;
-      gap: 12px;
-    }
-
-    .page-header-title {
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-    }
-
-    .page-header-title h2 {
-      font-size: 20px;
-      font-weight: 600;
-    }
-
-    .page-header-title span {
-      font-size: 13px;
-      color: var(--text-muted);
-    }
-
-    .page-header-actions {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      flex-wrap: wrap;
-    }
-
-    .chip {
-      padding: 4px 10px;
-      border-radius: 999px;
-      border: 1px solid rgba(148, 163, 184, 0.4);
-      font-size: 11px;
-      color: var(--text-muted);
-      background: rgba(15, 23, 42, 0.9);
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-    }
-
-    .chip-dot {
-      width: 8px;
-      height: 8px;
-      border-radius: 999px;
-      background: var(--success);
-    }
-
-    .card {
-      background: var(--bg-elevated);
-      border-radius: var(--card-radius);
-      border: 1px solid var(--border-subtle);
-      box-shadow: var(--shadow-soft);
-      padding: 14px 16px 16px;
-      position: relative;
-      overflow: hidden;
-      backdrop-filter: blur(var(--glass-blur));
-      transition: transform var(--transition-fast), box-shadow var(--transition-fast), border-color var(--transition-fast), background var(--transition-fast);
-    }
-
-    .card::before {
-      content: "";
-      position: absolute;
-      inset: -40%;
-      background: radial-gradient(circle at 0 0, rgba(79, 70, 229, 0.16), transparent 55%);
-      opacity: 0;
-      transition: opacity var(--transition-fast);
-      pointer-events: none;
-    }
-
-    .card:hover::before {
-      opacity: 1;
-    }
-
-    .card:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 22px 55px rgba(15, 23, 42, 0.9);
-      border-color: rgba(129, 140, 248, 0.7);
-      background: var(--bg-elevated-strong);
-    }
-
-    .card-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 10px;
-      gap: 10px;
-    }
-
-    .card-title {
-      font-size: 14px;
-      font-weight: 600;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .card-title-pill {
-      width: 18px;
-      height: 18px;
-      border-radius: 999px;
-      background: rgba(15, 23, 42, 0.95);
-      border: 1px solid rgba(148, 163, 184, 0.6);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 11px;
-    }
-
-    .card-subtitle {
-      font-size: 11px;
-      color: var(--text-muted);
-    }
-
-    .card-badge {
-      font-size: 11px;
-      padding: 3px 8px;
-      border-radius: 999px;
-      background: rgba(15, 23, 42, 0.95);
-      border: 1px solid rgba(148, 163, 184, 0.5);
-      color: var(--text-muted);
-    }
-
-    .grid-2 {
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 14px;
-    }
-
-    .grid-3 {
-      display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 14px;
-    }
-
-    .grid-responsive {
-      display: grid;
-      grid-template-columns: repeat(12, minmax(0, 1fr));
-      gap: 14px;
-    }
-
-    .col-span-4 { grid-column: span 4 / span 4; }
-    .col-span-5 { grid-column: span 5 / span 5; }
-    .col-span-6 { grid-column: span 6 / span 6; }
-    .col-span-8 { grid-column: span 8 / span 8; }
-    .col-span-12 { grid-column: span 12 / span 12; }
-
-    .stat-row {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-      margin-top: 6px;
-    }
-
-    .stat {
-      flex: 1 1 120px;
-      min-width: 0;
-    }
-
-    .stat-label {
-      font-size: 11px;
-      color: var(--text-muted);
-      margin-bottom: 2px;
-    }
-
-    .stat-value {
-      font-size: 18px;
-      font-weight: 600;
-    }
-
-    .stat-tag {
-      font-size: 11px;
-      color: var(--text-muted);
-    }
-
-    .btn {
-      border-radius: 999px;
-      border: 1px solid rgba(148, 163, 184, 0.6);
-      background: rgba(15, 23, 42, 0.95);
-      color: var(--text-main);
-      padding: 6px 12px;
-      font-size: 12px;
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      cursor: pointer;
-      transition: background var(--transition-fast), transform var(--transition-fast), box-shadow var(--transition-fast), border-color var(--transition-fast), color var(--transition-fast);
-    }
-
-    .btn:hover {
-      background: rgba(15, 23, 42, 1);
-      transform: translateY(-1px);
-      box-shadow: 0 10px 25px rgba(15, 23, 42, 0.9);
-      border-color: rgba(129, 140, 248, 0.9);
-    }
-
-    .btn-primary {
-      background-image: var(--accent-gradient);
-      border-color: transparent;
-      color: #f9fafb;
-      box-shadow: 0 12px 30px rgba(79, 70, 229, 0.7);
-    }
-
-    .btn-primary:hover {
-      box-shadow: 0 16px 40px rgba(79, 70, 229, 0.9);
-      transform: translateY(-1px);
-    }
-
-    .btn-danger {
-      background: rgba(127, 29, 29, 0.95);
-      border-color: rgba(248, 113, 113, 0.8);
-      color: #fee2e2;
-    }
-
-    .btn-danger:hover {
-      background: rgba(153, 27, 27, 1);
-      box-shadow: 0 14px 35px rgba(127, 29, 29, 0.9);
-    }
-
-    .btn-ghost {
-      background: transparent;
-      border-color: rgba(148, 163, 184, 0.4);
-      color: var(--text-muted);
-    }
-
-    .btn-ghost:hover {
-      background: rgba(15, 23, 42, 0.9);
-      color: #e5e7eb;
-    }
-
-    .btn-sm {
-      padding: 4px 10px;
-      font-size: 11px;
-    }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 12px;
-    }
-
-    thead {
-      background: rgba(15, 23, 42, 0.95);
-    }
-
-    th, td {
-      padding: 6px 8px;
-      text-align: left;
-      border-bottom: 1px solid rgba(31, 41, 55, 0.9);
-    }
-
-    th {
-      font-size: 11px;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-      color: var(--text-muted);
-    }
-
-    tbody tr:hover {
-      background: rgba(15, 23, 42, 0.9);
-    }
-
-    .badge {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      padding: 2px 8px;
-      border-radius: 999px;
-      font-size: 11px;
-      border: 1px solid rgba(148, 163, 184, 0.5);
-      background: rgba(15, 23, 42, 0.95);
-      color: var(--text-muted);
-    }
-
-    .badge-success {
-      border-color: rgba(34, 197, 94, 0.7);
-      color: #bbf7d0;
-      background: rgba(22, 101, 52, 0.9);
-    }
-
-    .badge-warning {
-      border-color: rgba(245, 158, 11, 0.7);
-      color: #fef3c7;
-      background: rgba(146, 64, 14, 0.9);
-    }
-
-    .badge-danger {
-      border-color: rgba(239, 68, 68, 0.7);
-      color: #fee2e2;
-      background: rgba(127, 29, 29, 0.9);
-    }
-
-    .badge-info {
-      border-color: rgba(59, 130, 246, 0.7);
-      color: #dbeafe;
-      background: rgba(30, 64, 175, 0.9);
-    }
-
-    .form-row {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-      margin-bottom: 8px;
-    }
-
-    .form-field {
-      flex: 1 1 160px;
-      min-width: 0;
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-    }
-
-    .form-label {
-      font-size: 11px;
-      color: var(--text-muted);
-    }
-
-    .form-input, .form-select, .form-textarea {
-      border-radius: 999px;
-      border: 1px solid rgba(148, 163, 184, 0.6);
-      background: rgba(15, 23, 42, 0.95);
-      color: var(--text-main);
-      padding: 6px 10px;
-      font-size: 12px;
-      outline: none;
-      transition: border-color var(--transition-fast), box-shadow var(--transition-fast), background var(--transition-fast);
-    }
-
-    .form-textarea {
-      border-radius: 12px;
-      min-height: 80px;
-      resize: vertical;
-    }
-
-    .form-input:focus, .form-select:focus, .form-textarea:focus {
-      border-color: rgba(129, 140, 248, 0.9);
-      box-shadow: 0 0 0 1px rgba(129, 140, 248, 0.7);
-      background: rgba(15, 23, 42, 1);
-    }
-
-    .form-helper {
-      font-size: 11px;
-      color: var(--text-muted);
-    }
-
-    .logs-container {
-      max-height: 360px;
-      overflow-y: auto;
-      padding-right: 4px;
-      margin-top: 6px;
-    }
-
-    .log-entry {
-      display: grid;
-      grid-template-columns: 140px 90px minmax(0, 1fr);
-      gap: 8px;
-      align-items: center;
-      padding: 6px 8px;
-      border-radius: 10px;
-      background: rgba(15, 23, 42, 0.9);
-      border: 1px solid rgba(31, 41, 55, 0.9);
-      font-size: 11px;
-      margin-bottom: 4px;
-    }
-
-    .log-timestamp {
-      color: var(--text-muted);
-    }
-
-    .log-level {
-      text-transform: uppercase;
-      font-weight: 600;
-      font-size: 10px;
-    }
-
-    .log-message {
-      font-size: 11px;
-    }
-
-    .video-layout {
-      display: grid;
-      grid-template-columns: minmax(0, 2.2fr) minmax(260px, 1.2fr);
-      gap: 14px;
-    }
-
-    .video-player-wrapper {
-      position: relative;
-      border-radius: 18px;
-      overflow: hidden;
-      background: radial-gradient(circle at top, #111827, #020617);
-      border: 1px solid rgba(148, 163, 184, 0.4);
-      box-shadow: var(--shadow-soft);
-    }
-
-    .video-player-header {
-      position: absolute;
-      inset: 0 auto auto 0;
-      padding: 10px 12px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      pointer-events: none;
-    }
-
-    .video-player-header span {
-      font-size: 11px;
-      color: #e5e7eb;
-      background: rgba(15, 23, 42, 0.9);
-      padding: 4px 8px;
-      border-radius: 999px;
-      border: 1px solid rgba(148, 163, 184, 0.5);
-      pointer-events: auto;
-    }
-
-    video {
-      width: 100%;
-      height: 100%;
-      display: block;
-      background: #000;
-    }
-
-    .video-list {
-      max-height: 420px;
-      overflow-y: auto;
-      margin-top: 6px;
-    }
-
-    .video-item {
-      display: grid;
-      grid-template-columns: 80px minmax(0, 1fr);
-      gap: 8px;
-      padding: 6px;
-      border-radius: 12px;
-      background: rgba(15, 23, 42, 0.9);
-      border: 1px solid rgba(31, 41, 55, 0.9);
-      cursor: pointer;
-      margin-bottom: 6px;
-      transition: background var(--transition-fast), border-color var(--transition-fast), transform var(--transition-fast), box-shadow var(--transition-fast);
-    }
-
-    .video-item:hover {
-      background: rgba(15, 23, 42, 1);
-      border-color: rgba(129, 140, 248, 0.8);
-      transform: translateY(-1px);
-      box-shadow: 0 12px 30px rgba(15, 23, 42, 0.9);
-    }
-
-    .video-item.active {
-      border-color: rgba(129, 140, 248, 1);
-      box-shadow: 0 14px 35px rgba(15, 23, 42, 0.9);
-    }
-
-    .video-thumb {
-      border-radius: 10px;
-      background: radial-gradient(circle at 30% 0, #1f2937, #020617);
-      border: 1px solid rgba(55, 65, 81, 0.9);
-      position: relative;
-      overflow: hidden;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 18px;
-      color: #9ca3af;
-    }
-
-    .video-thumb::after {
-      content: "▶";
-      position: absolute;
-      font-size: 16px;
-      color: #e5e7eb;
-      text-shadow: 0 0 10px rgba(15, 23, 42, 0.9);
-    }
-
-    .video-meta-main {
-      display: flex;
-      flex-direction: column;
-      gap: 2px;
-    }
-
-    .video-meta-title {
-      font-size: 13px;
-      font-weight: 500;
-    }
-
-    .video-meta-sub {
-      font-size: 11px;
-      color: var(--text-muted);
-    }
-
-    .video-meta-tags {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 4px;
-      margin-top: 4px;
-    }
-
-    .status-pill {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      padding: 3px 8px;
-      border-radius: 999px;
-      font-size: 11px;
-      border: 1px solid rgba(148, 163, 184, 0.5);
-      background: rgba(15, 23, 42, 0.95);
-      color: var(--text-muted);
-    }
-
-    .status-pill-dot {
-      width: 8px;
-      height: 8px;
-      border-radius: 999px;
-      background: var(--warning);
-      box-shadow: 0 0 10px rgba(245, 158, 11, 0.9);
-    }
-
-    .muted {
-      color: var(--text-muted);
-      font-size: 11px;
-    }
-
-    .mt-2 { margin-top: 8px; }
-    .mt-3 { margin-top: 12px; }
-    .mt-4 { margin-top: 16px; }
-
-    .flex { display: flex; }
-    .flex-between { display: flex; justify-content: space-between; align-items: center; }
-    .gap-2 { gap: 8px; }
-    .gap-3 { gap: 12px; }
-    .text-right { text-align: right; }
-
-    @media (max-width: 1100px) {
-      .app-shell {
-        grid-template-columns: 72px minmax(0, 1fr);
-      }
-      .nav-item-label {
-        display: none;
-      }
-      .sidebar-section-title {
-        display: none;
-      }
-    }
-
-    @media (max-width: 900px) {
-      .grid-responsive {
-        grid-template-columns: repeat(6, minmax(0, 1fr));
-      }
-      .col-span-8, .col-span-6, .col-span-5, .col-span-4 {
-        grid-column: span 6 / span 6;
-      }
-      .video-layout {
-        grid-template-columns: minmax(0, 1fr);
-      }
-    }
-
-    @media (max-width: 720px) {
-      .app-shell {
-        grid-template-columns: 64px minmax(0, 1fr);
-        grid-template-rows: 56px minmax(0, 1fr);
-      }
-      header {
-        padding: 0 14px;
-      }
-      .header-title h1 {
-        font-size: 15px;
-      }
-      .header-title span {
-        display: none;
-      }
-      .page-header {
-        flex-direction: column;
-        align-items: flex-start;
-      }
-    }
-
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(4px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-  </style>
+<meta charset="UTF-8"/>
+<title>Race Control · Supervision</title>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Rajdhani:wght@300;400;500;600;700&family=JetBrains+Mono:wght@300;400;500;700&display=swap" rel="stylesheet"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<style>
+:root {
+  --bg:       #040508;
+  --bg2:      #070a10;
+  --surface:  rgba(8,12,22,0.82);
+  --surface2: rgba(12,18,32,0.65);
+  --border:   rgba(0,212,255,0.12);
+  --border2:  rgba(0,212,255,0.28);
+  --cyan:     #00d4ff;
+  --cyan2:    #00ffcc;
+  --red:      #ff3b5c;
+  --amber:    #ffb830;
+  --green:    #00e87a;
+  --text:     #e8f4ff;
+  --muted:    #4a6080;
+  --dim:      #1e2d42;
+  --glow-c:   rgba(0,212,255,0.35);
+  --glow-r:   rgba(255,59,92,0.4);
+  --glow-g:   rgba(0,232,122,0.35);
+  --glow-a:   rgba(255,184,48,0.35);
+  --r: 8px;
+}
+ 
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+ 
+html, body {
+  width: 100%; height: 100%;
+  overflow: hidden;
+  background: var(--bg);
+  font-family: 'Rajdhani', sans-serif;
+  color: var(--text);
+}
+ 
+/* ─── LOADER ─── */
+#loader {
+  position: fixed; inset: 0; z-index: 9999;
+  background: var(--bg);
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center; gap: 24px;
+}
+.loader-ring {
+  width: 72px; height: 72px;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  border-top-color: var(--cyan);
+  border-right-color: var(--cyan2);
+  animation: spin 0.9s linear infinite;
+  box-shadow: 0 0 30px var(--glow-c), inset 0 0 20px rgba(0,212,255,0.05);
+}
+.loader-ring::before {
+  content: '';
+  position: absolute; inset: 6px;
+  border-radius: 50%;
+  border: 1px solid rgba(0,212,255,0.15);
+  animation: spin 1.4s linear infinite reverse;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.loader-text {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 13px; letter-spacing: 0.4em;
+  color: var(--cyan); opacity: 0.7;
+  animation: pulse 1.4s ease-in-out infinite;
+}
+@keyframes pulse { 0%,100%{opacity:.4} 50%{opacity:1} }
+.loader-bar {
+  width: 200px; height: 1px;
+  background: var(--dim); border-radius: 1px; overflow: hidden;
+}
+.loader-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--cyan), var(--cyan2));
+  box-shadow: 0 0 8px var(--glow-c);
+  animation: load 1.8s cubic-bezier(0.4,0,0.2,1) forwards;
+}
+@keyframes load { from{width:0%} to{width:100%} }
+ 
+/* ─── CANVAS BG ─── */
+#bg-canvas {
+  position: fixed; inset: 0; z-index: 0;
+  pointer-events: none;
+}
+ 
+/* ─── AURORA BG ─── */
+.aurora {
+  position: fixed; inset: 0; z-index: 0; pointer-events: none;
+  background:
+    radial-gradient(ellipse 70% 50% at 20% 40%, rgba(0,212,255,0.055) 0%, transparent 60%),
+    radial-gradient(ellipse 50% 60% at 80% 20%, rgba(0,255,204,0.04) 0%, transparent 55%),
+    radial-gradient(ellipse 80% 40% at 50% 80%, rgba(255,59,92,0.03) 0%, transparent 60%);
+  animation: aurora-shift 12s ease-in-out infinite alternate;
+}
+@keyframes aurora-shift {
+  0%   { opacity: 0.7; }
+  100% { opacity: 1; transform: scale(1.05); }
+}
+ 
+/* ─── VIGNETTE ─── */
+.vignette {
+  position: fixed; inset: 0; z-index: 1; pointer-events: none;
+  background: radial-gradient(ellipse 100% 100% at 50% 50%, transparent 40%, rgba(4,5,8,0.92) 100%);
+}
+ 
+/* ─── SCANLINES ─── */
+.scanlines {
+  position: fixed; inset: 0; z-index: 1; pointer-events: none; opacity: 0.018;
+  background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,212,255,1) 2px, rgba(0,212,255,1) 3px);
+}
+ 
+/* ─── CURSOR GLOW ─── */
+#cursor-glow {
+  position: fixed; width: 300px; height: 300px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(0,212,255,0.055) 0%, transparent 70%);
+  pointer-events: none; z-index: 2;
+  transform: translate(-50%,-50%);
+  transition: transform 0.08s linear;
+}
+ 
+/* ─── APP LAYOUT ─── */
+.app {
+  position: relative; z-index: 3;
+  display: grid;
+  grid-template-columns: 56px 1fr;
+  grid-template-rows: 54px 1fr;
+  height: 100vh; width: 100vw;
+  overflow: hidden;
+}
+ 
+/* ─── SIDEBAR ─── */
+.sidebar {
+  grid-row: 1/3;
+  display: flex; flex-direction: column; align-items: center;
+  padding: 14px 0 18px; gap: 4px;
+  background: rgba(4,5,8,0.88);
+  backdrop-filter: blur(24px) saturate(1.4);
+  border-right: 1px solid var(--border);
+  position: relative; z-index: 10;
+}
+.sidebar::after {
+  content: '';
+  position: absolute; top: 0; right: -1px; bottom: 0; width: 1px;
+  background: linear-gradient(180deg, transparent, var(--cyan), var(--cyan2), transparent);
+  opacity: 0.4;
+}
+.logo {
+  width: 36px; height: 36px; border-radius: 6px;
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'Bebas Neue', sans-serif; font-size: 18px;
+  color: var(--bg); background: linear-gradient(135deg, var(--cyan), var(--cyan2));
+  box-shadow: 0 0 20px var(--glow-c), 0 4px 12px rgba(0,0,0,0.6);
+  margin-bottom: 14px; flex-shrink: 0;
+  animation: logo-glow 3s ease-in-out infinite alternate;
+}
+@keyframes logo-glow {
+  from { box-shadow: 0 0 20px var(--glow-c), 0 4px 12px rgba(0,0,0,0.6); }
+  to   { box-shadow: 0 0 35px rgba(0,212,255,0.6), 0 4px 12px rgba(0,0,0,0.6); }
+}
+.nav-btn {
+  width: 38px; height: 38px; border-radius: 7px;
+  display: flex; align-items: center; justify-content: center;
+  background: none; border: none; cursor: pointer;
+  color: var(--muted); font-size: 15px;
+  position: relative; transition: all 0.25s cubic-bezier(0.16,1,0.3,1);
+}
+.nav-btn:hover { color: var(--text); background: rgba(0,212,255,0.06); }
+.nav-btn.active {
+  color: var(--cyan);
+  background: rgba(0,212,255,0.08);
+  box-shadow: inset 0 0 0 1px rgba(0,212,255,0.2);
+}
+.nav-btn.active::before {
+  content: '';
+  position: absolute; left: 0; top: 50%; transform: translateY(-50%);
+  width: 2px; height: 20px;
+  background: linear-gradient(180deg, var(--cyan), var(--cyan2));
+  border-radius: 0 2px 2px 0;
+  box-shadow: 2px 0 12px var(--glow-c);
+}
+.nav-icon { font-size: 13px; }
+ 
+/* ─── HEADER ─── */
+header {
+  grid-column: 2/3;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 24px;
+  background: rgba(4,5,8,0.82);
+  backdrop-filter: blur(24px) saturate(1.4);
+  border-bottom: 1px solid var(--border);
+  position: relative; z-index: 10;
+}
+header::after {
+  content: '';
+  position: absolute; bottom: -1px; left: 56px; right: 0; height: 1px;
+  background: linear-gradient(90deg, var(--cyan), transparent 40%);
+  opacity: 0.4;
+}
+.h-brand { display: flex; align-items: center; gap: 12px; }
+.h-title {
+  font-family: 'Bebas Neue', sans-serif; font-size: 22px;
+  color: var(--text); letter-spacing: 0.08em;
+}
+.h-title span { color: var(--cyan); }
+.h-sub {
+  font-family: 'JetBrains Mono', monospace; font-size: 8px;
+  color: var(--muted); letter-spacing: 0.2em; text-transform: uppercase;
+}
+.h-sep { width: 1px; height: 28px; background: var(--border); }
+.h-right { display: flex; align-items: center; gap: 14px; }
+.h-clock {
+  font-family: 'JetBrains Mono', monospace; font-size: 16px; font-weight: 700;
+  color: var(--cyan); letter-spacing: 0.12em;
+  text-shadow: 0 0 20px var(--glow-c);
+}
+.h-pill {
+  display: flex; align-items: center; gap: 8px;
+  padding: 6px 14px; border-radius: 20px;
+  background: rgba(0,212,255,0.04);
+  border: 1px solid var(--border);
+  backdrop-filter: blur(8px);
+}
+.h-dot {
+  width: 7px; height: 7px; border-radius: 50%;
+  background: var(--muted); transition: all 0.4s;
+}
+.h-dot.run  { background: var(--green); box-shadow: 0 0 10px var(--glow-g), 0 0 20px var(--glow-g); animation: blink 1.4s ease-in-out infinite; }
+.h-dot.warn { background: var(--amber); box-shadow: 0 0 10px var(--glow-a); }
+.h-dot.danger { background: var(--red); box-shadow: 0 0 10px var(--glow-r), 0 0 20px var(--glow-r); animation: blink 0.8s ease-in-out infinite; }
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.5} }
+.h-status {
+  font-family: 'JetBrains Mono', monospace; font-size: 9px;
+  color: var(--muted); letter-spacing: 0.12em; text-transform: uppercase;
+}
+.user-tag {
+  display: flex; align-items: center; gap: 8px;
+  font-family: 'Rajdhani', sans-serif; font-size: 12px; font-weight: 500;
+  color: var(--muted); letter-spacing: 0.05em;
+}
+.user-av {
+  width: 26px; height: 26px; border-radius: 50%;
+  background: linear-gradient(135deg, var(--dim), #1a2840);
+  border: 1px solid var(--border2);
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'JetBrains Mono', monospace; font-size: 8px;
+  font-weight: 700; color: var(--cyan);
+}
+ 
+/* ─── MAIN ─── */
+main {
+  grid-column: 2/3;
+  overflow-y: auto; overflow-x: hidden;
+  padding: 20px 24px 32px;
+  scroll-behavior: smooth;
+}
+main::-webkit-scrollbar { width: 3px; }
+main::-webkit-scrollbar-thumb { background: rgba(0,212,255,0.15); border-radius: 2px; }
+ 
+/* ─── PAGES ─── */
+.page { display: none; }
+.page.active { display: block; animation: pageIn 0.4s cubic-bezier(0.16,1,0.3,1); }
+@keyframes pageIn {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: none; }
+}
+ 
+/* ─── SECTION HEADER ─── */
+.sec-head {
+  display: flex; align-items: flex-end; justify-content: space-between;
+  margin-bottom: 20px; gap: 12px;
+}
+.sec-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 28px; letter-spacing: 0.06em;
+  color: var(--text);
+  line-height: 1;
+}
+.sec-title span { color: var(--cyan); }
+.sec-sub {
+  font-family: 'JetBrains Mono', monospace; font-size: 8px;
+  color: var(--muted); letter-spacing: 0.2em; text-transform: uppercase;
+  margin-top: 4px;
+}
+.sec-actions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+ 
+/* ─── CARDS ─── */
+.card {
+  background: var(--surface);
+  backdrop-filter: blur(32px) saturate(1.5);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  padding: 18px 20px;
+  position: relative; overflow: hidden;
+  transition: all 0.35s cubic-bezier(0.16,1,0.3,1);
+  transform-style: preserve-3d;
+  will-change: transform;
+}
+.card::before {
+  content: '';
+  position: absolute; inset: 0; border-radius: var(--r);
+  background: linear-gradient(135deg, rgba(0,212,255,0.03) 0%, transparent 50%);
+  pointer-events: none;
+}
+.card::after {
+  content: '';
+  position: absolute; top: 0; left: 0; right: 0; height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(0,212,255,0.3), transparent);
+  opacity: 0; transition: opacity 0.35s;
+}
+.card:hover::after { opacity: 1; }
+.card:hover {
+  border-color: rgba(0,212,255,0.22);
+  box-shadow: 0 0 0 1px rgba(0,212,255,0.05), 0 20px 60px rgba(0,0,0,0.7), 0 0 40px rgba(0,212,255,0.04);
+}
+.card-shine {
+  position: absolute; top: 0; left: -120%; width: 50%; height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(0,212,255,0.04), transparent);
+  transform: skewX(-15deg);
+  transition: left 0.65s cubic-bezier(0.16,1,0.3,1);
+  pointer-events: none;
+}
+.card:hover .card-shine { left: 160%; }
+ 
+.card-head {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 16px;
+}
+.card-title {
+  font-family: 'JetBrains Mono', monospace; font-size: 9px; font-weight: 500;
+  letter-spacing: 0.2em; text-transform: uppercase; color: var(--muted);
+  display: flex; align-items: center; gap: 8px;
+}
+.card-icon {
+  width: 22px; height: 22px; border-radius: 4px;
+  background: rgba(0,212,255,0.07); border: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: center; font-size: 10px;
+  color: var(--cyan);
+}
+ 
+/* ─── GRIDS ─── */
+.g2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.g3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; }
+.g-main { display: grid; grid-template-columns: 320px 1fr; gap: 14px; margin-bottom: 14px; }
+.g-low  { display: grid; grid-template-columns: 320px 1fr; gap: 14px; }
+ 
+/* ─── RACE TIMER ─── */
+.race-timer {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 64px; letter-spacing: 0.04em;
+  text-align: center; padding: 8px 0 4px;
+  color: var(--text); line-height: 1;
+  transition: color 0.4s, text-shadow 0.4s;
+}
+.race-timer.running {
+  color: var(--cyan);
+  text-shadow: 0 0 30px var(--glow-c), 0 0 60px rgba(0,212,255,0.2);
+}
+.race-timer.paused  { color: var(--amber); text-shadow: 0 0 20px var(--glow-a); }
+.race-timer.stopped { color: var(--red);   text-shadow: 0 0 20px var(--glow-r); }
+ 
+/* ─── STATUS BAR ─── */
+.status-bar {
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  padding: 7px 14px; border-radius: 5px;
+  font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.14em;
+  background: rgba(0,212,255,0.03); border: 1px solid var(--border);
+  color: var(--muted); transition: all 0.4s; margin-bottom: 14px;
+}
+.status-bar.running { background: rgba(0,232,122,0.06); border-color: rgba(0,232,122,0.25); color: var(--green); }
+.status-bar.paused  { background: rgba(255,184,48,0.06); border-color: rgba(255,184,48,0.25); color: var(--amber); }
+.status-bar.stopped { background: rgba(255,59,92,0.06);  border-color: rgba(255,59,92,0.25);  color: var(--red); }
+ 
+/* ─── STATS ─── */
+.stats-row { display: flex; gap: 0; }
+.stat-block {
+  flex: 1; padding: 10px 14px;
+  border-right: 1px solid var(--border);
+}
+.stat-block:last-child { border-right: none; }
+.stat-lbl {
+  font-family: 'JetBrains Mono', monospace; font-size: 8px;
+  color: var(--muted); letter-spacing: 0.18em; text-transform: uppercase; margin-bottom: 4px;
+}
+.stat-val {
+  font-family: 'Bebas Neue', sans-serif; font-size: 26px;
+  color: var(--text); letter-spacing: 0.04em;
+}
+.stat-tag { font-family: 'JetBrains Mono', monospace; font-size: 8px; color: var(--muted); margin-top: 2px; }
+.big-val  { font-family: 'Bebas Neue', sans-serif; font-size: 40px; color: var(--text); letter-spacing: 0.04em; }
+.big-lbl  { font-family: 'JetBrains Mono', monospace; font-size: 8px; color: var(--muted); letter-spacing: 0.18em; text-transform: uppercase; margin-bottom: 6px; }
+.big-tag  { font-family: 'JetBrains Mono', monospace; font-size: 8px; color: var(--muted); margin-top: 4px; }
+ 
+/* ─── KPI CARDS ANIMATED ─── */
+.kpi-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 12px; margin-bottom: 14px; }
+.kpi-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r); padding: 16px;
+  position: relative; overflow: hidden;
+  transition: all 0.3s cubic-bezier(0.16,1,0.3,1);
+  cursor: default;
+}
+.kpi-card::before {
+  content: '';
+  position: absolute; inset: 0; border-radius: var(--r);
+  background: linear-gradient(135deg, rgba(0,212,255,0.04) 0%, transparent 60%);
+}
+.kpi-card:hover {
+  border-color: rgba(0,212,255,0.25);
+  transform: translateY(-3px);
+  box-shadow: 0 12px 40px rgba(0,0,0,0.6), 0 0 30px rgba(0,212,255,0.06);
+}
+.kpi-label {
+  font-family: 'JetBrains Mono', monospace; font-size: 8px;
+  color: var(--muted); letter-spacing: 0.2em; text-transform: uppercase; margin-bottom: 10px;
+}
+.kpi-value {
+  font-family: 'Bebas Neue', sans-serif; font-size: 36px;
+  letter-spacing: 0.04em; color: var(--text);
+  transition: color 0.4s;
+}
+.kpi-trend {
+  font-family: 'JetBrains Mono', monospace; font-size: 9px;
+  color: var(--muted); margin-top: 6px;
+  display: flex; align-items: center; gap: 4px;
+}
+.kpi-trend.up   { color: var(--green); }
+.kpi-trend.down { color: var(--red); }
+.kpi-bar {
+  position: absolute; bottom: 0; left: 0; right: 0;
+  height: 2px; background: var(--dim); overflow: hidden;
+}
+.kpi-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--cyan), var(--cyan2));
+  box-shadow: 0 0 8px var(--glow-c);
+  transition: width 0.8s cubic-bezier(0.16,1,0.3,1);
+}
+.kpi-card.danger .kpi-bar-fill  { background: linear-gradient(90deg, var(--red), #ff6b6b);   box-shadow: 0 0 8px var(--glow-r); }
+.kpi-card.warning .kpi-bar-fill { background: linear-gradient(90deg, var(--amber), #ffd56b); box-shadow: 0 0 8px var(--glow-a); }
+.kpi-card.success .kpi-bar-fill { background: linear-gradient(90deg, var(--green), #6bffaa); box-shadow: 0 0 8px var(--glow-g); }
+.kpi-card.danger  .kpi-value { color: var(--red);   text-shadow: 0 0 20px var(--glow-r); }
+.kpi-card.success .kpi-value { color: var(--green); text-shadow: 0 0 20px var(--glow-g); }
+.kpi-card.warning .kpi-value { color: var(--amber); text-shadow: 0 0 20px var(--glow-a); }
+ 
+/* ─── CHART CARD ─── */
+.chart-wrap {
+  position: relative; height: 140px;
+}
+ 
+/* ─── DIVIDER ─── */
+.divider {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--border), transparent);
+  margin: 14px 0;
+}
+ 
+/* ─── BUTTONS ─── */
+.btn {
+  font-family: 'JetBrains Mono', monospace; font-size: 9px; font-weight: 500;
+  letter-spacing: 0.12em; text-transform: uppercase;
+  border-radius: 5px; cursor: pointer;
+  padding: 8px 16px; display: inline-flex; align-items: center; gap: 6px;
+  transition: all 0.22s cubic-bezier(0.16,1,0.3,1);
+  border: none; position: relative; overflow: hidden;
+}
+.btn::before {
+  content: '';
+  position: absolute; inset: 0; opacity: 0;
+  background: rgba(255,255,255,0.05);
+  transition: opacity 0.15s;
+}
+.btn:hover::before { opacity: 1; }
+.btn:hover { transform: translateY(-1px); }
+.btn:active { transform: none; }
+ 
+.btn-primary {
+  background: linear-gradient(135deg, var(--cyan), var(--cyan2));
+  color: var(--bg);
+  box-shadow: 0 4px 20px var(--glow-c);
+}
+.btn-primary:hover { box-shadow: 0 6px 30px rgba(0,212,255,0.55); }
+ 
+.btn-outline {
+  background: transparent;
+  border: 1px solid var(--border2); color: var(--muted);
+}
+.btn-outline:hover { border-color: var(--cyan); color: var(--cyan); background: rgba(0,212,255,0.04); }
+ 
+.btn-ghost {
+  background: transparent; border: 1px solid var(--border); color: var(--muted);
+}
+.btn-ghost:hover { color: var(--text); border-color: rgba(0,212,255,0.2); }
+ 
+.btn-danger {
+  background: rgba(255,59,92,0.08); border: 1px solid rgba(255,59,92,0.3); color: var(--red);
+}
+.btn-danger:hover { background: rgba(255,59,92,0.15); box-shadow: 0 4px 20px var(--glow-r); }
+ 
+.btn-warn {
+  background: rgba(255,184,48,0.08); border: 1px solid rgba(255,184,48,0.3); color: var(--amber);
+}
+.btn-warn:hover { background: rgba(255,184,48,0.15); }
+ 
+.btn-sm { padding: 5px 12px; font-size: 8px; }
+.btns   { display: flex; gap: 8px; flex-wrap: wrap; }
+ 
+/* ─── TABLE ─── */
+.dtable { width: 100%; border-collapse: collapse; }
+.dtable th {
+  font-family: 'JetBrains Mono', monospace; font-size: 8px; letter-spacing: 0.18em;
+  text-transform: uppercase; color: var(--muted);
+  padding: 8px 12px; border-bottom: 1px solid var(--border); text-align: left;
+}
+.dtable td {
+  padding: 10px 12px; border-bottom: 1px solid rgba(0,212,255,0.04);
+  font-family: 'Rajdhani', sans-serif; font-size: 13px; font-weight: 500; color: var(--text);
+}
+.dtable tr:last-child td { border-bottom: none; }
+.dtable tbody tr { transition: background 0.12s; }
+.dtable tbody tr:hover { background: rgba(0,212,255,0.03); }
+.dtable .id {
+  font-family: 'JetBrains Mono', monospace; font-size: 10px;
+  color: var(--cyan); text-shadow: 0 0 10px rgba(0,212,255,0.3);
+}
+ 
+/* ─── BADGE ─── */
+.badge {
+  display: inline-flex; align-items: center;
+  font-family: 'JetBrains Mono', monospace; font-size: 8px; font-weight: 500;
+  letter-spacing: 0.1em; padding: 3px 8px; border-radius: 3px;
+}
+.badge-ok      { background: rgba(0,232,122,0.08);  border: 1px solid rgba(0,232,122,0.25);  color: var(--green); }
+.badge-warn    { background: rgba(255,184,48,0.08); border: 1px solid rgba(255,184,48,0.25); color: var(--amber); }
+.badge-err     { background: rgba(255,59,92,0.08);  border: 1px solid rgba(255,59,92,0.25);  color: var(--red); }
+.badge-neutral { background: rgba(0,212,255,0.04);  border: 1px solid var(--border);         color: var(--muted); }
+.badge-info    { background: rgba(0,212,255,0.08);  border: 1px solid rgba(0,212,255,0.25);  color: var(--cyan); }
+ 
+/* ─── LOGS ─── */
+.log-entry {
+  display: grid; grid-template-columns: 72px 58px 1fr;
+  align-items: center; gap: 10px;
+  padding: 8px 12px; border-radius: 5px;
+  background: rgba(4,5,8,0.7); border: 1px solid rgba(0,212,255,0.05);
+  margin-bottom: 3px;
+  animation: logIn 0.3s cubic-bezier(0.16,1,0.3,1);
+  transition: border-color 0.18s;
+}
+.log-entry:hover { border-color: var(--border); }
+@keyframes logIn {
+  from { opacity: 0; transform: translateX(-6px); }
+  to   { opacity: 1; transform: none; }
+}
+.log-ts  { font-family: 'JetBrains Mono', monospace; font-size: 9px; color: var(--muted); }
+.log-msg { font-family: 'Rajdhani', sans-serif; font-size: 12px; font-weight: 500; color: var(--muted); }
+.logs-box { max-height: 360px; overflow-y: auto; padding-right: 2px; }
+.logs-box::-webkit-scrollbar { width: 2px; }
+.logs-box::-webkit-scrollbar-thumb { background: var(--border); }
+ 
+/* ─── FORM ─── */
+.form-row   { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 10px; }
+.form-field { flex: 1 1 150px; display: flex; flex-direction: column; gap: 5px; }
+.form-lbl   { font-family: 'JetBrains Mono', monospace; font-size: 8px; color: var(--muted); letter-spacing: 0.18em; text-transform: uppercase; }
+.form-input, .form-select {
+  background: rgba(4,5,8,0.9); border: 1px solid var(--border);
+  border-radius: 5px; color: var(--text);
+  font-family: 'JetBrains Mono', monospace; font-size: 11px;
+  padding: 8px 12px; outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s; -webkit-appearance: none;
+}
+.form-input:focus, .form-select:focus {
+  border-color: rgba(0,212,255,0.4);
+  box-shadow: 0 0 0 3px rgba(0,212,255,0.06), 0 0 20px rgba(0,212,255,0.05);
+}
+.form-input::placeholder { color: var(--muted); opacity: 0.7; }
+.form-select option { background: #070a10; color: var(--text); }
+.form-helper { font-family: 'JetBrains Mono', monospace; font-size: 8px; color: var(--muted); }
+ 
+/* ─── NOTE ─── */
+.note { font-family: 'JetBrains Mono', monospace; font-size: 9px; color: var(--muted); line-height: 1.7; }
+ 
+/* ─── PROGRESS ─── */
+.prog-wrap { margin-top: 14px; }
+.prog-labels {
+  display: flex; justify-content: space-between;
+  font-family: 'JetBrains Mono', monospace; font-size: 8px;
+  color: var(--muted); margin-bottom: 5px; letter-spacing: 0.1em;
+}
+.prog-track {
+  height: 3px; background: rgba(0,212,255,0.06); border-radius: 3px; overflow: hidden;
+}
+.prog-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--cyan), var(--cyan2));
+  box-shadow: 0 0 8px var(--glow-c);
+  border-radius: 3px;
+  transition: width 0.6s cubic-bezier(0.16,1,0.3,1);
+}
+ 
+/* ─── CONNECTION ─── */
+.conn {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 6px 13px; border-radius: 4px;
+  font-family: 'JetBrains Mono', monospace; font-size: 9px; letter-spacing: 0.1em;
+  border: 1px solid var(--border); background: rgba(4,5,8,0.6); color: var(--muted);
+  transition: all 0.3s;
+}
+.conn.ok   { background: rgba(0,232,122,0.05); border-color: rgba(0,232,122,0.2); color: var(--green); }
+.conn.fail { background: rgba(255,59,92,0.05); border-color: rgba(255,59,92,0.2); color: var(--red); }
+.conn-dot  { width: 5px; height: 5px; border-radius: 50%; background: var(--muted); transition: all 0.3s; }
+.conn.ok   .conn-dot { background: var(--green); box-shadow: 0 0 8px var(--glow-g); }
+.conn.fail .conn-dot { background: var(--red);   box-shadow: 0 0 8px var(--glow-r); }
+ 
+/* ─── VIDEO ─── */
+.video-grid { display: grid; grid-template-columns: 1fr 280px; gap: 14px; }
+.video-wrap {
+  border-radius: var(--r); overflow: hidden;
+  border: 1px solid var(--border); background: #000; position: relative;
+}
+.video-rec {
+  position: absolute; top: 12px; left: 14px; z-index: 5;
+  font-family: 'JetBrains Mono', monospace; font-size: 9px;
+  color: var(--red); letter-spacing: 0.14em;
+  background: rgba(4,5,8,0.85); padding: 4px 10px; border-radius: 3px;
+  border: 1px solid rgba(255,59,92,0.2);
+  animation: blink 1.2s ease-in-out infinite;
+}
+video { width: 100%; display: block; min-height: 240px; background: #000; }
+.video-footer {
+  position: absolute; bottom: 0; left: 0; right: 0; padding: 10px 14px;
+  background: linear-gradient(transparent, rgba(4,5,8,0.96));
+  font-family: 'JetBrains Mono', monospace; font-size: 9px;
+  color: var(--muted); pointer-events: none;
+}
+.video-list { max-height: 420px; overflow-y: auto; }
+.video-list::-webkit-scrollbar { width: 2px; }
+.video-list::-webkit-scrollbar-thumb { background: var(--border); }
+.v-item {
+  display: flex; gap: 10px; padding: 10px; border-radius: 7px;
+  background: rgba(4,5,8,0.6); border: 1px solid rgba(0,212,255,0.06);
+  cursor: pointer; margin-bottom: 6px;
+  transition: all 0.25s cubic-bezier(0.16,1,0.3,1);
+}
+.v-item:hover { border-color: var(--border2); transform: translateX(3px); }
+.v-item.active { border-color: rgba(0,212,255,0.35); background: rgba(0,212,255,0.04); }
+.v-thumb {
+  width: 68px; height: 46px; border-radius: 5px; flex-shrink: 0;
+  background: rgba(8,12,22,0.9); border: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 16px; color: var(--muted);
+}
+.v-title  { font-family: 'Rajdhani', sans-serif; font-size: 12px; font-weight: 600; color: var(--text); }
+.v-meta   { font-family: 'JetBrains Mono', monospace; font-size: 8px; color: var(--muted); margin-top: 3px; }
+ 
+/* ─── CHIP ─── */
+.chip {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 4px 10px; border-radius: 4px;
+  font-family: 'JetBrains Mono', monospace; font-size: 9px; color: var(--muted);
+  background: rgba(0,212,255,0.03); border: 1px solid var(--border); letter-spacing: 0.1em;
+}
+.chip-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--cyan); box-shadow: 0 0 6px var(--glow-c); }
+ 
+/* ─── INFO BOX ─── */
+.infobox {
+  padding: 12px 14px; border-radius: 5px;
+  background: rgba(0,212,255,0.02); border: 1px solid rgba(0,212,255,0.07);
+  font-family: 'JetBrains Mono', monospace; font-size: 9px; color: var(--muted);
+  line-height: 1.7; margin-top: 10px;
+}
+.infobox-label {
+  font-size: 8px; letter-spacing: 0.2em; text-transform: uppercase;
+  color: var(--cyan); margin-bottom: 6px;
+}
+ 
+/* ─── SPACERS ─── */
+.mt-2 { margin-top: 8px; }
+.mt-3 { margin-top: 12px; }
+.mt-4 { margin-top: 16px; }
+ 
+/* ─── TELEMETRY PULSE ─── */
+.pulse-ring {
+  position: relative; display: inline-flex; align-items: center; justify-content: center;
+}
+.pulse-ring::before, .pulse-ring::after {
+  content: '';
+  position: absolute; border-radius: 50%;
+  border: 1px solid var(--cyan); opacity: 0;
+  animation: ring-expand 2.4s ease-out infinite;
+}
+.pulse-ring::after { animation-delay: 1.2s; }
+@keyframes ring-expand {
+  0%   { width: 28px; height: 28px; opacity: 0.5; }
+  100% { width: 60px; height: 60px; opacity: 0; }
+}
+ 
+/* ─── RESPONSIVE ─── */
+@media (max-width: 1100px) {
+  .g-main, .g-low, .video-grid { grid-template-columns: 1fr; }
+  .g3 { grid-template-columns: 1fr 1fr; }
+  .kpi-grid { grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 760px) {
+  .g2, .g3 { grid-template-columns: 1fr; }
+  .kpi-grid { grid-template-columns: 1fr; }
+  .app { grid-template-columns: 46px 1fr; }
+}
+</style>
 </head>
 <body>
-<div class="app-shell">
-
-  <!-- BARRE LATERALE (NAVIGATION) -->
-  <aside class="sidebar">
-    <div>
-      <div class="sidebar-section-title">Navigation</div>
-      <ul class="nav-list">
-        <li class="nav-item active" data-page="dashboard">
-          <div class="nav-item-icon">📊</div>
-          <span class="nav-item-label">Dashboard</span>
-        </li>
-        <li class="nav-item" data-page="administration">
-          <div class="nav-item-icon">🛠</div>
-          <span class="nav-item-label">Administration</span>
-        </li>
-        <li class="nav-item" data-page="telemetry">
-          <div class="nav-item-icon">📡</div>
-          <span class="nav-item-label">Télémétrie</span>
-        </li>
-        <li class="nav-item" data-page="video">
-          <div class="nav-item-icon">🎥</div>
-          <span class="nav-item-label">Surveillance vidéo</span>
-        </li>
-        <li class="nav-item" data-page="tech">
-          <div class="nav-item-icon">☁️</div>
-          <span class="nav-item-label">Paramètres techniques</span>
-        </li>
-        <li class="nav-item" data-page="logs">
-          <div class="nav-item-icon">📜</div>
-          <span class="nav-item-label">Logs</span>
-        </li>
-      </ul>
-    </div>
-
-    <div class="sidebar-footer">
-      <div class="sidebar-badge">
-        <span class="sidebar-badge-dot"></span>
-        <span>Mode supervision temps réel</span>
-      </div>
-      <span>Version UI : 1.0 · Simulation locale</span>
-    </div>
-  </aside>
-
-  <!-- EN-TÊTE -->
-  <header>
-    <div class="header-left">
-      <div class="logo-pill">C</div>
-      <div class="header-title">
-        <h1>Centre de contrôle de course et télémétrie</h1>
-        <span>Supervision temps réel · Télémétrie capteurs et caméras</span>
-      </div>
-    </div>
-    <div class="header-right">
-      <div class="status-indicator">
-        <div class="status-dot" id="globalStatusDot"></div>
-        <div class="status-text">
-          <div class="status-label" id="globalStatusLabel">Course en attente</div>
-          <div class="status-sub" id="globalStatusSub">Aucune course active</div>
-        </div>
-      </div>
-      <div class="user-pill">
-        <div class="user-avatar">OP</div>
-        <span>Opérateur course</span>
-      </div>
-    </div>
-  </header>
-
-  <!-- CONTENU PRINCIPAL -->
-  <main>
-
-    <!-- PAGE DASHBOARD (INFORMATIONS DE COURSE) -->
-    <section class="page active" id="page-dashboard">
-      <div class="page-header">
-        <div class="page-header-title">
-          <h2>Vue d’ensemble de la course</h2>
-          <span>Suivi global de l’état de la course, des participants et de la télémétrie.</span>
-        </div>
-        <div class="page-header-actions">
-          <div class="chip">
-            <span class="chip-dot" id="chipRaceDot"></span>
-            <span id="chipRaceText">Course en attente</span>
-          </div>
-          <button class="btn btn-sm btn-ghost" id="btnDashboardForceTick">Simuler un événement aléatoire</button>
-        </div>
-      </div>
-
-      <div class="grid-responsive">
-        <!-- Carte état de la course -->
-        <div class="card col-span-4">
-          <div class="card-header">
-            <div>
-              <div class="card-title">
-                <div class="card-title-pill">🏁</div>
-                <span>État de la course</span>
-              </div>
-              <div class="card-subtitle">Contrôle temps réel de la session en cours.</div>
-            </div>
-            <span class="card-badge" id="raceStateBadge">Course en attente</span>
-          </div>
-
-          <div class="stat-row">
-            <div class="stat">
-              <div class="stat-label">Temps écoulé</div>
-              <div class="stat-value" id="raceElapsed">00:00:00</div>
-              <div class="stat-tag">Depuis le dernier départ</div>
-            </div>
-            <div class="stat">
-              <div class="stat-label">Nombre total de tours</div>
-              <div class="stat-value" id="raceTotalLaps">0</div>
-              <div class="stat-tag">Tous participants</div>
-            </div>
-          </div>
-
-          <div class="stat-row mt-3">
-            <div class="stat">
-              <div class="stat-label">Participants actifs</div>
-              <div class="stat-value" id="raceActiveParticipants">0</div>
-              <div class="stat-tag">Sur la piste</div>
-            </div>
-            <div class="stat">
-              <div class="stat-label">Dernier événement</div>
-              <div class="stat-value" id="raceLastEvent">—</div>
-              <div class="stat-tag">Horodatage</div>
-            </div>
-          </div>
-
-          <div class="mt-3 flex-between gap-3">
-            <div class="flex gap-2">
-              <button class="btn btn-primary" id="btnRaceStart">Démarrer la course</button>
-              <button class="btn" id="btnRacePause">Pause</button>
-              <button class="btn" id="btnRaceStop">Arrêter</button>
-            </div>
-            <button class="btn btn-danger btn-sm" id="btnRaceReset">Reset d’urgence</button>
-          </div>
-        </div>
-
-        <!-- Carte participants -->
-        <div class="card col-span-8">
-          <div class="card-header">
-            <div>
-              <div class="card-title">
-                <div class="card-title-pill">👥</div>
-                <span>Participants</span>
-              </div>
-              <div class="card-subtitle">Tours, dernier passage et état par participant.</div>
-            </div>
-            <span class="card-badge" id="participantsCountBadge">0 participant</span>
-          </div>
-
-          <div class="muted mt-2">Les participants peuvent être ajoutés depuis l’onglet « Administration ».</div>
-
-          <div class="mt-2" style="overflow-x:auto;">
-            <table>
-              <thead>
-              <tr>
-                <th>ID</th>
-                <th>Nom</th>
-                <th>Tours</th>
-                <th>Dernier passage</th>
-                <th>État</th>
-              </tr>
-              </thead>
-              <tbody id="participantsTableBody">
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-        <!-- Carte résumé télémétrie -->
-        <div class="card col-span-4">
-          <div class="card-header">
-            <div>
-              <div class="card-title">
-                <div class="card-title-pill">📡</div>
-                <span>Résumé télémétrie</span>
-              </div>
-              <div class="card-subtitle">Flux de données capteurs et état de connexion.</div>
-            </div>
-            <span class="card-badge" id="telemetryStatusBadge">Flux inactif</span>
-          </div>
-
-          <div class="stat-row">
-            <div class="stat">
-              <div class="stat-label">Paquets reçus</div>
-              <div class="stat-value" id="telemetryPackets">0</div>
-              <div class="stat-tag">Depuis le chargement</div>
-            </div>
-            <div class="stat">
-              <div class="stat-label">Paquets en attente</div>
-              <div class="stat-value" id="telemetryPending">0</div>
-              <div class="stat-tag">Buffer local</div>
-            </div>
-          </div>
-
-          <div class="stat-row mt-3">
-            <div class="stat">
-              <div class="stat-label">État du flux</div>
-              <div class="stat-value" id="telemetryConnectionState">Déconnecté</div>
-              <div class="stat-tag">Connexion simulée</div>
-            </div>
-            <div class="stat">
-              <div class="stat-label">Dernière synchronisation</div>
-              <div class="stat-value" id="telemetryLastSync">—</div>
-              <div class="stat-tag">Vers la base</div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Carte capteurs simulés -->
-        <div class="card col-span-8">
-          <div class="card-header">
-            <div>
-              <div class="card-title">
-                <div class="card-title-pill">🧪</div>
-                <span>Simulation de capteurs</span>
-              </div>
-              <div class="card-subtitle">Générer manuellement des événements télémétriques.</div>
-            </div>
-            <span class="card-badge">Simulation locale</span>
-          </div>
-
-          <div class="form-row">
-            <div class="form-field">
-              <label class="form-label" for="simParticipantSelect">Participant cible</label>
-              <select class="form-select" id="simParticipantSelect">
-                <option value="">Sélectionner un participant…</option>
-              </select>
-              <div class="form-helper">Les événements de tour nécessitent un participant.</div>
-            </div>
-          </div>
-
-          <div class="mt-2 flex gap-2">
-            <button class="btn btn-sm" id="btnSimLap">Simuler un passage de tour</button>
-            <button class="btn btn-sm" id="btnSimCamera">Simuler une détection caméra</button>
-            <button class="btn btn-sm btn-danger" id="btnSimError">Simuler une erreur capteur</button>
-          </div>
-
-          <div class="muted mt-3">
-            Chaque événement simulé met à jour les statistiques, les participants et les logs système.
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- PAGE ADMINISTRATION (GESTION COURSE / PARTICIPANTS) -->
-    <section class="page" id="page-administration">
-      <div class="page-header">
-        <div class="page-header-title">
-          <h2>Administration de la course</h2>
-          <span>Gestion des participants et contrôle global de la course.</span>
-        </div>
-        <div class="page-header-actions">
-          <div class="chip">
-            <span>Dernière action admin : <span id="adminLastAction">Aucune</span></span>
-          </div>
-        </div>
-      </div>
-
-      <div class="grid-2">
-        <!-- Gestion des participants -->
-        <div class="card">
-          <div class="card-header">
-            <div>
-              <div class="card-title">
-                <div class="card-title-pill">➕</div>
-                <span>Gestion des participants</span>
-              </div>
-              <div class="card-subtitle">Ajouter, supprimer et visualiser les participants.</div>
-            </div>
-          </div>
-
-          <div class="form-row mt-2">
-            <div class="form-field">
-              <label class="form-label" for="adminParticipantName">Nom du participant</label>
-              <input class="form-input" id="adminParticipantName" placeholder="ex : Voiture 12 · Pilote A" />
-            </div>
-            <div class="form-field" style="max-width:160px;">
-              <label class="form-label">&nbsp;</label>
-              <button class="btn btn-primary" id="btnAdminAddParticipant">Ajouter</button>
-            </div>
-          </div>
-
-          <div class="mt-2" style="overflow-x:auto;">
-            <table>
-              <thead>
-              <tr>
-                <th>ID</th>
-                <th>Nom</th>
-                <th>Tours</th>
-                <th>État</th>
-                <th class="text-right">Actions</th>
-              </tr>
-              </thead>
-              <tbody id="adminParticipantsTableBody">
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-        <!-- Contrôle global course -->
-        <div class="card">
-          <div class="card-header">
-            <div>
-              <div class="card-title">
-                <div class="card-title-pill">⚙️</div>
-                <span>Contrôle global de la course</span>
-              </div>
-              <div class="card-subtitle">Actions administrateur sur la session en cours.</div>
-            </div>
-          </div>
-
-          <div class="mt-2 flex gap-2">
-            <button class="btn btn-primary" id="btnAdminStart">Démarrer la course</button>
-            <button class="btn" id="btnAdminPause">Mettre en pause</button>
-            <button class="btn" id="btnAdminStop">Arrêter la course</button>
-            <button class="btn btn-danger" id="btnAdminReset">Reset d’urgence</button>
-          </div>
-
-          <div class="mt-3">
-            <div class="stat-row">
-              <div class="stat">
-                <div class="stat-label">Résumé de la course</div>
-                <div class="stat-value" id="adminRaceSummary">Aucune course active</div>
-                <div class="stat-tag">État global</div>
-              </div>
-              <div class="stat">
-                <div class="stat-label">Participants enregistrés</div>
-                <div class="stat-value" id="adminParticipantsCount">0</div>
-                <div class="stat-tag">Total</div>
-              </div>
-            </div>
-          </div>
-
-          <div class="mt-3">
-            <div class="form-label">Journal rapide admin</div>
-            <div class="muted" id="adminQuickLog">En attente d’actions administrateur…</div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- PAGE TÉLÉMÉTRIE (DETAILS) -->
-    <section class="page" id="page-telemetry">
-      <div class="page-header">
-        <div class="page-header-title">
-          <h2>Détails télémétrie</h2>
-          <span>Vue en direct des événements capteurs et caméras.</span>
-        </div>
-        <div class="page-header-actions">
-          <button class="btn btn-sm btn-ghost" id="btnTelemetrySimEvent">Simuler un événement télémétrique</button>
-        </div>
-      </div>
-
-      <div class="grid-2">
-        <!-- Statistiques télémétrie -->
-        <div class="card">
-          <div class="card-header">
-            <div>
-              <div class="card-title">
-                <div class="card-title-pill">📈</div>
-                <span>Statistiques du flux</span>
-              </div>
-              <div class="card-subtitle">Vue synthétique des événements reçus.</div>
-            </div>
-          </div>
-
-          <div class="grid-3 mt-2">
-            <div class="stat">
-              <div class="stat-label">Passages de tour</div>
-              <div class="stat-value" id="telemetryLapEvents">0</div>
-              <div class="stat-tag">Événements de ligne d’arrivée</div>
-            </div>
-            <div class="stat">
-              <div class="stat-label">Détections caméra</div>
-              <div class="stat-value" id="telemetryCameraEvents">0</div>
-              <div class="stat-tag">Événements vidéo</div>
-            </div>
-            <div class="stat">
-              <div class="stat-label">Erreurs capteurs</div>
-              <div class="stat-value" id="telemetryErrorEvents">0</div>
-              <div class="stat-tag">Anomalies détectées</div>
-            </div>
-          </div>
-
-          <div class="mt-3">
-            <div class="form-label">Dernier événement télémétrique</div>
-            <div class="muted" id="telemetryLastEvent">Aucun événement télémétrique pour le moment.</div>
-          </div>
-        </div>
-
-        <!-- Historique récent télémétrie -->
-        <div class="card">
-          <div class="card-header">
-            <div>
-              <div class="card-title">
-                <div class="card-title-pill">🧾</div>
-                <span>Événements récents</span>
-              </div>
-              <div class="card-subtitle">Historique court des événements télémétriques.</div>
-            </div>
-          </div>
-
-          <div class="logs-container" id="telemetryEventsList">
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- PAGE SURVEILLANCE VIDÉO -->
-    <section class="page" id="page-video">
-      <div class="page-header">
-        <div class="page-header-title">
-          <h2>Surveillance vidéo</h2>
-          <span>Visualisation des vidéos enregistrées par les caméras et capteurs.</span>
-        </div>
-        <div class="page-header-actions">
-          <div class="chip">
-            <span>Vidéos disponibles : <span id="videoCount">0</span></span>
-          </div>
-        </div>
-      </div>
-
-      <div class="video-layout">
-        <!-- Lecteur vidéo -->
-        <div class="video-player-wrapper">
-          <div class="video-player-header">
-            <span id="videoCurrentInfo">Aucune vidéo sélectionnée</span>
-            <span>Lecteur HTML5 · Contrôles natifs</span>
-          </div>
-          <video id="videoPlayer" controls preload="metadata">
-            <source id="videoSource" src="" type="video/mp4" />
-            Votre navigateur ne supporte pas la balise vidéo.
-          </video>
-        </div>
-
-        <!-- Liste des vidéos -->
-        <div class="card">
-          <div class="card-header">
-            <div>
-              <div class="card-title">
-                <div class="card-title-pill">🎞</div>
-                <span>Vidéos enregistrées</span>
-              </div>
-              <div class="card-subtitle">Sélectionnez une vidéo pour la charger dans le lecteur.</div>
-            </div>
-          </div>
-
-          <div class="form-row mt-2">
-            <div class="form-field">
-              <label class="form-label" for="videoFilterType">Filtrer par type d’événement</label>
-              <select class="form-select" id="videoFilterType">
-                <option value="all">Tous les événements</option>
-                <option value="lap">Passage de tour</option>
-                <option value="camera">Détection caméra</option>
-                <option value="incident">Incident / erreur</option>
-              </select>
-            </div>
-          </div>
-
-          <div class="video-list" id="videoList">
-          </div>
-
-          <div class="muted mt-2">
-            Améliorations possibles : miniatures réelles, marqueurs sur la timeline, synchronisation multi-caméras.
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- PAGE PARAMÈTRES TECHNIQUES (AWS / DYNAMODB) -->
-    <section class="page" id="page-tech">
-      <div class="page-header">
-        <div class="page-header-title">
-          <h2>Paramètres techniques</h2>
-          <span>Configuration AWS / DynamoDB et gestion du buffer local.</span>
-        </div>
-        <div class="page-header-actions">
-          <div class="chip">
-            <span>État connexion AWS : <span id="awsConnectionStateText">Déconnecté</span></span>
-          </div>
-        </div>
-      </div>
-
-      <div class="grid-2">
-        <!-- Configuration AWS -->
-        <div class="card">
-          <div class="card-header">
-            <div>
-              <div class="card-title">
-                <div class="card-title-pill">☁️</div>
-                <span>Configuration AWS (simulée)</span>
-              </div>
-              <div class="card-subtitle">Préparation à l’intégration avec DynamoDB et flux télémétrie.</div>
-            </div>
-          </div>
-
-          <div class="form-row mt-2">
-            <div class="form-field">
-              <label class="form-label" for="awsAccessKey">AWS Access Key ID</label>
-              <input class="form-input" id="awsAccessKey" placeholder="AKIA..." />
-            </div>
-            <div class="form-field">
-              <label class="form-label" for="awsSecretKey">AWS Secret Access Key</label>
-              <input class="form-input" id="awsSecretKey" placeholder="****************" />
-            </div>
-          </div>
-
-          <div class="form-row">
-            <div class="form-field">
-              <label class="form-label" for="awsRegion">Région AWS</label>
-              <select class="form-select" id="awsRegion">
-                <option value="eu-west-1">eu-west-1 (Irlande)</option>
-                <option value="eu-central-1">eu-central-1 (Francfort)</option>
-                <option value="eu-west-3">eu-west-3 (Paris)</option>
-                <option value="us-east-1">us-east-1 (N. Virginia)</option>
-              </select>
-            </div>
-            <div class="form-field">
-              <label class="form-label" for="awsTableName">Nom de la table DynamoDB</label>
-              <input class="form-input" id="awsTableName" placeholder="ex : race-telemetry" value="race-telemetry-demo" />
-            </div>
-          </div>
-
-          <div class="form-row">
-            <div class="form-field">
-              <label class="form-label" for="awsEndpoint">Endpoint DynamoDB (optionnel)</label>
-              <input class="form-input" id="awsEndpoint" placeholder="ex : http://localhost:8000" />
-            </div>
-            <div class="form-field">
-              <label class="form-label" for="awsStreamName">Nom du flux télémétrie</label>
-              <input class="form-input" id="awsStreamName" placeholder="ex : race-telemetry-stream" />
-            </div>
-          </div>
-
-          <div class="form-row">
-            <div class="form-field">
-              <label class="form-label" for="awsSyncInterval">Intervalle de synchronisation (ms)</label>
-              <input class="form-input" id="awsSyncInterval" type="number" min="500" step="500" value="5000" />
-              <div class="form-helper">Intervalle de flush automatique du buffer (simulation).</div>
-            </div>
-          </div>
-
-          <div class="mt-2 flex gap-2">
-            <button class="btn btn-primary" id="btnAwsConnect">Connecter à AWS</button>
-            <button class="btn btn-ghost" id="btnAwsDisconnect">Déconnecter</button>
-            <button class="btn btn-sm" id="btnAwsTest">Tester la connexion</button>
-          </div>
-
-          <div class="mt-3">
-            <div class="form-label">Statut de connexion</div>
-            <div class="status-pill" id="awsStatusPill">
-              <span class="status-pill-dot" id="awsStatusDot"></span>
-              <span id="awsStatusText">Déconnecté · Buffer local actif</span>
-            </div>
-            <div class="muted mt-2">
-              Les événements sont envoyés via <code>sendToDatabase(payload)</code>. En cas d’échec, ils sont stockés dans un buffer local puis envoyés via <code>flushBuffer()</code> dès que la connexion est rétablie.
-            </div>
-          </div>
-        </div>
-
-        <!-- Statut du buffer -->
-        <div class="card">
-          <div class="card-header">
-            <div>
-              <div class="card-title">
-                <div class="card-title-pill">📦</div>
-                <span>Buffer d’événements</span>
-              </div>
-              <div class="card-subtitle">Événements en attente de synchronisation.</div>
-            </div>
-          </div>
-
-          <div class="stat-row mt-2">
-            <div class="stat">
-              <div class="stat-label">Événements en buffer</div>
-              <div class="stat-value" id="awsBufferCount">0</div>
-              <div class="stat-tag">En attente d’envoi</div>
-            </div>
-            <div class="stat">
-              <div class="stat-label">Dernière synchronisation</div>
-              <div class="stat-value" id="awsLastSync">—</div>
-              <div class="stat-tag">Vers la base simulée</div>
-            </div>
-          </div>
-
-          <div class="mt-3 flex gap-2">
-            <button class="btn btn-sm" id="btnAwsFlush">Forcer le flush du buffer</button>
-            <button class="btn btn-sm btn-ghost" id="btnAwsSimFailure">Basculer en mode échec simulé</button>
-          </div>
-
-          <div class="mt-3">
-            <div class="form-label">Journal du flux</div>
-            <div class="muted" id="awsLog">Aucun événement traité pour le moment.</div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- PAGE LOGS -->
-    <section class="page" id="page-logs">
-      <div class="page-header">
-        <div class="page-header-title">
-          <h2>Logs système</h2>
-          <span>Journal temps réel des événements de course et d’infrastructure.</span>
-        </div>
-        <div class="page-header-actions">
-          <button class="btn btn-sm btn-ghost" id="btnLogsClear">Effacer les logs</button>
-        </div>
-      </div>
-
-      <div class="card">
-        <div class="card-header">
-          <div>
-            <div class="card-title">
-              <div class="card-title-pill">📜</div>
-              <span>Flux de logs</span>
-            </div>
-            <div class="card-subtitle">Événements critiques, avertissements et messages d’information.</div>
-          </div>
-        </div>
-
-        <div class="logs-container" id="logsContainer">
-        </div>
-      </div>
-    </section>
-
-  </main>
+ 
+<!-- LOADER -->
+<div id="loader">
+  <div class="loader-ring"></div>
+  <div class="loader-bar"><div class="loader-bar-fill"></div></div>
+  <div class="loader-text">RACE CONTROL · INITIALIZING</div>
 </div>
-
+ 
+<!-- BG -->
+<canvas id="bg-canvas"></canvas>
+<div class="aurora"></div>
+<div class="vignette"></div>
+<div class="scanlines"></div>
+<div id="cursor-glow"></div>
+ 
+<div class="app">
+ 
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <div class="logo">R</div>
+  <button class="nav-btn active" data-page="dashboard" title="Dashboard">
+    <span class="nav-icon">⬡</span>
+  </button>
+  <button class="nav-btn" data-page="administration" title="Administration">
+    <span class="nav-icon">⚙</span>
+  </button>
+  <button class="nav-btn" data-page="telemetry" title="Télémétrie">
+    <span class="nav-icon">◎</span>
+  </button>
+  <button class="nav-btn" data-page="video" title="Vidéo">
+    <span class="nav-icon">▣</span>
+  </button>
+  <button class="nav-btn" data-page="tech" title="AWS">
+    <span class="nav-icon">☁</span>
+  </button>
+  <button class="nav-btn" data-page="logs" title="Logs">
+    <span class="nav-icon">≡</span>
+  </button>
+</aside>
+ 
+<!-- HEADER -->
+<header>
+  <div class="h-brand">
+    <div class="h-title">RACE <span>CONTROL</span></div>
+    <div class="h-sub">Supervision temps réel · Télémétrie &amp; Caméras</div>
+  </div>
+  <div class="h-sep"></div>
+  <div class="h-right">
+    <div class="h-clock" id="headerClock">--:--:--</div>
+    <div class="h-pill">
+      <div class="h-dot" id="globalStatusDot"></div>
+      <div class="h-status" id="globalStatusLabel">EN ATTENTE</div>
+    </div>
+    <div class="user-tag">
+      <div class="user-av">OP</div>
+      Opérateur
+    </div>
+  </div>
+</header>
+ 
+<!-- MAIN -->
+<main>
+ 
+<!-- ═══════ DASHBOARD ═══════ -->
+<section class="page active" id="page-dashboard">
+  <div class="sec-head">
+    <div>
+      <div class="sec-title">VUE D'<span>ENSEMBLE</span></div>
+      <div class="sec-sub">État · Participants · Télémétrie temps réel</div>
+    </div>
+    <div class="sec-actions">
+      <div class="chip"><span class="chip-dot"></span><span id="chipRaceText">EN ATTENTE</span></div>
+      <button class="btn btn-ghost btn-sm" id="btnDashboardForceTick">+ Événement</button>
+    </div>
+  </div>
+ 
+  <!-- KPI ROW -->
+  <div class="kpi-grid">
+    <div class="kpi-card" id="kpi-tours">
+      <div class="kpi-label">Tours totaux</div>
+      <div class="kpi-value" id="kpiTours">0</div>
+      <div class="kpi-trend" id="kpiToursTrend">— Aucune course</div>
+      <div class="kpi-bar"><div class="kpi-bar-fill" id="kpiToursBar" style="width:0%"></div></div>
+    </div>
+    <div class="kpi-card" id="kpi-participants">
+      <div class="kpi-label">Participants</div>
+      <div class="kpi-value" id="kpiPart">0</div>
+      <div class="kpi-trend">Pilotes actifs</div>
+      <div class="kpi-bar"><div class="kpi-bar-fill" id="kpiPartBar" style="width:0%"></div></div>
+    </div>
+    <div class="kpi-card" id="kpi-paquets">
+      <div class="kpi-label">Paquets télémétriques</div>
+      <div class="kpi-value" id="kpiPaquets">0</div>
+      <div class="kpi-trend" id="kpiPaquetsTrend">Flux capteurs</div>
+      <div class="kpi-bar"><div class="kpi-bar-fill" id="kpiPaquetsBar" style="width:0%"></div></div>
+    </div>
+    <div class="kpi-card danger" id="kpi-erreurs">
+      <div class="kpi-label">Anomalies</div>
+      <div class="kpi-value" id="kpiErreurs">0</div>
+      <div class="kpi-trend down" id="kpiErreursTrend">Erreurs capteurs</div>
+      <div class="kpi-bar"><div class="kpi-bar-fill" id="kpiErreursBar" style="width:0%"></div></div>
+    </div>
+  </div>
+ 
+  <div class="g-main">
+    <div class="card">
+      <div class="card-shine"></div>
+      <div class="card-head">
+        <div class="card-title"><div class="card-icon">⬡</div>Contrôle Course</div>
+        <div class="badge badge-neutral" id="raceStateBadge">IDLE</div>
+      </div>
+      <div class="status-bar" id="raceStatusBar">◌  Course en attente</div>
+      <div class="race-timer" id="raceElapsed">00:00:00</div>
+      <div class="divider"></div>
+      <div class="stats-row">
+        <div class="stat-block">
+          <div class="stat-lbl">Tours</div>
+          <div class="stat-val" id="raceTotalLaps">0</div>
+        </div>
+        <div class="stat-block">
+          <div class="stat-lbl">Pilotes</div>
+          <div class="stat-val" id="raceActiveParticipants">0</div>
+        </div>
+        <div class="stat-block">
+          <div class="stat-lbl">Dernier event</div>
+          <div class="stat-val" style="font-family:'JetBrains Mono',monospace;font-size:10px;padding-top:5px" id="raceLastEvent">—</div>
+        </div>
+      </div>
+      <div class="btns mt-4">
+        <button class="btn btn-primary" id="btnRaceStart">▶ Démarrer</button>
+        <button class="btn btn-warn" id="btnRacePause">⏸ Pause</button>
+        <button class="btn btn-outline" id="btnRaceStop">⏹ Arrêter</button>
+        <button class="btn btn-danger btn-sm" id="btnRaceReset">↺ Reset</button>
+      </div>
+    </div>
+ 
+    <div class="card">
+      <div class="card-shine"></div>
+      <div class="card-head">
+        <div class="card-title"><div class="card-icon">◎</div>Participants</div>
+        <div class="badge badge-neutral" id="participantsCountBadge">0</div>
+      </div>
+      <div style="overflow-x:auto">
+        <table class="dtable">
+          <thead>
+            <tr><th>ID</th><th>Nom</th><th>Tours</th><th>Dernier passage</th><th>État</th></tr>
+          </thead>
+          <tbody id="participantsTableBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+ 
+  <div class="g-low">
+    <div class="card">
+      <div class="card-shine"></div>
+      <div class="card-head">
+        <div class="card-title"><div class="card-icon">◉</div>Télémétrie</div>
+        <div class="badge badge-neutral" id="telemetryStatusBadge">INACTIF</div>
+      </div>
+      <div class="stats-row">
+        <div class="stat-block">
+          <div class="stat-lbl">Paquets</div>
+          <div class="stat-val" id="telemetryPackets">0</div>
+        </div>
+        <div class="stat-block">
+          <div class="stat-lbl">En attente</div>
+          <div class="stat-val" id="telemetryPending">0</div>
+        </div>
+        <div class="stat-block">
+          <div class="stat-lbl">Flux</div>
+          <div class="stat-val" style="font-size:12px;padding-top:4px" id="telemetryConnectionState">Déconnecté</div>
+        </div>
+        <div class="stat-block">
+          <div class="stat-lbl">Sync</div>
+          <div class="stat-val" style="font-size:12px;padding-top:4px" id="telemetryLastSync">—</div>
+        </div>
+      </div>
+      <div class="prog-wrap">
+        <div class="prog-labels">
+          <span>Flux capteurs</span><span id="telemetryFluxPct">0%</span>
+        </div>
+        <div class="prog-track"><div class="prog-fill" id="telemetryFluxBar" style="width:0%"></div></div>
+      </div>
+    </div>
+ 
+    <div class="card">
+      <div class="card-shine"></div>
+      <div class="card-head">
+        <div class="card-title"><div class="card-icon">⬡</div>Simulation capteurs</div>
+        <div class="badge badge-neutral">LOCAL</div>
+      </div>
+      <div class="form-row">
+        <div class="form-field">
+          <div class="form-lbl">Participant cible</div>
+          <select class="form-select" id="simParticipantSelect"><option value="">Sélectionner…</option></select>
+        </div>
+      </div>
+      <div class="btns mt-2">
+        <button class="btn btn-outline btn-sm" id="btnSimLap">⬡ Tour</button>
+        <button class="btn btn-outline btn-sm" id="btnSimCamera">◎ Caméra</button>
+        <button class="btn btn-danger btn-sm" id="btnSimError">✕ Erreur</button>
+      </div>
+      <div class="note mt-3">Chaque événement met à jour les statistiques, participants et logs système.</div>
+    </div>
+  </div>
+</section>
+ 
+<!-- ═══════ ADMINISTRATION ═══════ -->
+<section class="page" id="page-administration">
+  <div class="sec-head">
+    <div>
+      <div class="sec-title">ADMINIS<span>TRATION</span></div>
+      <div class="sec-sub">Participants · Contrôle session</div>
+    </div>
+    <div class="chip">Dernière action : <span id="adminLastAction">—</span></div>
+  </div>
+  <div class="g2">
+    <div class="card">
+      <div class="card-shine"></div>
+      <div class="card-head"><div class="card-title"><div class="card-icon">+</div>Gestion participants</div></div>
+      <div class="form-row mt-2">
+        <div class="form-field" style="flex:2">
+          <div class="form-lbl">Nom du participant</div>
+          <input class="form-input" id="adminParticipantName" placeholder="ex : Voiture 12 · Pilote A"/>
+        </div>
+        <div class="form-field" style="flex:0 0 auto;justify-content:flex-end">
+          <div class="form-lbl">&nbsp;</div>
+          <button class="btn btn-primary" id="btnAdminAddParticipant">Ajouter</button>
+        </div>
+      </div>
+      <div style="overflow-x:auto">
+        <table class="dtable">
+          <thead><tr><th>ID</th><th>Nom</th><th>Tours</th><th>État</th><th>—</th></tr></thead>
+          <tbody id="adminParticipantsTableBody"></tbody>
+        </table>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-shine"></div>
+      <div class="card-head"><div class="card-title"><div class="card-icon">⚙</div>Contrôle global</div></div>
+      <div class="btns mt-2">
+        <button class="btn btn-primary" id="btnAdminStart">▶ Démarrer</button>
+        <button class="btn btn-warn" id="btnAdminPause">⏸ Pause</button>
+        <button class="btn btn-outline" id="btnAdminStop">⏹ Arrêter</button>
+        <button class="btn btn-danger" id="btnAdminReset">↺ Reset</button>
+      </div>
+      <div class="divider"></div>
+      <div class="stats-row">
+        <div class="stat-block">
+          <div class="stat-lbl">État</div>
+          <div class="stat-val" style="font-size:14px" id="adminRaceSummary">EN ATTENTE</div>
+        </div>
+        <div class="stat-block">
+          <div class="stat-lbl">Participants</div>
+          <div class="stat-val" id="adminParticipantsCount">0</div>
+        </div>
+      </div>
+      <div class="infobox"><div class="infobox-label">Journal admin</div><div id="adminQuickLog">En attente d'actions…</div></div>
+    </div>
+  </div>
+</section>
+ 
+<!-- ═══════ TÉLÉMÉTRIE ═══════ -->
+<section class="page" id="page-telemetry">
+  <div class="sec-head">
+    <div>
+      <div class="sec-title">TÉLÉ<span>MÉTRIE</span></div>
+      <div class="sec-sub">Capteurs · Événements en direct</div>
+    </div>
+    <button class="btn btn-outline btn-sm" id="btnTelemetrySimEvent">+ Simuler événement</button>
+  </div>
+  <div class="g2">
+    <div class="card">
+      <div class="card-shine"></div>
+      <div class="card-head"><div class="card-title"><div class="card-icon">◈</div>Statistiques flux</div></div>
+      <div class="g3 mt-2">
+        <div>
+          <div class="big-lbl">Tours</div>
+          <div class="big-val" id="telemetryLapEvents">0</div>
+          <div class="big-tag">Finish line</div>
+        </div>
+        <div>
+          <div class="big-lbl">Caméras</div>
+          <div class="big-val" id="telemetryCameraEvents">0</div>
+          <div class="big-tag">Détections</div>
+        </div>
+        <div>
+          <div class="big-lbl">Erreurs</div>
+          <div class="big-val" style="color:var(--red);text-shadow:0 0 20px var(--glow-r)" id="telemetryErrorEvents">0</div>
+          <div class="big-tag">Anomalies</div>
+        </div>
+      </div>
+      <!-- Real-time chart -->
+      <div class="chart-wrap mt-3">
+        <canvas id="telemetryChart"></canvas>
+      </div>
+      <div class="infobox mt-3">
+        <div class="infobox-label">Dernier événement</div>
+        <div id="telemetryLastEvent">Aucun événement.</div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-shine"></div>
+      <div class="card-head"><div class="card-title"><div class="card-icon">≡</div>Événements récents</div></div>
+      <div class="logs-box" id="telemetryEventsList"></div>
+    </div>
+  </div>
+</section>
+ 
+<!-- ═══════ VIDÉO ═══════ -->
+<section class="page" id="page-video">
+  <div class="sec-head">
+    <div>
+      <div class="sec-title">SURVEIL<span>LANCE</span></div>
+      <div class="sec-sub">Flux caméras · Enregistrements</div>
+    </div>
+    <div class="chip">Vidéos : <span id="videoCount">0</span></div>
+  </div>
+  <div class="video-grid">
+    <div class="video-wrap">
+      <div class="video-rec">● REC</div>
+      <video id="videoPlayer" controls preload="metadata">
+        <source id="videoSource" src="" type="video/mp4"/>
+      </video>
+      <div class="video-footer" id="videoCurrentInfo">Aucune vidéo sélectionnée</div>
+    </div>
+    <div class="card">
+      <div class="card-shine"></div>
+      <div class="card-head"><div class="card-title"><div class="card-icon">▣</div>Vidéos enregistrées</div></div>
+      <div class="form-row mt-2">
+        <div class="form-field">
+          <div class="form-lbl">Filtrer</div>
+          <select class="form-select" id="videoFilterType">
+            <option value="all">Tous les événements</option>
+            <option value="lap">Passage de tour</option>
+            <option value="camera">Détection caméra</option>
+            <option value="incident">Incident</option>
+          </select>
+        </div>
+      </div>
+      <div class="video-list" id="videoList"></div>
+    </div>
+  </div>
+</section>
+ 
+<!-- ═══════ PARAMÈTRES TECHNIQUES ═══════ -->
+<section class="page" id="page-tech">
+  <div class="sec-head">
+    <div>
+      <div class="sec-title">PARAMÈTRES <span>TECH</span></div>
+      <div class="sec-sub">AWS · DynamoDB · Buffer local</div>
+    </div>
+    <div class="chip">AWS : <span id="awsConnectionStateText">Déconnecté</span></div>
+  </div>
+  <div class="g2">
+    <div class="card">
+      <div class="card-shine"></div>
+      <div class="card-head"><div class="card-title"><div class="card-icon">☁</div>Configuration AWS</div></div>
+      <div class="form-row mt-2">
+        <div class="form-field">
+          <div class="form-lbl">Access Key ID</div>
+          <input class="form-input" id="awsAccessKey" placeholder="AKIA…"/>
+        </div>
+        <div class="form-field">
+          <div class="form-lbl">Secret Access Key</div>
+          <input class="form-input" id="awsSecretKey" placeholder="***"/>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-field">
+          <div class="form-lbl">Région</div>
+          <select class="form-select" id="awsRegion">
+            <option value="eu-west-1">eu-west-1 · Irlande</option>
+            <option value="eu-central-1">eu-central-1 · Francfort</option>
+            <option value="eu-west-3">eu-west-3 · Paris</option>
+            <option value="us-east-1">us-east-1 · Virginia</option>
+          </select>
+        </div>
+        <div class="form-field">
+          <div class="form-lbl">Table DynamoDB</div>
+          <input class="form-input" id="awsTableName" value="race-telemetry-demo"/>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-field">
+          <div class="form-lbl">Endpoint (opt.)</div>
+          <input class="form-input" id="awsEndpoint" placeholder="http://localhost:8000"/>
+        </div>
+        <div class="form-field">
+          <div class="form-lbl">Flux télémétrie</div>
+          <input class="form-input" id="awsStreamName" placeholder="race-telemetry-stream"/>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-field">
+          <div class="form-lbl">Intervalle sync (ms)</div>
+          <input class="form-input" id="awsSyncInterval" type="number" min="500" step="500" value="5000"/>
+          <div class="form-helper">Flush automatique du buffer</div>
+        </div>
+      </div>
+      <div class="btns mt-3">
+        <button class="btn btn-primary" id="btnAwsConnect">Connecter</button>
+        <button class="btn btn-ghost" id="btnAwsDisconnect">Déconnecter</button>
+        <button class="btn btn-outline btn-sm" id="btnAwsTest">Tester</button>
+      </div>
+      <div class="mt-3">
+        <div class="conn" id="awsStatusPill">
+          <span class="conn-dot" id="awsStatusDot"></span>
+          <span id="awsStatusText">Déconnecté · Buffer local actif</span>
+        </div>
+        <div class="note mt-2">Envoi via <code style="color:var(--cyan)">sendToDatabase()</code>. Échec → buffer → <code style="color:var(--cyan)">flushBuffer()</code>.</div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-shine"></div>
+      <div class="card-head"><div class="card-title"><div class="card-icon">◫</div>Buffer d'événements</div></div>
+      <div class="stats-row mt-2">
+        <div class="stat-block">
+          <div class="stat-lbl">En buffer</div>
+          <div class="big-val" id="awsBufferCount">0</div>
+          <div class="stat-tag">En attente</div>
+        </div>
+        <div class="stat-block">
+          <div class="stat-lbl">Dernière sync</div>
+          <div class="stat-val" id="awsLastSync">—</div>
+        </div>
+      </div>
+      <div class="btns mt-3">
+        <button class="btn btn-outline btn-sm" id="btnAwsFlush">Flush buffer</button>
+        <button class="btn btn-ghost btn-sm" id="btnAwsSimFailure">Mode échec simulé</button>
+      </div>
+      <div class="infobox mt-2">
+        <div class="infobox-label">Journal flux</div>
+        <div id="awsLog">Aucun événement traité.</div>
+      </div>
+    </div>
+  </div>
+</section>
+ 
+<!-- ═══════ LOGS ═══════ -->
+<section class="page" id="page-logs">
+  <div class="sec-head">
+    <div>
+      <div class="sec-title">LOGS <span>SYSTÈME</span></div>
+      <div class="sec-sub">Journal temps réel</div>
+    </div>
+    <button class="btn btn-ghost btn-sm" id="btnLogsClear">Effacer</button>
+  </div>
+  <div class="card">
+    <div class="card-shine"></div>
+    <div class="card-head">
+      <div class="card-title"><div class="card-icon">≡</div>Flux de logs</div>
+      <div class="badge badge-info">LIVE</div>
+    </div>
+    <div class="logs-box" id="logsContainer"></div>
+  </div>
+</section>
+</main>
+</div>
+ 
 <script>
-  // ============================================================
-  // ÉTAT GLOBAL DE L’APPLICATION
-  // ============================================================
-
-  const state = {
-    course: {
-      statut: "idle", // idle | running | paused | stopped
-      startTime: null,
-      elapsedMs: 0,
-      totalTours: 0,
-      dernierEvenement: null
-    },
-    participants: [],
-    telemetry: {
-      paquets: 0,
-      enAttente: 0,
-      connexion: "disconnected", // disconnected | connected
-      derniereSync: null,
-      nbTours: 0,
-      nbCamera: 0,
-      nbErreurs: 0,
-      dernierEvenementDescription: null,
-      evenementsRecents: [] // {timestamp, type, description}
-    },
-    aws: {
-      connected: false,
-      region: "eu-west-1",
-      tableName: "race-telemetry-demo",
-      buffer: [],
-      lastSync: null,
-      simulateFailure: false,
-      syncIntervalMs: 5000,
-      syncTimer: null
-    },
-    video: {
-      list: [],
-      currentId: null,
-      filterType: "all"
-    },
-    logs: []
-  };
-
-  let raceTimerInterval = null;
-
-  // ============================================================
-  // FONCTIONS UTILITAIRES
-  // ============================================================
-
-  function formatTime(date) {
-    const d = date instanceof Date ? date : new Date(date);
-    const h = String(d.getHours()).padStart(2, "0");
-    const m = String(d.getMinutes()).padStart(2, "0");
-    const s = String(d.getSeconds()).padStart(2, "0");
-    return `${h}:${m}:${s}`;
+// ═══════════════════════════════════════════════════════════
+// THREE.JS — Animated 3D background (grid + particles + waves)
+// ═══════════════════════════════════════════════════════════
+(function() {
+  const canvas = document.getElementById('bg-canvas');
+  const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: false });
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  renderer.setClearColor(0x000000, 0);
+ 
+  const scene = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 200);
+  camera.position.set(0, 6, 18);
+  camera.lookAt(0, 0, 0);
+ 
+  // Mouse tracking
+  let mx = 0, my = 0;
+  window.addEventListener('mousemove', e => {
+    mx = (e.clientX / window.innerWidth  - 0.5) * 2;
+    my = (e.clientY / window.innerHeight - 0.5) * 2;
+  });
+ 
+  // ─ Particle field ─
+  const particleCount = 280;
+  const pGeo = new THREE.BufferGeometry();
+  const pPos = new Float32Array(particleCount * 3);
+  const pSizes = new Float32Array(particleCount);
+  for (let i = 0; i < particleCount; i++) {
+    pPos[i*3]   = (Math.random() - 0.5) * 80;
+    pPos[i*3+1] = (Math.random() - 0.5) * 50;
+    pPos[i*3+2] = (Math.random() - 0.5) * 60 - 10;
+    pSizes[i]   = Math.random() * 1.4 + 0.3;
   }
-
-  function formatDuration(ms) {
-    const totalSeconds = Math.floor(ms / 1000);
-    const h = String(Math.floor(totalSeconds / 3600)).padStart(2, "0");
-    const m = String(Math.floor((totalSeconds % 3600) / 60)).padStart(2, "0");
-    const s = String(totalSeconds % 60).padStart(2, "0");
-    return `${h}:${m}:${s}`;
+  pGeo.setAttribute('position', new THREE.BufferAttribute(pPos, 3));
+  pGeo.setAttribute('size', new THREE.BufferAttribute(pSizes, 1));
+ 
+  const pMat = new THREE.PointsMaterial({
+    color: 0x00d4ff,
+    size: 0.12,
+    transparent: true,
+    opacity: 0.35,
+    sizeAttenuation: true,
+    blending: THREE.AdditiveBlending,
+    depthWrite: false,
+  });
+  const particles = new THREE.Points(pGeo, pMat);
+  scene.add(particles);
+ 
+  // ─ Secondary particle field (warmer) ─
+  const pGeo2 = new THREE.BufferGeometry();
+  const pPos2 = new Float32Array(120 * 3);
+  for (let i = 0; i < 120; i++) {
+    pPos2[i*3]   = (Math.random() - 0.5) * 100;
+    pPos2[i*3+1] = (Math.random() - 0.5) * 60;
+    pPos2[i*3+2] = (Math.random() - 0.5) * 80 - 15;
   }
-
-  function nowIso() {
-    return new Date().toISOString();
+  pGeo2.setAttribute('position', new THREE.BufferAttribute(pPos2, 3));
+  const pMat2 = new THREE.PointsMaterial({
+    color: 0x00ffcc, size: 0.08, transparent: true, opacity: 0.18,
+    sizeAttenuation: true, blending: THREE.AdditiveBlending, depthWrite: false,
+  });
+  scene.add(new THREE.Points(pGeo2, pMat2));
+ 
+  // ─ Wave grid ─
+  const gridW = 48, gridH = 28;
+  const wGeo = new THREE.PlaneGeometry(48, 28, gridW - 1, gridH - 1);
+  wGeo.rotateX(-Math.PI * 0.42);
+  const wMat = new THREE.MeshBasicMaterial({
+    color: 0x00d4ff,
+    wireframe: true,
+    transparent: true,
+    opacity: 0.045,
+    blending: THREE.AdditiveBlending,
+    depthWrite: false,
+  });
+  const waveMesh = new THREE.Mesh(wGeo, wMat);
+  waveMesh.position.set(0, -4, -8);
+  scene.add(waveMesh);
+ 
+  // Store original positions for wave animation
+  const wPos = wGeo.attributes.position;
+  const wOrig = new Float32Array(wPos.array);
+ 
+  // ─ Floating icospheres ─
+  function makeIco(radius, color, opacity) {
+    const g = new THREE.IcosahedronGeometry(radius, 1);
+    const m = new THREE.MeshBasicMaterial({
+      color, wireframe: true, transparent: true, opacity,
+      blending: THREE.AdditiveBlending, depthWrite: false,
+    });
+    return new THREE.Mesh(g, m);
   }
-
-  // Ajout d’une entrée dans le journal système
-  function log(level, message) {
-    const entry = {
-      timestamp: new Date(),
-      level,
-      message
-    };
-    state.logs.push(entry);
-    if (state.logs.length > 300) {
-      state.logs.shift();
+ 
+  const spheres = [
+    { mesh: makeIco(2.4, 0x00d4ff, 0.08), x: -12, y:  2, z: -6, spx: 0.0008, spy: 0.0012 },
+    { mesh: makeIco(1.6, 0x00ffcc, 0.06), x:  10, y: -3, z: -4, spx: 0.0010, spy: 0.0007 },
+    { mesh: makeIco(1.0, 0x00d4ff, 0.10), x:   4, y:  4, z: -2, spx: 0.0015, spy: 0.0018 },
+    { mesh: makeIco(3.0, 0x00ffcc, 0.04), x: -6,  y: -5, z:-12, spx: 0.0005, spy: 0.0006 },
+    { mesh: makeIco(0.7, 0xff3b5c, 0.09), x: 14,  y:  3, z: -5, spx: 0.002,  spy: 0.0014 },
+  ];
+  spheres.forEach(s => {
+    s.mesh.position.set(s.x, s.y, s.z);
+    scene.add(s.mesh);
+  });
+ 
+  window.addEventListener('resize', () => {
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+  });
+ 
+  let t = 0;
+  function animate() {
+    requestAnimationFrame(animate);
+    t += 0.012;
+ 
+    // Smooth camera movement
+    camera.position.x += (mx * 2.5 - camera.position.x) * 0.025;
+    camera.position.y += (-my * 1.5 + 6 - camera.position.y) * 0.025;
+    camera.lookAt(0, 0, 0);
+ 
+    // Particles drift
+    particles.rotation.y = t * 0.018;
+    particles.rotation.x = t * 0.006;
+ 
+    // Wave animation
+    for (let i = 0; i < wPos.count; i++) {
+      const x = wOrig[i * 3];
+      const y = wOrig[i * 3 + 1];
+      wPos.setZ(i, Math.sin(x * 0.4 + t * 0.9) * 0.55 + Math.cos(y * 0.35 + t * 0.7) * 0.45);
     }
-    renderLogs();
+    wPos.needsUpdate = true;
+    waveMesh.rotation.z = Math.sin(t * 0.08) * 0.03;
+ 
+    // Spheres spin
+    spheres.forEach(s => {
+      s.mesh.rotation.x += s.spx;
+      s.mesh.rotation.y += s.spy;
+      s.mesh.position.y = s.y + Math.sin(t * 0.4 + s.x) * 0.4;
+    });
+ 
+    renderer.render(scene, camera);
   }
-
-  // Ajout d’un événement télémétrique dans l’historique
-  function addTelemetryEvent(type, description) {
-    const event = {
-      timestamp: new Date(),
-      type,
-      description
-    };
-    state.telemetry.evenementsRecents.unshift(event);
-    if (state.telemetry.evenementsRecents.length > 50) {
-      state.telemetry.evenementsRecents.pop();
-    }
-    state.telemetry.dernierEvenementDescription = `${type.toUpperCase()} · ${description}`;
-    renderTelemetry();
+  animate();
+})();
+ 
+// ═══════════════════════════════════════════════════════════
+// CURSOR GLOW
+// ═══════════════════════════════════════════════════════════
+const cursorGlow = document.getElementById('cursor-glow');
+window.addEventListener('mousemove', e => {
+  cursorGlow.style.left = e.clientX + 'px';
+  cursorGlow.style.top  = e.clientY + 'px';
+});
+ 
+// ═══════════════════════════════════════════════════════════
+// CARD 3D TILT
+// ═══════════════════════════════════════════════════════════
+function initCardTilt() {
+  document.querySelectorAll('.card, .kpi-card').forEach(card => {
+    card.addEventListener('mousemove', e => {
+      const r  = card.getBoundingClientRect();
+      const rx = ((e.clientY - r.top)  / r.height - 0.5) * 7;
+      const ry = ((e.clientX - r.left) / r.width  - 0.5) * -7;
+      card.style.transform = `perspective(900px) rotateX(${rx}deg) rotateY(${ry}deg) translateY(-2px)`;
+    });
+    card.addEventListener('mouseleave', () => { card.style.transform = ''; });
+  });
+}
+ 
+// ═══════════════════════════════════════════════════════════
+// CLOCK
+// ═══════════════════════════════════════════════════════════
+function updateClock() {
+  const n = new Date();
+  document.getElementById('headerClock').textContent =
+    [n.getHours(), n.getMinutes(), n.getSeconds()]
+      .map(x => String(x).padStart(2, '0')).join(':');
+}
+setInterval(updateClock, 1000);
+updateClock();
+ 
+// ═══════════════════════════════════════════════════════════
+// CHART.JS — Realtime telemetry sparkline
+// ═══════════════════════════════════════════════════════════
+let telemetryChart = null;
+const chartHistory = { tours: [], cameras: [], errors: [], labels: [] };
+const MAX_HIST = 20;
+ 
+function initChart() {
+  const ctx = document.getElementById('telemetryChart');
+  if (!ctx) return;
+  Chart.defaults.color = '#4a6080';
+  telemetryChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: chartHistory.labels,
+      datasets: [
+        {
+          label: 'Tours',
+          data: chartHistory.tours,
+          borderColor: '#00d4ff', backgroundColor: 'rgba(0,212,255,0.06)',
+          borderWidth: 1.5, pointRadius: 0, tension: 0.4, fill: true,
+        },
+        {
+          label: 'Caméras',
+          data: chartHistory.cameras,
+          borderColor: '#00ffcc', backgroundColor: 'rgba(0,255,204,0.04)',
+          borderWidth: 1.5, pointRadius: 0, tension: 0.4, fill: true,
+        },
+        {
+          label: 'Erreurs',
+          data: chartHistory.errors,
+          borderColor: '#ff3b5c', backgroundColor: 'rgba(255,59,92,0.06)',
+          borderWidth: 1.5, pointRadius: 0, tension: 0.4, fill: true,
+        },
+      ],
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      animation: { duration: 300 },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          mode: 'index', intersect: false,
+          backgroundColor: 'rgba(4,5,8,0.95)',
+          borderColor: 'rgba(0,212,255,0.2)', borderWidth: 1,
+          titleFont: { family: 'JetBrains Mono', size: 8 },
+          bodyFont: { family: 'JetBrains Mono', size: 9 },
+          titleColor: '#4a6080', bodyColor: '#e8f4ff',
+          padding: 10,
+        },
+      },
+      scales: {
+        x: {
+          display: false,
+          grid: { display: false },
+        },
+        y: {
+          display: false,
+          grid: { display: false },
+          beginAtZero: true,
+        },
+      },
+    },
+  });
+}
+ 
+function pushChartPoint() {
+  const label = new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+  chartHistory.labels.push(label);
+  chartHistory.tours.push(state.telemetry.nbTours);
+  chartHistory.cameras.push(state.telemetry.nbCamera);
+  chartHistory.errors.push(state.telemetry.nbErreurs);
+  if (chartHistory.labels.length > MAX_HIST) {
+    chartHistory.labels.shift();
+    chartHistory.tours.shift();
+    chartHistory.cameras.shift();
+    chartHistory.errors.shift();
   }
-
-  // ============================================================
-  // LOGIQUE DE COURSE
-  // ============================================================
-
-  function startRace() {
-    if (state.course.statut === "running") return;
-    const now = Date.now();
-    if (!state.course.startTime || state.course.statut === "stopped") {
-      state.course.startTime = now;
-      state.course.elapsedMs = 0;
-    } else if (state.course.statut === "paused") {
-      state.course.startTime = now - state.course.elapsedMs;
-    }
-    state.course.statut = "running";
-    state.course.dernierEvenement = "Course démarrée";
-    log("INFO", "Course démarrée.");
-    updateAdminLastAction("Course démarrée");
-    ensureRaceTimer();
-    renderRace();
+  if (telemetryChart) telemetryChart.update('none');
+}
+ 
+// ═══════════════════════════════════════════════════════════
+// APP STATE & LOGIC — unchanged logic, enhanced rendering
+// ═══════════════════════════════════════════════════════════
+const state = {
+  course:      { statut: "idle", startTime: null, elapsedMs: 0, totalTours: 0, dernierEvenement: null },
+  participants: [],
+  telemetry:   { paquets: 0, enAttente: 0, connexion: "disconnected", derniereSync: null, nbTours: 0, nbCamera: 0, nbErreurs: 0, dernierEvenementDescription: null, evenementsRecents: [] },
+  aws:         { connected: false, region: "eu-west-1", tableName: "race-telemetry-demo", buffer: [], lastSync: null, simulateFailure: false, syncIntervalMs: 5000, syncTimer: null },
+  video:       { list: [], currentId: null, filterType: "all" },
+  logs:        [],
+};
+let raceTimerInterval = null, nextId = 1;
+ 
+const fmt    = d  => { d = d instanceof Date ? d : new Date(d); return [d.getHours(), d.getMinutes(), d.getSeconds()].map(x => String(x).padStart(2,'0')).join(':'); };
+const fmtDur = ms => { const t = Math.floor(ms / 1000); return [Math.floor(t/3600), Math.floor((t%3600)/60), t%60].map(x => String(x).padStart(2,'0')).join(':'); };
+const nowIso = () => new Date().toISOString();
+ 
+function log(level, message) {
+  state.logs.push({ timestamp: new Date(), level, message });
+  if (state.logs.length > 300) state.logs.shift();
+  renderLogs();
+}
+ 
+function addTelemetryEvent(type, description) {
+  state.telemetry.evenementsRecents.unshift({ timestamp: new Date(), type, description });
+  if (state.telemetry.evenementsRecents.length > 50) state.telemetry.evenementsRecents.pop();
+  state.telemetry.dernierEvenementDescription = `${type.toUpperCase()} · ${description}`;
+  pushChartPoint();
+  renderTelemetry();
+  updateFluxBar();
+}
+ 
+function updateFluxBar() {
+  const total = state.telemetry.nbTours + state.telemetry.nbCamera + state.telemetry.nbErreurs;
+  const pct   = Math.min(100, total * 3);
+  document.getElementById('telemetryFluxBar').style.width = pct + '%';
+  document.getElementById('telemetryFluxPct').textContent = pct + '%';
+  updateKPIs();
+}
+ 
+function updateKPIs() {
+  const { totalTours } = state.course;
+  const { paquets, nbErreurs } = state.telemetry;
+  const nPart = state.participants.length;
+ 
+  const elTours    = document.getElementById('kpiTours');
+  const elPart     = document.getElementById('kpiPart');
+  const elPaquets  = document.getElementById('kpiPaquets');
+  const elErreurs  = document.getElementById('kpiErreurs');
+ 
+  animateNumber(elTours,   parseInt(elTours.textContent   || '0'), totalTours);
+  animateNumber(elPart,    parseInt(elPart.textContent    || '0'), nPart);
+  animateNumber(elPaquets, parseInt(elPaquets.textContent || '0'), paquets);
+  animateNumber(elErreurs, parseInt(elErreurs.textContent || '0'), nbErreurs);
+ 
+  document.getElementById('kpiToursBar').style.width   = Math.min(100, totalTours * 5) + '%';
+  document.getElementById('kpiPartBar').style.width    = Math.min(100, nPart * 20)     + '%';
+  document.getElementById('kpiPaquetsBar').style.width = Math.min(100, paquets * 2)    + '%';
+  document.getElementById('kpiErreursBar').style.width = Math.min(100, nbErreurs * 10) + '%';
+ 
+  const kpiErr = document.getElementById('kpi-erreurs');
+  if (nbErreurs > 0) {
+    kpiErr.classList.add('danger');
+    kpiErr.classList.remove('success');
+    document.getElementById('kpiErreursTrend').textContent = `↑ ${nbErreurs} anomalie${nbErreurs>1?'s':''} détectée${nbErreurs>1?'s':''}`;
   }
-
-  function pauseRace() {
-    if (state.course.statut !== "running") return;
-    state.course.statut = "paused";
-    state.course.elapsedMs = Date.now() - state.course.startTime;
-    state.course.dernierEvenement = "Course mise en pause";
-    clearInterval(raceTimerInterval);
-    raceTimerInterval = null;
-    log("INFO", "Course mise en pause.");
-    updateAdminLastAction("Course mise en pause");
-    renderRace();
+ 
+  if (state.course.statut === 'running') {
+    document.getElementById('kpi-tours').classList.add('success');
+  } else {
+    document.getElementById('kpi-tours').classList.remove('success');
   }
-
-  function stopRace() {
-    if (state.course.statut === "idle" || state.course.statut === "stopped") return;
+}
+ 
+function animateNumber(el, from, to) {
+  if (from === to) return;
+  const diff = to - from;
+  const steps = 12;
+  let i = 0;
+  const interval = setInterval(() => {
+    i++;
+    el.textContent = Math.round(from + diff * (i / steps));
+    if (i >= steps) clearInterval(interval);
+  }, 25);
+}
+ 
+// ─ Race control ─
+function startRace() {
+  if (state.course.statut === "running") return;
+  const now = Date.now();
+  if (!state.course.startTime || state.course.statut === "stopped") { state.course.startTime = now; state.course.elapsedMs = 0; }
+  else if (state.course.statut === "paused") state.course.startTime = now - state.course.elapsedMs;
+  state.course.statut = "running";
+  state.course.dernierEvenement = "Course démarrée";
+  log("SUCCESS", "Course démarrée.");
+  updateAdminLastAction("Course démarrée");
+  ensureRaceTimer();
+  renderRace();
+  updateKPIs();
+}
+function pauseRace() {
+  if (state.course.statut !== "running") return;
+  state.course.statut = "paused";
+  state.course.elapsedMs = Date.now() - state.course.startTime;
+  state.course.dernierEvenement = "Course en pause";
+  clearInterval(raceTimerInterval); raceTimerInterval = null;
+  log("INFO", "Course en pause."); updateAdminLastAction("Course en pause"); renderRace();
+}
+function stopRace() {
+  if (state.course.statut === "idle" || state.course.statut === "stopped") return;
+  if (state.course.statut === "running") state.course.elapsedMs = Date.now() - state.course.startTime;
+  state.course.statut = "stopped"; state.course.dernierEvenement = "Course arrêtée";
+  clearInterval(raceTimerInterval); raceTimerInterval = null;
+  log("WARNING", "Course arrêtée."); updateAdminLastAction("Course arrêtée"); renderRace();
+}
+function resetRace() {
+  state.course = { statut: "idle", startTime: null, elapsedMs: 0, totalTours: 0, dernierEvenement: "Reset effectué" };
+  clearInterval(raceTimerInterval); raceTimerInterval = null;
+  state.participants.forEach(p => { p.laps = 0; p.lastPassage = null; p.status = "actif"; });
+  log("ERROR", "Reset d'urgence."); updateAdminLastAction("Reset d'urgence");
+  renderRace(); renderParticipants(); updateKPIs();
+}
+function ensureRaceTimer() {
+  if (raceTimerInterval) return;
+  raceTimerInterval = setInterval(() => {
     if (state.course.statut === "running") {
       state.course.elapsedMs = Date.now() - state.course.startTime;
+      renderRaceTimeOnly();
     }
-    state.course.statut = "stopped";
-    state.course.dernierEvenement = "Course arrêtée";
-    clearInterval(raceTimerInterval);
-    raceTimerInterval = null;
-    log("WARNING", "Course arrêtée.");
-    updateAdminLastAction("Course arrêtée");
-    renderRace();
+  }, 1000);
+}
+ 
+// ─ Participants ─
+function addParticipant(name) {
+  if (!name.trim()) return;
+  const p = { id: nextId++, name: name.trim(), laps: 0, lastPassage: null, status: "actif" };
+  state.participants.push(p);
+  log("INFO", `Participant ajouté : ${p.name}.`);
+  updateAdminLastAction(`Ajouté : ${p.name}`);
+  renderParticipants(); updateKPIs();
+}
+function removeParticipant(id) {
+  const i = state.participants.findIndex(p => p.id === id); if (i === -1) return;
+  const [rm] = state.participants.splice(i, 1);
+  log("WARNING", `Supprimé : ${rm.name}.`); updateAdminLastAction(`Supprimé : ${rm.name}`);
+  renderParticipants(); updateKPIs();
+}
+function incrementLap(participantId) {
+  const p = state.participants.find(x => x.id === participantId); if (!p) return;
+  p.laps++; p.lastPassage = new Date();
+  state.course.totalTours++; state.course.dernierEvenement = `Tour : ${p.name}`;
+  state.telemetry.paquets++; state.telemetry.nbTours++;
+  addTelemetryEvent("tour", `Passage de tour — ${p.name} (#${p.id}).`);
+  sendTelemetryToDatabase({ type: "lap", participantId: p.id, name: p.name, timestamp: nowIso(), lap: p.laps });
+  log("SUCCESS", `Tour ${p.laps} — ${p.name}.`);
+  renderRace(); renderParticipants(); renderTelemetry();
+}
+function simulateCameraEvent(participantId) {
+  const p = state.participants.find(x => x.id === participantId);
+  const label = p ? `${p.name} (#${p.id})` : "caméra globale";
+  state.telemetry.paquets++; state.telemetry.nbCamera++;
+  addTelemetryEvent("camera", `Détection caméra — ${label}.`);
+  sendTelemetryToDatabase({ type: "camera", participantId: p ? p.id : null, name: p ? p.name : null, timestamp: nowIso() });
+  log("INFO", `Caméra — ${label}.`); renderTelemetry();
+}
+function simulateSensorError(participantId) {
+  const p = state.participants.find(x => x.id === participantId);
+  const label = p ? `${p.name} (#${p.id})` : "capteur global";
+  state.telemetry.paquets++; state.telemetry.nbErreurs++;
+  addTelemetryEvent("erreur", `Erreur capteur — ${label}.`);
+  sendTelemetryToDatabase({ type: "error", participantId: p ? p.id : null, name: p ? p.name : null, timestamp: nowIso() });
+  log("ERROR", `Erreur capteur — ${label}.`); renderTelemetry();
+}
+function simulateRandomTelemetryEvent() {
+  const types = ["lap", "camera", "error"];
+  const type  = types[Math.floor(Math.random() * types.length)];
+  const participant = state.participants.length ? state.participants[Math.floor(Math.random() * state.participants.length)] : null;
+  if (type === "lap" && participant) incrementLap(participant.id);
+  else if (type === "camera") simulateCameraEvent(participant ? participant.id : null);
+  else simulateSensorError(participant ? participant.id : null);
+}
+ 
+// ─ AWS ─
+function sendToDatabase(payload) {
+  return new Promise((res, rej) => {
+    if (!state.aws.connected || state.aws.simulateFailure) rej(new Error());
+    else setTimeout(() => res({ ok: true }), 150);
+  });
+}
+function flushBuffer() {
+  if (!state.aws.buffer.length) return;
+  const copy = [...state.aws.buffer]; state.aws.buffer = [];
+  state.aws.lastSync = new Date(); state.telemetry.derniereSync = state.aws.lastSync;
+  state.telemetry.enAttente = 0;
+  document.getElementById('awsBufferCount').textContent = "0";
+  document.getElementById('awsLastSync').textContent = fmt(state.aws.lastSync);
+  document.getElementById('telemetryLastSync').textContent = fmt(state.telemetry.derniereSync);
+  document.getElementById('awsLog').textContent = `Buffer vidé : ${copy.length} événement(s) synchronisé(s).`;
+  log("SUCCESS", `Buffer vidé : ${copy.length} event(s).`);
+}
+function sendTelemetryToDatabase(payload) {
+  if (!state.aws.connected || state.aws.simulateFailure) {
+    state.aws.buffer.push(payload);
+    state.telemetry.enAttente = state.aws.buffer.length;
+    document.getElementById('awsBufferCount').textContent = String(state.aws.buffer.length);
+    document.getElementById('awsLog').textContent = `Connexion indisponible : buffer (${state.aws.buffer.length}).`;
+    return;
   }
-
-  function resetRace() {
-    state.course.statut = "idle";
-    state.course.startTime = null;
-    state.course.elapsedMs = 0;
-    state.course.totalTours = 0;
-    state.course.dernierEvenement = "Reset d’urgence effectué";
-    clearInterval(raceTimerInterval);
-    raceTimerInterval = null;
-    state.participants.forEach(p => {
-      p.laps = 0;
-      p.lastPassage = null;
-      p.status = "actif";
+  sendToDatabase(payload).then(() => {
+    state.aws.lastSync = new Date(); state.telemetry.derniereSync = state.aws.lastSync;
+    document.getElementById('awsLastSync').textContent = fmt(state.aws.lastSync);
+    document.getElementById('telemetryLastSync').textContent = fmt(state.telemetry.derniereSync);
+    document.getElementById('awsLog').textContent = "Événement envoyé.";
+  }).catch(() => {
+    state.aws.buffer.push(payload);
+    state.telemetry.enAttente = state.aws.buffer.length;
+    document.getElementById('awsBufferCount').textContent = String(state.aws.buffer.length);
+    document.getElementById('awsLog').textContent = `Erreur : buffer (${state.aws.buffer.length}).`;
+    log("ERROR", "Échec envoi → buffer.");
+  });
+}
+function startAutoSync() {
+  const v = Number(document.getElementById('awsSyncInterval').value) || 5000;
+  state.aws.syncIntervalMs = v;
+  if (state.aws.syncTimer) clearInterval(state.aws.syncTimer);
+  state.aws.syncTimer = setInterval(() => {
+    if (state.aws.connected && !state.aws.simulateFailure && state.aws.buffer.length) flushBuffer();
+  }, state.aws.syncIntervalMs);
+}
+function connectAws() {
+  state.aws.region = document.getElementById('awsRegion').value;
+  state.aws.tableName = document.getElementById('awsTableName').value || "race-telemetry-demo";
+  state.aws.connected = true; state.aws.simulateFailure = false; state.telemetry.connexion = "connected";
+  document.getElementById('awsConnectionStateText').textContent = "Connecté";
+  document.getElementById('awsStatusText').textContent = `${state.aws.region} · ${state.aws.tableName}`;
+  document.getElementById('awsStatusPill').className = 'conn ok';
+  document.getElementById('telemetryConnectionState').textContent = "Connecté";
+  document.getElementById('telemetryStatusBadge').className = 'badge badge-ok';
+  document.getElementById('telemetryStatusBadge').textContent = "ACTIF";
+  log("INFO", `AWS : ${state.aws.region}, ${state.aws.tableName}.`);
+  if (state.aws.buffer.length) flushBuffer();
+  startAutoSync();
+}
+function disconnectAws() {
+  state.aws.connected = false; state.telemetry.connexion = "disconnected";
+  document.getElementById('awsConnectionStateText').textContent = "Déconnecté";
+  document.getElementById('awsStatusText').textContent = "Déconnecté · Buffer local actif";
+  document.getElementById('awsStatusPill').className = 'conn';
+  document.getElementById('telemetryConnectionState').textContent = "Déconnecté";
+  document.getElementById('telemetryStatusBadge').className = 'badge badge-neutral';
+  document.getElementById('telemetryStatusBadge').textContent = "INACTIF";
+  log("WARNING", "Connexion AWS fermée.");
+  if (state.aws.syncTimer) { clearInterval(state.aws.syncTimer); state.aws.syncTimer = null; }
+}
+function testAwsConnection() {
+  if (state.aws.connected && !state.aws.simulateFailure) {
+    document.getElementById('awsLog').textContent = "Test réussi."; log("SUCCESS", "Test AWS réussi.");
+  } else {
+    document.getElementById('awsLog').textContent = "Test échoué."; log("WARNING", "Test AWS échoué.");
+  }
+}
+ 
+// ─ Video ─
+function initVideoList() {
+  state.video.list = [
+    { id: 1, src: "https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4", timestamp: "2026-03-11T09:15:23Z", cameraId: "CAM-01", type: "lap",      label: "Passage de tour — Voiture 12" },
+    { id: 2, src: "https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4", timestamp: "2026-03-11T09:18:47Z", cameraId: "CAM-02", type: "camera",   label: "Détection caméra — Virage 3" },
+    { id: 3, src: "https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4", timestamp: "2026-03-11T09:21:02Z", cameraId: "CAM-03", type: "incident", label: "Incident — Sortie de piste" },
+  ];
+  document.getElementById('videoCount').textContent = String(state.video.list.length);
+  renderVideoList();
+}
+function renderVideoList() {
+  const c = document.getElementById('videoList'); c.innerHTML = "";
+  const filtered = state.video.list.filter(v => state.video.filterType === "all" || v.type === state.video.filterType);
+  if (!filtered.length) { const d = document.createElement('div'); d.className = 'note'; d.textContent = "Aucune vidéo."; c.appendChild(d); return; }
+  filtered.forEach(video => {
+    const item = document.createElement('div');
+    item.className = 'v-item' + (state.video.currentId === video.id ? ' active' : '');
+    const thumb = document.createElement('div'); thumb.className = 'v-thumb'; thumb.textContent = '▶';
+    const meta  = document.createElement('div');
+    const title = document.createElement('div'); title.className = 'v-title'; title.textContent = video.label;
+    const sub   = document.createElement('div'); sub.className   = 'v-meta';  sub.textContent  = `${fmt(new Date(video.timestamp))} · ${video.cameraId}`;
+    const tag   = document.createElement('span');
+    tag.className = video.type === 'lap' ? 'badge badge-ok' : video.type === 'camera' ? 'badge badge-info' : 'badge badge-err';
+    tag.style.marginTop = '6px'; tag.style.display = 'inline-flex';
+    tag.textContent = video.type === 'lap' ? 'TOUR' : video.type === 'camera' ? 'CAMÉRA' : 'INCIDENT';
+    meta.appendChild(title); meta.appendChild(sub); meta.appendChild(tag);
+    item.appendChild(thumb); item.appendChild(meta);
+    item.addEventListener('click', () => loadVideo(video.id));
+    c.appendChild(item);
+  });
+}
+function loadVideo(id) {
+  const v = state.video.list.find(x => x.id === id); if (!v) return;
+  state.video.currentId = id;
+  document.getElementById('videoSource').src = v.src;
+  const p = document.getElementById('videoPlayer'); p.load(); p.play().catch(() => {});
+  document.getElementById('videoCurrentInfo').textContent = `${v.label} · ${fmt(new Date(v.timestamp))} · ${v.cameraId}`;
+  renderVideoList();
+}
+ 
+// ─ Render ─
+function renderRace() {
+  const cfg = {
+    idle:    { label: "EN ATTENTE", bar: "◌  Course en attente", dot: "",       tc: "",        badge: "IDLE",    adm: "EN ATTENTE" },
+    running: { label: "EN COURS",   bar: "▶  Course en cours",  dot: "run",    tc: "running", badge: "RUNNING", adm: "EN COURS" },
+    paused:  { label: "EN PAUSE",   bar: "⏸  Course en pause",  dot: "warn",   tc: "paused",  badge: "PAUSED",  adm: "EN PAUSE" },
+    stopped: { label: "ARRÊTÉE",    bar: "⏹  Course arrêtée",   dot: "danger", tc: "stopped", badge: "STOPPED", adm: "ARRÊTÉE" },
+  };
+  const c = cfg[state.course.statut] || cfg.idle;
+  document.getElementById('globalStatusLabel').textContent  = c.label;
+  document.getElementById('chipRaceText').textContent        = c.label;
+  document.getElementById('raceStateBadge').textContent      = c.badge;
+  document.getElementById('adminRaceSummary').textContent    = c.adm;
+  document.getElementById('globalStatusDot').className       = 'h-dot' + (c.dot ? ' ' + c.dot : '');
+  const bar = document.getElementById('raceStatusBar');
+  bar.className = 'status-bar' + (state.course.statut !== 'idle' ? ' ' + state.course.statut : '');
+  bar.textContent = c.bar;
+  const timer = document.getElementById('raceElapsed');
+  timer.className = 'race-timer' + (c.tc ? ' ' + c.tc : '');
+  timer.textContent = fmtDur(state.course.elapsedMs);
+  document.getElementById('raceTotalLaps').textContent          = String(state.course.totalTours);
+  document.getElementById('raceActiveParticipants').textContent = String(state.participants.length);
+  document.getElementById('raceLastEvent').textContent          = state.course.dernierEvenement || "—";
+}
+function renderRaceTimeOnly() {
+  document.getElementById('raceElapsed').textContent = fmtDur(state.course.elapsedMs);
+}
+function renderParticipants() {
+  const bd  = document.getElementById('participantsTableBody');
+  const ba  = document.getElementById('adminParticipantsTableBody');
+  const sel = document.getElementById('simParticipantSelect');
+  bd.innerHTML = ""; ba.innerHTML = ""; sel.innerHTML = '<option value="">Sélectionner…</option>';
+  state.participants.forEach(p => {
+    const trD = document.createElement('tr');
+    trD.innerHTML = `<td class="id">#${p.id}</td><td>${p.name}</td><td>${p.laps}</td><td>${p.lastPassage ? fmt(p.lastPassage) : "—"}</td><td><span class="badge ${p.status === "actif" ? "badge-ok" : "badge-warn"}">${p.status === "actif" ? "ACTIF" : "INACTIF"}</span></td>`;
+    bd.appendChild(trD);
+    const trA = document.createElement('tr');
+    trA.innerHTML = `<td class="id">#${p.id}</td><td>${p.name}</td><td>${p.laps}</td><td><span class="badge ${p.status === "actif" ? "badge-ok" : "badge-warn"}">${p.status === "actif" ? "ACTIF" : "INACTIF"}</span></td><td><button class="btn btn-ghost btn-sm" data-rm="${p.id}">Supprimer</button></td>`;
+    ba.appendChild(trA);
+    const opt = document.createElement('option'); opt.value = p.id; opt.textContent = `#${p.id} · ${p.name}`;
+    sel.appendChild(opt);
+  });
+  const cnt = state.participants.length;
+  document.getElementById('participantsCountBadge').textContent = String(cnt);
+  document.getElementById('adminParticipantsCount').textContent = String(cnt);
+  ba.querySelectorAll('[data-rm]').forEach(btn => btn.addEventListener('click', () => removeParticipant(Number(btn.getAttribute('data-rm')))));
+}
+function renderTelemetry() {
+  document.getElementById('telemetryPackets').textContent          = String(state.telemetry.paquets);
+  document.getElementById('telemetryPending').textContent          = String(state.telemetry.enAttente);
+  document.getElementById('telemetryConnectionState').textContent  = state.telemetry.connexion === "connected" ? "Connecté" : "Déconnecté";
+  document.getElementById('telemetryLastSync').textContent         = state.telemetry.derniereSync ? fmt(state.telemetry.derniereSync) : "—";
+  document.getElementById('telemetryLapEvents').textContent        = String(state.telemetry.nbTours);
+  document.getElementById('telemetryCameraEvents').textContent     = String(state.telemetry.nbCamera);
+  document.getElementById('telemetryErrorEvents').textContent      = String(state.telemetry.nbErreurs);
+  document.getElementById('telemetryLastEvent').textContent        = state.telemetry.dernierEvenementDescription || "Aucun événement.";
+  const list = document.getElementById('telemetryEventsList'); list.innerHTML = "";
+  state.telemetry.evenementsRecents.forEach(ev => {
+    const d   = document.createElement('div'); d.className = 'log-entry';
+    const cls = ev.type === "erreur" ? "badge-err" : ev.type === "camera" ? "badge-info" : "badge-ok";
+    const lbl = ev.type === "erreur" ? "ERREUR"    : ev.type === "camera" ? "CAMÉRA"    : "TOUR";
+    d.innerHTML = `<div class="log-ts">${fmt(ev.timestamp)}</div><div><span class="badge ${cls}">${lbl}</span></div><div class="log-msg">${ev.description}</div>`;
+    list.appendChild(d);
+  });
+}
+function renderLogs() {
+  const c = document.getElementById('logsContainer'); c.innerHTML = "";
+  state.logs.slice().reverse().forEach(e => {
+    const d   = document.createElement('div'); d.className = 'log-entry';
+    const cls = { SUCCESS: 'badge-ok', WARNING: 'badge-warn', ERROR: 'badge-err', INFO: 'badge-info' }[e.level] || 'badge-neutral';
+    d.innerHTML = `<div class="log-ts">${fmt(e.timestamp)}</div><div><span class="badge ${cls}">${e.level}</span></div><div class="log-msg">${e.message}</div>`;
+    c.appendChild(d);
+  });
+}
+function updateAdminLastAction(txt) {
+  document.getElementById('adminLastAction').textContent  = txt;
+  document.getElementById('adminQuickLog').textContent    = txt;
+}
+ 
+// ─ Navigation ─
+function initNavigation() {
+  const btns  = document.querySelectorAll('.nav-btn');
+  const pages = { dashboard: 'page-dashboard', administration: 'page-administration', telemetry: 'page-telemetry', video: 'page-video', tech: 'page-tech', logs: 'page-logs' };
+  btns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      btns.forEach(b => b.classList.remove('active')); btn.classList.add('active');
+      Object.values(pages).forEach(id => document.getElementById(id).classList.remove('active'));
+      const t = document.getElementById(pages[btn.getAttribute('data-page')]); if (t) t.classList.add('active');
+      // Re-init tilt for new visible cards
+      setTimeout(initCardTilt, 50);
     });
-    log("ERROR", "Reset d’urgence de la course et des participants.");
-    updateAdminLastAction("Reset d’urgence");
-    renderRace();
-    renderParticipants();
-  }
-
-  function ensureRaceTimer() {
-    if (raceTimerInterval) return;
-    raceTimerInterval = setInterval(() => {
-      if (state.course.statut === "running") {
-        state.course.elapsedMs = Date.now() - state.course.startTime;
-        renderRaceTimeOnly();
-      }
-    }, 1000);
-  }
-
-  // ============================================================
-  // GESTION DES PARTICIPANTS
-  // ============================================================
-
-  let nextParticipantId = 1;
-
-  function addParticipant(name) {
-    if (!name.trim()) return;
-    const participant = {
-      id: nextParticipantId++,
-      name: name.trim(),
-      laps: 0,
-      lastPassage: null,
-      status: "actif"
-    };
-    state.participants.push(participant);
-    log("INFO", `Participant ajouté : ${participant.name} (#${participant.id}).`);
-    updateAdminLastAction(`Participant ajouté : ${participant.name}`);
-    renderParticipants();
-  }
-
-  function removeParticipant(id) {
-    const index = state.participants.findIndex(p => p.id === id);
-    if (index === -1) return;
-    const [removed] = state.participants.splice(index, 1);
-    log("WARNING", `Participant supprimé : ${removed.name} (#${removed.id}).`);
-    updateAdminLastAction(`Participant supprimé : ${removed.name}`);
-    renderParticipants();
-  }
-
-  function incrementLap(participantId) {
-    const p = state.participants.find(x => x.id === participantId);
-    if (!p) return;
-    p.laps += 1;
-    p.lastPassage = new Date();
-    state.course.totalTours += 1;
-    state.course.dernierEvenement = `Passage de tour pour ${p.name}`;
-    state.telemetry.paquets += 1;
-    state.telemetry.nbTours += 1;
-    addTelemetryEvent("tour", `Passage de tour pour ${p.name} (#${p.id}).`);
-    sendTelemetryToDatabase({
-      type: "lap",
-      participantId: p.id,
-      name: p.name,
-      timestamp: nowIso(),
-      lap: p.laps
+  });
+}
+ 
+// ─ Events ─
+function initEventListeners() {
+  document.getElementById('btnRaceStart').addEventListener('click', startRace);
+  document.getElementById('btnRacePause').addEventListener('click', pauseRace);
+  document.getElementById('btnRaceStop').addEventListener('click', stopRace);
+  document.getElementById('btnRaceReset').addEventListener('click', resetRace);
+  document.getElementById('btnAdminStart').addEventListener('click', startRace);
+  document.getElementById('btnAdminPause').addEventListener('click', pauseRace);
+  document.getElementById('btnAdminStop').addEventListener('click', stopRace);
+  document.getElementById('btnAdminReset').addEventListener('click', resetRace);
+  document.getElementById('btnAdminAddParticipant').addEventListener('click', () => {
+    const inp = document.getElementById('adminParticipantName');
+    addParticipant(inp.value || `Participant ${nextId}`); inp.value = "";
+  });
+  document.getElementById('adminParticipantName').addEventListener('keydown', e => {
+    if (e.key === 'Enter') { const inp = e.target; addParticipant(inp.value || `Participant ${nextId}`); inp.value = ""; }
+  });
+  document.getElementById('btnSimLap').addEventListener('click', () => {
+    const id = Number(document.getElementById('simParticipantSelect').value);
+    if (!id) { log("WARNING", "Aucun participant sélectionné."); return; }
+    incrementLap(id);
+  });
+  document.getElementById('btnSimCamera').addEventListener('click', () => simulateCameraEvent(Number(document.getElementById('simParticipantSelect').value) || null));
+  document.getElementById('btnSimError').addEventListener('click',  () => simulateSensorError(Number(document.getElementById('simParticipantSelect').value) || null));
+  document.getElementById('btnAwsConnect').addEventListener('click',    connectAws);
+  document.getElementById('btnAwsDisconnect').addEventListener('click', disconnectAws);
+  document.getElementById('btnAwsFlush').addEventListener('click',      flushBuffer);
+  document.getElementById('btnAwsSimFailure').addEventListener('click', () => {
+    state.aws.simulateFailure = !state.aws.simulateFailure;
+    document.getElementById('awsStatusPill').className = 'conn' + (state.aws.simulateFailure ? ' fail' : (state.aws.connected ? ' ok' : ''));
+    const txt = state.aws.simulateFailure ? "Mode échec activé." : "Mode échec désactivé.";
+    document.getElementById('awsLog').textContent = txt; log("INFO", txt);
+  });
+  document.getElementById('btnAwsTest').addEventListener('click', testAwsConnection);
+  document.getElementById('awsSyncInterval').addEventListener('change', startAutoSync);
+  document.getElementById('btnTelemetrySimEvent').addEventListener('click', simulateRandomTelemetryEvent);
+  document.getElementById('btnDashboardForceTick').addEventListener('click', simulateRandomTelemetryEvent);
+  document.getElementById('btnLogsClear').addEventListener('click', () => { state.logs = []; renderLogs(); });
+  document.getElementById('videoFilterType').addEventListener('change', e => { state.video.filterType = e.target.value; renderVideoList(); });
+}
+ 
+// ─ GSAP entrance animations ─
+function runEntranceAnims() {
+  const tl = gsap.timeline({ delay: 0.1 });
+  tl.from('.kpi-card',  { y: 24, opacity: 0, duration: 0.5, stagger: 0.08, ease: 'power3.out' })
+    .from('.g-main .card',  { y: 20, opacity: 0, duration: 0.45, stagger: 0.1, ease: 'power3.out' }, '-=0.2')
+    .from('.g-low .card',   { y: 20, opacity: 0, duration: 0.45, stagger: 0.1, ease: 'power3.out' }, '-=0.2');
+}
+ 
+// ─ Demo data ─
+function initDemoData() {
+  addParticipant("Voiture 12 · Pilote A");
+  addParticipant("Voiture 7 · Pilote B");
+  addParticipant("Voiture 21 · Pilote C");
+}
+ 
+// ═══════════════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════════════
+function init() {
+  initNavigation();
+  initEventListeners();
+  initDemoData();
+  initVideoList();
+  initChart();
+  renderRace();
+  renderParticipants();
+  renderTelemetry();
+  renderLogs();
+  initCardTilt();
+  runEntranceAnims();
+  log("INFO", "Race Control initialisé.");
+  log("SUCCESS", "3 participants de démonstration chargés.");
+  log("INFO", "3D background · Aurora · Telemetry chart actifs.");
+}
+ 
+// Loader → init
+window.addEventListener('load', () => {
+  setTimeout(() => {
+    const loader = document.getElementById('loader');
+    gsap.to(loader, {
+      opacity: 0, duration: 0.55, ease: 'power2.inOut',
+      onComplete: () => { loader.style.display = 'none'; init(); }
     });
-    log("SUCCESS", `Tour enregistré pour ${p.name} (#${p.id}), tour ${p.laps}.`);
-    renderRace();
-    renderParticipants();
-    renderTelemetry();
-  }
-
-  // ============================================================
-  // GESTION TÉLÉMÉTRIE / CAPTEURS
-  // ============================================================
-
-  function simulateCameraEvent(participantId) {
-    const p = state.participants.find(x => x.id === participantId);
-    const label = p ? `${p.name} (#${p.id})` : "caméra globale";
-    state.telemetry.paquets += 1;
-    state.telemetry.nbCamera += 1;
-    addTelemetryEvent("camera", `Détection caméra pour ${label}.`);
-    sendTelemetryToDatabase({
-      type: "camera",
-      participantId: p ? p.id : null,
-      name: p ? p.name : null,
-      timestamp: nowIso()
-    });
-    log("INFO", `Événement caméra détecté pour ${label}.`);
-    renderTelemetry();
-  }
-
-  function simulateSensorError(participantId) {
-    const p = state.participants.find(x => x.id === participantId);
-    const label = p ? `${p.name} (#${p.id})` : "capteur global";
-    state.telemetry.paquets += 1;
-    state.telemetry.nbErreurs += 1;
-    addTelemetryEvent("erreur", `Erreur capteur détectée pour ${label}.`);
-    sendTelemetryToDatabase({
-      type: "error",
-      participantId: p ? p.id : null,
-      name: p ? p.name : null,
-      timestamp: nowIso()
-    });
-    log("ERROR", `Erreur capteur pour ${label}.`);
-    renderTelemetry();
-  }
-
-  function simulateRandomTelemetryEvent() {
-    const types = ["lap", "camera", "error"];
-    const type = types[Math.floor(Math.random() * types.length)];
-    const participant = state.participants.length
-      ? state.participants[Math.floor(Math.random() * state.participants.length)]
-      : null;
-
-    if (type === "lap" && participant) {
-      incrementLap(participant.id);
-    } else if (type === "camera") {
-      simulateCameraEvent(participant ? participant.id : null);
-    } else {
-      simulateSensorError(participant ? participant.id : null);
-    }
-  }
-
-  // ============================================================
-  // COMMUNICATION BASE DE DONNÉES (SIMULATION AWS / DYNAMODB)
-  // ============================================================
-
-  // Simulation d’envoi vers une base (DynamoDB)
-  function sendToDatabase(payload) {
-    return new Promise((resolve, reject) => {
-      if (!state.aws.connected || state.aws.simulateFailure) {
-        reject(new Error("Connexion AWS simulée indisponible."));
-      } else {
-        setTimeout(() => {
-          resolve({ ok: true });
-        }, 150);
-      }
-    });
-  }
-
-  // Flush du buffer local vers la base simulée
-  function flushBuffer() {
-    if (!state.aws.buffer.length) return;
-    const bufferCopy = [...state.aws.buffer];
-    state.aws.buffer = [];
-    state.aws.lastSync = new Date();
-    state.telemetry.derniereSync = state.aws.lastSync;
-    state.telemetry.enAttente = 0;
-    document.getElementById("awsBufferCount").textContent = "0";
-    document.getElementById("awsLastSync").textContent = formatTime(state.aws.lastSync);
-    document.getElementById("telemetryLastSync").textContent = formatTime(state.telemetry.derniereSync);
-    document.getElementById("awsLog").textContent =
-      `Buffer vidé : ${bufferCopy.length} événement(s) synchronisé(s) vers la base simulée.`;
-    log("SUCCESS", `Buffer vidé : ${bufferCopy.length} événement(s) envoyés vers la base simulée.`);
-  }
-
-  // Envoi d’un événement télémétrique vers la base (ou buffer)
-  function sendTelemetryToDatabase(payload) {
-    if (!state.aws.connected || state.aws.simulateFailure) {
-      state.aws.buffer.push(payload);
-      state.telemetry.enAttente = state.aws.buffer.length;
-      document.getElementById("awsBufferCount").textContent = String(state.aws.buffer.length);
-      document.getElementById("awsLog").textContent =
-        `Connexion indisponible : événement ajouté au buffer (total : ${state.aws.buffer.length}).`;
-      return;
-    }
-
-    sendToDatabase(payload)
-      .then(() => {
-        state.aws.lastSync = new Date();
-        state.telemetry.derniereSync = state.aws.lastSync;
-        document.getElementById("awsLastSync").textContent = formatTime(state.aws.lastSync);
-        document.getElementById("telemetryLastSync").textContent = formatTime(state.telemetry.derniereSync);
-        document.getElementById("awsLog").textContent = "Événement envoyé à la base simulée.";
-      })
-      .catch(() => {
-        state.aws.buffer.push(payload);
-        state.telemetry.enAttente = state.aws.buffer.length;
-        document.getElementById("awsBufferCount").textContent = String(state.aws.buffer.length);
-        document.getElementById("awsLog").textContent =
-          `Erreur d’envoi : événement ajouté au buffer (total : ${state.aws.buffer.length}).`;
-        log("ERROR", "Échec d’envoi vers la base simulée, bascule vers le buffer local.");
-      });
-  }
-
-  // Démarrage du flush automatique du buffer
-  function startAutoSync() {
-    const intervalInput = document.getElementById("awsSyncInterval");
-    const value = Number(intervalInput.value) || 5000;
-    state.aws.syncIntervalMs = value;
-    if (state.aws.syncTimer) {
-      clearInterval(state.aws.syncTimer);
-    }
-    state.aws.syncTimer = setInterval(() => {
-      if (state.aws.connected && !state.aws.simulateFailure && state.aws.buffer.length) {
-        flushBuffer();
-      }
-    }, state.aws.syncIntervalMs);
-  }
-
-  // Connexion AWS simulée
-  function connectAws() {
-    state.aws.region = document.getElementById("awsRegion").value;
-    state.aws.tableName = document.getElementById("awsTableName").value || "race-telemetry-demo";
-    state.aws.connected = true;
-    state.aws.simulateFailure = false;
-    state.telemetry.connexion = "connected";
-    document.getElementById("awsConnectionStateText").textContent = "Connecté";
-    document.getElementById("awsStatusText").textContent =
-      `Connecté à ${state.aws.region} · Table : ${state.aws.tableName}`;
-    document.getElementById("awsStatusDot").style.background = "var(--success)";
-    document.getElementById("awsStatusDot").style.boxShadow = "0 0 10px rgba(34,197,94,0.9)";
-    document.getElementById("telemetryConnectionState").textContent = "Connecté";
-    document.getElementById("telemetryStatusBadge").textContent = "Flux actif";
-    log("INFO", `Connexion AWS simulée établie sur ${state.aws.region}, table ${state.aws.tableName}.`);
-    if (state.aws.buffer.length) {
-      flushBuffer();
-    }
-    startAutoSync();
-  }
-
-  // Déconnexion AWS simulée
-  function disconnectAws() {
-    state.aws.connected = false;
-    state.telemetry.connexion = "disconnected";
-    document.getElementById("awsConnectionStateText").textContent = "Déconnecté";
-    document.getElementById("awsStatusText").textContent = "Déconnecté · Buffer local actif";
-    document.getElementById("awsStatusDot").style.background = "var(--warning)";
-    document.getElementById("awsStatusDot").style.boxShadow = "0 0 10px rgba(245,158,11,0.9)";
-    document.getElementById("telemetryConnectionState").textContent = "Déconnecté";
-    document.getElementById("telemetryStatusBadge").textContent = "Flux inactif";
-    log("WARNING", "Connexion AWS simulée fermée.");
-    if (state.aws.syncTimer) {
-      clearInterval(state.aws.syncTimer);
-      state.aws.syncTimer = null;
-    }
-  }
-
-  // Test de connexion (simulé)
-  function testAwsConnection() {
-    if (state.aws.connected && !state.aws.simulateFailure) {
-      document.getElementById("awsLog").textContent = "Test de connexion réussi (simulation).";
-      log("SUCCESS", "Test de connexion AWS simulée réussi.");
-    } else {
-      document.getElementById("awsLog").textContent = "Test de connexion échoué (simulation).";
-      log("WARNING", "Test de connexion AWS simulée échoué.");
-    }
-  }
-
-  // ============================================================
-  // SURVEILLANCE VIDÉO
-  // ============================================================
-
-  function initVideoList() {
-    state.video.list = [
-      {
-        id: 1,
-        src: "https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4",
-        timestamp: "2026-03-11T09:15:23Z",
-        cameraId: "CAM-01",
-        type: "lap",
-        label: "Passage de tour - Voiture 12"
-      },
-      {
-        id: 2,
-        src: "https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4",
-        timestamp: "2026-03-11T09:18:47Z",
-        cameraId: "CAM-02",
-        type: "camera",
-        label: "Détection caméra - Virage 3"
-      },
-      {
-        id: 3,
-        src: "https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4",
-        timestamp: "2026-03-11T09:21:02Z",
-        cameraId: "CAM-03",
-        type: "incident",
-        label: "Incident - Sortie de piste"
-      }
-    ];
-    document.getElementById("videoCount").textContent = String(state.video.list.length);
-    renderVideoList();
-  }
-
-  function renderVideoList() {
-    const container = document.getElementById("videoList");
-    container.innerHTML = "";
-    const filter = state.video.filterType;
-    const filtered = state.video.list.filter(v => filter === "all" || v.type === filter);
-
-    if (!filtered.length) {
-      const div = document.createElement("div");
-      div.className = "muted";
-      div.textContent = "Aucune vidéo ne correspond au filtre sélectionné.";
-      container.appendChild(div);
-      return;
-    }
-
-    filtered.forEach(video => {
-      const item = document.createElement("div");
-      item.className = "video-item" + (state.video.currentId === video.id ? " active" : "");
-      item.dataset.id = video.id;
-
-      const thumb = document.createElement("div");
-      thumb.className = "video-thumb";
-
-      const meta = document.createElement("div");
-      meta.className = "video-meta-main";
-
-      const title = document.createElement("div");
-      title.className = "video-meta-title";
-      title.textContent = video.label;
-
-      const sub = document.createElement("div");
-      sub.className = "video-meta-sub";
-      sub.textContent = `${formatTime(new Date(video.timestamp))} · ${video.cameraId}`;
-
-      const tags = document.createElement("div");
-      tags.className = "video-meta-tags";
-
-      const typeBadge = document.createElement("span");
-      typeBadge.className = "badge badge-info";
-      if (video.type === "lap") typeBadge.textContent = "Passage de tour";
-      else if (video.type === "camera") typeBadge.textContent = "Détection caméra";
-      else typeBadge.textContent = "Incident / erreur";
-
-      tags.appendChild(typeBadge);
-      meta.appendChild(title);
-      meta.appendChild(sub);
-      meta.appendChild(tags);
-
-      item.appendChild(thumb);
-      item.appendChild(meta);
-
-      item.addEventListener("click", () => {
-        loadVideo(video.id);
-      });
-
-      container.appendChild(item);
-    });
-  }
-
-  function loadVideo(id) {
-    const video = state.video.list.find(v => v.id === id);
-    if (!video) return;
-    state.video.currentId = id;
-
-    const player = document.getElementById("videoPlayer");
-    const source = document.getElementById("videoSource");
-    source.src = video.src;
-    player.load();
-    player.play().catch(() => {});
-
-    const info = document.getElementById("videoCurrentInfo");
-    info.textContent = `${video.label} · ${formatTime(new Date(video.timestamp))} · ${video.cameraId}`;
-
-    renderVideoList();
-  }
-
-  // ============================================================
-  // RENDU UI : COURSE / PARTICIPANTS / TÉLÉMÉTRIE / LOGS
-  // ============================================================
-
-  function renderRace() {
-    const statusLabel = document.getElementById("globalStatusLabel");
-    const statusSub = document.getElementById("globalStatusSub");
-    const dot = document.getElementById("globalStatusDot");
-    const chipDot = document.getElementById("chipRaceDot");
-    const chipText = document.getElementById("chipRaceText");
-    const badge = document.getElementById("raceStateBadge");
-
-    let label, sub, color, glow;
-    switch (state.course.statut) {
-      case "running":
-        label = "Course en cours";
-        sub = "Chronomètre actif";
-        color = "var(--success)";
-        glow = "0 0 12px rgba(34,197,94,0.9)";
-        break;
-      case "paused":
-        label = "Course en pause";
-        sub = "Chronomètre en pause";
-        color = "var(--warning)";
-        glow = "0 0 12px rgba(245,158,11,0.9)";
-        break;
-      case "stopped":
-        label = "Course arrêtée";
-        sub = "Session terminée";
-        color = "var(--danger)";
-        glow = "0 0 12px rgba(239,68,68,0.9)";
-        break;
-      default:
-        label = "Course en attente";
-        sub = "Aucune course active";
-        color = "var(--accent)";
-        glow = "0 0 12px rgba(79,70,229,0.9)";
-    }
-
-    statusLabel.textContent = label;
-    statusSub.textContent = sub;
-    chipText.textContent = label;
-    badge.textContent = label;
-
-    dot.style.background = color;
-    dot.style.boxShadow = glow;
-    chipDot.style.background = color;
-
-    document.getElementById("raceElapsed").textContent = formatDuration(state.course.elapsedMs);
-    document.getElementById("raceTotalLaps").textContent = String(state.course.totalTours);
-    document.getElementById("raceActiveParticipants").textContent = String(state.participants.length);
-    document.getElementById("raceLastEvent").textContent =
-      state.course.dernierEvenement ? state.course.dernierEvenement : "—";
-
-    document.getElementById("adminRaceSummary").textContent = label;
-  }
-
-  function renderRaceTimeOnly() {
-    document.getElementById("raceElapsed").textContent = formatDuration(state.course.elapsedMs);
-  }
-
-  function renderParticipants() {
-    const bodyDashboard = document.getElementById("participantsTableBody");
-    const bodyAdmin = document.getElementById("adminParticipantsTableBody");
-    const selectSim = document.getElementById("simParticipantSelect");
-
-    bodyDashboard.innerHTML = "";
-    bodyAdmin.innerHTML = "";
-    selectSim.innerHTML = '<option value="">Sélectionner un participant…</option>';
-
-    state.participants.forEach(p => {
-      const trDash = document.createElement("tr");
-      trDash.innerHTML = `
-        <td>#${p.id}</td>
-        <td>${p.name}</td>
-        <td>${p.laps}</td>
-        <td>${p.lastPassage ? formatTime(p.lastPassage) : "—"}</td>
-        <td>
-          <span class="badge ${p.status === "actif" ? "badge-success" : "badge-warning"}">
-            ${p.status === "actif" ? "Actif" : "Inactif"}
-          </span>
-        </td>
-      `;
-      bodyDashboard.appendChild(trDash);
-
-      const trAdmin = document.createElement("tr");
-      const statusBadgeClass = p.status === "actif" ? "badge-success" : "badge-warning";
-      trAdmin.innerHTML = `
-        <td>#${p.id}</td>
-        <td>${p.name}</td>
-        <td>${p.laps}</td>
-        <td><span class="badge ${statusBadgeClass}">${p.status === "actif" ? "Actif" : "Inactif"}</span></td>
-        <td class="text-right">
-          <button class="btn btn-sm btn-ghost" data-remove="${p.id}">Supprimer</button>
-        </td>
-      `;
-      bodyAdmin.appendChild(trAdmin);
-
-      const opt = document.createElement("option");
-      opt.value = p.id;
-      opt.textContent = `#${p.id} · ${p.name}`;
-      selectSim.appendChild(opt);
-    });
-
-    document.getElementById("participantsCountBadge").textContent =
-      state.participants.length === 1
-        ? "1 participant"
-        : `${state.participants.length} participants`;
-    document.getElementById("adminParticipantsCount").textContent = String(state.participants.length);
-
-    bodyAdmin.querySelectorAll("button[data-remove]").forEach(btn => {
-      btn.addEventListener("click", () => {
-        const id = Number(btn.getAttribute("data-remove"));
-        removeParticipant(id);
-      });
-    });
-  }
-
-  function renderTelemetry() {
-    document.getElementById("telemetryPackets").textContent = String(state.telemetry.paquets);
-    document.getElementById("telemetryPending").textContent = String(state.telemetry.enAttente);
-    document.getElementById("telemetryConnectionState").textContent =
-      state.telemetry.connexion === "connected" ? "Connecté" : "Déconnecté";
-    document.getElementById("telemetryLastSync").textContent =
-      state.telemetry.derniereSync ? formatTime(state.telemetry.derniereSync) : "—";
-
-    document.getElementById("telemetryLapEvents").textContent = String(state.telemetry.nbTours);
-    document.getElementById("telemetryCameraEvents").textContent = String(state.telemetry.nbCamera);
-    document.getElementById("telemetryErrorEvents").textContent = String(state.telemetry.nbErreurs);
-    document.getElementById("telemetryLastEvent").textContent =
-      state.telemetry.dernierEvenementDescription || "Aucun événement télémétrique pour le moment.";
-
-    const list = document.getElementById("telemetryEventsList");
-    list.innerHTML = "";
-    state.telemetry.evenementsRecents.forEach(ev => {
-      const div = document.createElement("div");
-      div.className = "log-entry";
-      let levelBadgeClass;
-      let levelLabel;
-      if (ev.type === "erreur") {
-        levelBadgeClass = "badge-danger";
-        levelLabel = "ERREUR";
-      } else if (ev.type === "camera") {
-        levelBadgeClass = "badge-info";
-        levelLabel = "CAMÉRA";
-      } else {
-        levelBadgeClass = "badge-success";
-        levelLabel = "TOUR";
-      }
-
-      div.innerHTML = `
-        <div class="log-timestamp">${formatTime(ev.timestamp)}</div>
-        <div class="log-level">
-          <span class="badge ${levelBadgeClass}">${levelLabel}</span>
-        </div>
-        <div class="log-message">${ev.description}</div>
-      `;
-      list.appendChild(div);
-    });
-  }
-
-  function renderLogs() {
-    const container = document.getElementById("logsContainer");
-    container.innerHTML = "";
-    state.logs.slice().reverse().forEach(logEntry => {
-      const div = document.createElement("div");
-      div.className = "log-entry";
-
-      let badgeClass = "badge-info";
-      if (logEntry.level === "SUCCESS") badgeClass = "badge-success";
-      else if (logEntry.level === "WARNING") badgeClass = "badge-warning";
-      else if (logEntry.level === "ERROR") badgeClass = "badge-danger";
-
-      div.innerHTML = `
-        <div class="log-timestamp">${formatTime(logEntry.timestamp)}</div>
-        <div class="log-level">
-          <span class="badge ${badgeClass}">${logEntry.level}</span>
-        </div>
-        <div class="log-message">${logEntry.message}</div>
-      `;
-      container.appendChild(div);
-    });
-  }
-
-  function updateAdminLastAction(text) {
-    document.getElementById("adminLastAction").textContent = text;
-    document.getElementById("adminQuickLog").textContent = text;
-  }
-
-  // ============================================================
-  // NAVIGATION ENTRE LES PAGES
-  // ============================================================
-
-  function initNavigation() {
-    const navItems = document.querySelectorAll(".nav-item");
-    const pages = {
-      dashboard: document.getElementById("page-dashboard"),
-      administration: document.getElementById("page-administration"),
-      telemetry: document.getElementById("page-telemetry"),
-      video: document.getElementById("page-video"),
-      tech: document.getElementById("page-tech"),
-      logs: document.getElementById("page-logs")
-    };
-
-    navItems.forEach(item => {
-      item.addEventListener("click", () => {
-        const pageKey = item.getAttribute("data-page");
-        navItems.forEach(i => i.classList.remove("active"));
-        item.classList.add("active");
-        Object.values(pages).forEach(p => p.classList.remove("active"));
-        const pageEl = pages[pageKey];
-        if (pageEl) pageEl.classList.add("active");
-      });
-    });
-  }
-
-  // ============================================================
-  // GESTION DES ÉVÉNEMENTS UI
-  // ============================================================
-
-  function initEventListeners() {
-    // Contrôles course (dashboard)
-    document.getElementById("btnRaceStart").addEventListener("click", startRace);
-    document.getElementById("btnRacePause").addEventListener("click", pauseRace);
-    document.getElementById("btnRaceStop").addEventListener("click", stopRace);
-    document.getElementById("btnRaceReset").addEventListener("click", resetRace);
-
-    // Contrôles course (admin)
-    document.getElementById("btnAdminStart").addEventListener("click", startRace);
-    document.getElementById("btnAdminPause").addEventListener("click", pauseRace);
-    document.getElementById("btnAdminStop").addEventListener("click", stopRace);
-    document.getElementById("btnAdminReset").addEventListener("click", resetRace);
-
-    // Ajout participant
-    document.getElementById("btnAdminAddParticipant").addEventListener("click", () => {
-      const input = document.getElementById("adminParticipantName");
-      addParticipant(input.value || `Participant ${nextParticipantId}`);
-      input.value = "";
-    });
-
-    // Simulation capteurs
-    document.getElementById("btnSimLap").addEventListener("click", () => {
-      const id = Number(document.getElementById("simParticipantSelect").value);
-      if (!id) {
-        log("WARNING", "Simulation de passage de tour sans participant sélectionné.");
-        return;
-      }
-      incrementLap(id);
-    });
-
-    document.getElementById("btnSimCamera").addEventListener("click", () => {
-      const id = Number(document.getElementById("simParticipantSelect").value) || null;
-      simulateCameraEvent(id);
-    });
-
-    document.getElementById("btnSimError").addEventListener("click", () => {
-      const id = Number(document.getElementById("simParticipantSelect").value) || null;
-      simulateSensorError(id);
-    });
-
-    // AWS / Paramètres techniques
-    document.getElementById("btnAwsConnect").addEventListener("click", connectAws);
-    document.getElementById("btnAwsDisconnect").addEventListener("click", disconnectAws);
-    document.getElementById("btnAwsFlush").addEventListener("click", flushBuffer);
-    document.getElementById("btnAwsSimFailure").addEventListener("click", () => {
-      state.aws.simulateFailure = !state.aws.simulateFailure;
-      const text = state.aws.simulateFailure
-        ? "Mode échec simulé activé."
-        : "Mode échec simulé désactivé.";
-      document.getElementById("awsLog").textContent = text;
-      log("INFO", text);
-    });
-    document.getElementById("btnAwsTest").addEventListener("click", testAwsConnection);
-    document.getElementById("awsSyncInterval").addEventListener("change", startAutoSync);
-
-    // Télémétrie
-    document.getElementById("btnTelemetrySimEvent").addEventListener("click", simulateRandomTelemetryEvent);
-
-    // Dashboard : simulation rapide
-    document.getElementById("btnDashboardForceTick").addEventListener("click", simulateRandomTelemetryEvent);
-
-    // Logs
-    document.getElementById("btnLogsClear").addEventListener("click", () => {
-      state.logs = [];
-      renderLogs();
-    });
-
-    // Vidéo
-    document.getElementById("videoFilterType").addEventListener("change", e => {
-      state.video.filterType = e.target.value;
-      renderVideoList();
-    });
-  }
-
-  // ============================================================
-  // INITIALISATION (DEMO / DONNÉES)
-  // ============================================================
-
-  function initDemoData() {
-    addParticipant("Voiture 12 · Pilote A");
-    addParticipant("Voiture 7 · Pilote B");
-    addParticipant("Voiture 21 · Pilote C");
-  }
-
-  function init() {
-    initNavigation();
-    initEventListeners();
-    initDemoData();
-    initVideoList();
-    renderRace();
-    renderParticipants();
-    renderTelemetry();
-    renderLogs();
-  }
-
-  document.addEventListener("DOMContentLoaded", init);
+  }, 1900);
+});
 </script>
 </body>
 </html>
+ 
