@@ -29,16 +29,13 @@
   --dim:       #d4dff0;
   --sidebar:   rgba(255,255,255,0.96);
   --header:    rgba(255,255,255,0.9);
- 
   --glow-b:   rgba(59,108,247,0.22);
   --glow-r:   rgba(240,78,107,0.22);
   --glow-g:   rgba(16,185,129,0.22);
   --glow-a:   rgba(245,158,11,0.22);
   --r: 12px;
 }
- 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
- 
 html, body {
   width: 100%; height: 100%;
   overflow: hidden;
@@ -263,9 +260,9 @@ main::-webkit-scrollbar-thumb { background: var(--dim); border-radius: 2px; }
   border-radius: var(--r);
   padding: 20px 22px;
   position: relative; overflow: hidden;
-  transition: all 0.35s cubic-bezier(0.16,1,0.3,1);
+  transition: border-color 0.35s cubic-bezier(0.16,1,0.3,1),
+              box-shadow 0.35s cubic-bezier(0.16,1,0.3,1);
   box-shadow: 0 2px 16px rgba(99,132,199,0.07), 0 1px 4px rgba(99,132,199,0.05);
-  will-change: transform;
 }
 .card::before {
   content: '';
@@ -277,7 +274,6 @@ main::-webkit-scrollbar-thumb { background: var(--dim); border-radius: 2px; }
 .card:hover {
   border-color: rgba(59,108,247,0.18);
   box-shadow: 0 8px 40px rgba(99,132,199,0.14), 0 2px 8px rgba(99,132,199,0.08);
-  transform: translateY(-2px);
 }
 .card-shine {
   position: absolute; top: 0; left: -120%; width: 50%; height: 100%;
@@ -361,7 +357,9 @@ main::-webkit-scrollbar-thumb { background: var(--dim); border-radius: 2px; }
   border: 1px solid var(--border);
   border-radius: var(--r); padding: 18px 20px;
   position: relative; overflow: hidden;
-  transition: all 0.3s cubic-bezier(0.16,1,0.3,1);
+  transition: border-color 0.3s cubic-bezier(0.16,1,0.3,1),
+              box-shadow 0.3s cubic-bezier(0.16,1,0.3,1),
+              transform 0.3s cubic-bezier(0.16,1,0.3,1);
   box-shadow: 0 2px 12px rgba(99,132,199,0.06);
   cursor: default;
 }
@@ -1127,7 +1125,6 @@ video { width: 100%; display: block; min-height: 240px; background: #111; }
     my = (e.clientY / window.innerHeight - 0.5) * 2;
   });
  
-  // ─ Floating translucent orbs ─
   function makeOrb(radius, color, opacity) {
     const geo = new THREE.SphereGeometry(radius, 24, 24);
     const mat = new THREE.MeshBasicMaterial({ color, transparent: true, opacity, depthWrite: false });
@@ -1143,7 +1140,6 @@ video { width: 100%; display: block; min-height: 240px; background: #111; }
   ];
   orbs.forEach(o => { o.mesh.position.set(o.x, o.y, o.z); scene.add(o.mesh); });
  
-  // ─ Wireframe icospheres ─
   function makeIco(radius, color, opacity) {
     const g = new THREE.IcosahedronGeometry(radius, 1);
     const m = new THREE.MeshBasicMaterial({
@@ -1160,7 +1156,6 @@ video { width: 100%; display: block; min-height: 240px; background: #111; }
   ];
   icos.forEach(s => { s.mesh.position.set(s.x, s.y, s.z); scene.add(s.mesh); });
  
-  // ─ Grid plane ─
   const gridGeo = new THREE.PlaneGeometry(60, 36, 36, 20);
   gridGeo.rotateX(-Math.PI * 0.38);
   const gridMat = new THREE.MeshBasicMaterial({
@@ -1173,7 +1168,6 @@ video { width: 100%; display: block; min-height: 240px; background: #111; }
   const gridPos = gridGeo.attributes.position;
   const gridOrig = new Float32Array(gridPos.array);
  
-  // ─ Floating particles ─
   const pCount = 180;
   const pGeo = new THREE.BufferGeometry();
   const pArr = new Float32Array(pCount * 3);
@@ -1189,7 +1183,6 @@ video { width: 100%; display: block; min-height: 240px; background: #111; }
   });
   scene.add(new THREE.Points(pGeo, pMat));
  
-  // ─ Ring torus ─
   const torusGeo = new THREE.TorusGeometry(8, 0.06, 8, 80);
   const torusMat = new THREE.MeshBasicMaterial({
     color: 0x3b6cf7, transparent: true, opacity: 0.07, depthWrite: false,
@@ -1217,34 +1210,22 @@ video { width: 100%; display: block; min-height: 240px; background: #111; }
   function animate() {
     requestAnimationFrame(animate);
     t += 0.01;
- 
     camera.position.x += (mx * 2 - camera.position.x) * 0.02;
     camera.position.y += (-my * 1.2 + 5 - camera.position.y) * 0.02;
     camera.lookAt(0, 0, 0);
- 
-    // Wave grid
     for (let i = 0; i < gridPos.count; i++) {
       const x = gridOrig[i*3], y = gridOrig[i*3+1];
       gridPos.setZ(i, Math.sin(x*0.3 + t*0.7)*0.6 + Math.cos(y*0.25 + t*0.5)*0.4);
     }
     gridPos.needsUpdate = true;
- 
-    // Orbs float
-    orbs.forEach((o, i) => {
-      o.mesh.position.y = o.y + Math.sin(t*0.35 + i*1.2) * 0.8;
-    });
- 
-    // Icos spin
+    orbs.forEach((o, i) => { o.mesh.position.y = o.y + Math.sin(t*0.35 + i*1.2) * 0.8; });
     icos.forEach(s => {
       s.mesh.rotation.x += s.spx;
       s.mesh.rotation.y += s.spy;
       s.mesh.position.y = s.y + Math.sin(t*0.38 + s.x)*0.5;
     });
- 
-    // Tori spin
     torus.rotation.z  += 0.003;
     torus2.rotation.x += 0.004;
- 
     renderer.render(scene, camera);
   }
   animate();
@@ -1263,7 +1244,7 @@ setInterval(updateClock, 1000);
 updateClock();
  
 // ═══════════════════════════════════════════════════════════
-// CHART.JS
+// CHART.JS — lazy init when tab becomes visible
 // ═══════════════════════════════════════════════════════════
 let telemetryChart = null;
 const chartHistory = { tours:[], cameras:[], errors:[], labels:[] };
@@ -1271,7 +1252,9 @@ const MAX_HIST = 20;
  
 function initChart() {
   const ctx = document.getElementById('telemetryChart');
-  if (!ctx) return;
+  if (!ctx || telemetryChart) return;
+  // Only init when the canvas has dimensions
+  if (ctx.offsetWidth === 0) return;
   telemetryChart = new Chart(ctx, {
     type: 'line',
     data: {
@@ -1679,7 +1662,9 @@ function renderTelemetry() {
 }
  
 function renderLogs() {
-  const c = document.getElementById('logsContainer'); c.innerHTML = "";
+  const c = document.getElementById('logsContainer');
+  if (!c) return;
+  c.innerHTML = "";
   state.logs.slice().reverse().forEach(e => {
     const d   = document.createElement('div'); d.className='log-entry';
     const cls = {SUCCESS:'badge-ok',WARNING:'badge-warn',ERROR:'badge-err',INFO:'badge-info'}[e.level]||'badge-neutral';
@@ -1693,29 +1678,28 @@ function updateAdminLastAction(txt) {
   document.getElementById('adminQuickLog').textContent   = txt;
 }
  
-// ─ Card 3D tilt ─
-function initCardTilt() {
-  document.querySelectorAll('.card, .kpi-card').forEach(card => {
-    card.addEventListener('mousemove', e => {
-      const r  = card.getBoundingClientRect();
-      const rx = ((e.clientY-r.top)/r.height-0.5)*6;
-      const ry = ((e.clientX-r.left)/r.width-0.5)*-6;
-      card.style.transform = `perspective(900px) rotateX(${rx}deg) rotateY(${ry}deg) translateY(-2px)`;
-    });
-    card.addEventListener('mouseleave', ()=>{ card.style.transform=''; });
-  });
-}
- 
 // ─ Navigation ─
 function initNavigation() {
   const btns  = document.querySelectorAll('.nav-btn');
-  const pages = { dashboard:'page-dashboard', administration:'page-administration', telemetry:'page-telemetry', video:'page-video', tech:'page-tech', logs:'page-logs' };
+  const pages = {
+    dashboard:      'page-dashboard',
+    administration: 'page-administration',
+    telemetry:      'page-telemetry',
+    video:          'page-video',
+    tech:           'page-tech',
+    logs:           'page-logs'
+  };
   btns.forEach(btn => {
     btn.addEventListener('click', () => {
-      btns.forEach(b=>b.classList.remove('active')); btn.classList.add('active');
+      btns.forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active');
       Object.values(pages).forEach(id=>document.getElementById(id).classList.remove('active'));
-      const t = document.getElementById(pages[btn.getAttribute('data-page')]); if (t) t.classList.add('active');
-      setTimeout(initCardTilt, 50);
+      const target = document.getElementById(pages[btn.getAttribute('data-page')]);
+      if (target) target.classList.add('active');
+      // Lazy-init chart when telemetry tab becomes visible
+      if (btn.getAttribute('data-page') === 'telemetry') {
+        requestAnimationFrame(() => initChart());
+      }
     });
   });
 }
@@ -1761,12 +1745,20 @@ function initEventListeners() {
   document.getElementById('videoFilterType').addEventListener('change', e=>{ state.video.filterType=e.target.value; renderVideoList(); });
 }
  
-// ─ GSAP entrance ─
+// ─ GSAP entrance (CSS-only, no transform conflict) ─
 function runEntranceAnims() {
-  const tl = gsap.timeline({ delay:0.1 });
-  tl.from('.kpi-card',      { y:20, opacity:0, duration:0.5, stagger:0.08, ease:'power3.out' })
-    .from('.g-main .card',  { y:18, opacity:0, duration:0.45, stagger:0.1, ease:'power3.out' }, '-=0.2')
-    .from('.g-low .card',   { y:18, opacity:0, duration:0.45, stagger:0.1, ease:'power3.out' }, '-=0.2');
+  gsap.fromTo('.kpi-card',
+    { opacity: 0, y: 20 },
+    { opacity: 1, y: 0, duration: 0.5, stagger: 0.08, ease: 'power3.out', delay: 0.1 }
+  );
+  gsap.fromTo('.g-main .card',
+    { opacity: 0, y: 18 },
+    { opacity: 1, y: 0, duration: 0.45, stagger: 0.1, ease: 'power3.out', delay: 0.36 }
+  );
+  gsap.fromTo('.g-low .card',
+    { opacity: 0, y: 18 },
+    { opacity: 1, y: 0, duration: 0.45, stagger: 0.1, ease: 'power3.out', delay: 0.52 }
+  );
 }
  
 // ─ Demo data ─
@@ -1782,12 +1774,11 @@ function init() {
   initEventListeners();
   initDemoData();
   initVideoList();
-  initChart();
+  // Chart is lazy-loaded on telemetry tab click
   renderRace();
   renderParticipants();
   renderTelemetry();
   renderLogs();
-  initCardTilt();
   runEntranceAnims();
   log("INFO","Race Control initialisé.");
   log("SUCCESS","3 participants de démonstration chargés.");
