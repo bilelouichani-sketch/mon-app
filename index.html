@@ -4,31 +4,37 @@
 <meta charset="UTF-8"/>
 <title>Race Control · Supervision</title>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
-<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Rajdhani:wght@300;400;500;600;700&family=JetBrains+Mono:wght@300;400;500;700&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Syne:wght@600;700;800&family=JetBrains+Mono:wght@300;400;500;700&display=swap" rel="stylesheet"/>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
 <style>
 :root {
-  --bg:       #040508;
-  --bg2:      #070a10;
-  --surface:  rgba(8,12,22,0.82);
-  --surface2: rgba(12,18,32,0.65);
-  --border:   rgba(0,212,255,0.12);
-  --border2:  rgba(0,212,255,0.28);
-  --cyan:     #00d4ff;
-  --cyan2:    #00ffcc;
-  --red:      #ff3b5c;
-  --amber:    #ffb830;
-  --green:    #00e87a;
-  --text:     #e8f4ff;
-  --muted:    #4a6080;
-  --dim:      #1e2d42;
-  --glow-c:   rgba(0,212,255,0.35);
-  --glow-r:   rgba(255,59,92,0.4);
-  --glow-g:   rgba(0,232,122,0.35);
-  --glow-a:   rgba(255,184,48,0.35);
-  --r: 8px;
+  --bg:        #f0f4f8;
+  --bg2:       #e8eef5;
+  --surface:   rgba(255,255,255,0.82);
+  --surface2:  rgba(255,255,255,0.65);
+  --border:    rgba(99,132,199,0.14);
+  --border2:   rgba(79,109,180,0.28);
+  --blue:      #3b6cf7;
+  --blue2:     #6ea4ff;
+  --teal:      #0cc4a8;
+  --red:       #f04e6b;
+  --amber:     #f59e0b;
+  --green:     #10b981;
+  --purple:    #8b5cf6;
+  --text:      #1a2240;
+  --text2:     #445580;
+  --muted:     #8a9abf;
+  --dim:       #d4dff0;
+  --sidebar:   rgba(255,255,255,0.96);
+  --header:    rgba(255,255,255,0.9);
+ 
+  --glow-b:   rgba(59,108,247,0.22);
+  --glow-r:   rgba(240,78,107,0.22);
+  --glow-g:   rgba(16,185,129,0.22);
+  --glow-a:   rgba(245,158,11,0.22);
+  --r: 12px;
 }
  
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -37,101 +43,74 @@ html, body {
   width: 100%; height: 100%;
   overflow: hidden;
   background: var(--bg);
-  font-family: 'Rajdhani', sans-serif;
+  font-family: 'DM Sans', sans-serif;
   color: var(--text);
 }
  
 /* ─── LOADER ─── */
 #loader {
   position: fixed; inset: 0; z-index: 9999;
-  background: var(--bg);
+  background: linear-gradient(135deg, #eef2fb 0%, #f5f7ff 100%);
   display: flex; flex-direction: column;
   align-items: center; justify-content: center; gap: 24px;
 }
 .loader-ring {
-  width: 72px; height: 72px;
-  border-radius: 50%;
-  border: 2px solid transparent;
-  border-top-color: var(--cyan);
-  border-right-color: var(--cyan2);
+  width: 64px; height: 64px; border-radius: 50%;
+  border: 3px solid var(--dim);
+  border-top-color: var(--blue);
+  border-right-color: var(--teal);
   animation: spin 0.9s linear infinite;
-  box-shadow: 0 0 30px var(--glow-c), inset 0 0 20px rgba(0,212,255,0.05);
-}
-.loader-ring::before {
-  content: '';
-  position: absolute; inset: 6px;
-  border-radius: 50%;
-  border: 1px solid rgba(0,212,255,0.15);
-  animation: spin 1.4s linear infinite reverse;
+  box-shadow: 0 0 30px var(--glow-b);
 }
 @keyframes spin { to { transform: rotate(360deg); } }
 .loader-text {
-  font-family: 'Bebas Neue', sans-serif;
-  font-size: 13px; letter-spacing: 0.4em;
-  color: var(--cyan); opacity: 0.7;
+  font-family: 'Syne', sans-serif; font-size: 11px; letter-spacing: 0.35em;
+  color: var(--muted); text-transform: uppercase;
   animation: pulse 1.4s ease-in-out infinite;
 }
 @keyframes pulse { 0%,100%{opacity:.4} 50%{opacity:1} }
 .loader-bar {
-  width: 200px; height: 1px;
-  background: var(--dim); border-radius: 1px; overflow: hidden;
+  width: 200px; height: 2px;
+  background: var(--dim); border-radius: 2px; overflow: hidden;
 }
 .loader-bar-fill {
   height: 100%;
-  background: linear-gradient(90deg, var(--cyan), var(--cyan2));
-  box-shadow: 0 0 8px var(--glow-c);
+  background: linear-gradient(90deg, var(--blue), var(--teal));
+  box-shadow: 0 0 8px var(--glow-b);
   animation: load 1.8s cubic-bezier(0.4,0,0.2,1) forwards;
 }
 @keyframes load { from{width:0%} to{width:100%} }
  
 /* ─── CANVAS BG ─── */
 #bg-canvas {
-  position: fixed; inset: 0; z-index: 0;
-  pointer-events: none;
+  position: fixed; inset: 0; z-index: 0; pointer-events: none;
 }
  
-/* ─── AURORA BG ─── */
-.aurora {
+/* ─── MESH GRADIENT ─── */
+.mesh-bg {
   position: fixed; inset: 0; z-index: 0; pointer-events: none;
   background:
-    radial-gradient(ellipse 70% 50% at 20% 40%, rgba(0,212,255,0.055) 0%, transparent 60%),
-    radial-gradient(ellipse 50% 60% at 80% 20%, rgba(0,255,204,0.04) 0%, transparent 55%),
-    radial-gradient(ellipse 80% 40% at 50% 80%, rgba(255,59,92,0.03) 0%, transparent 60%);
-  animation: aurora-shift 12s ease-in-out infinite alternate;
+    radial-gradient(ellipse 60% 50% at 15% 30%, rgba(59,108,247,0.08) 0%, transparent 60%),
+    radial-gradient(ellipse 50% 60% at 85% 20%, rgba(12,196,168,0.07) 0%, transparent 55%),
+    radial-gradient(ellipse 70% 40% at 50% 85%, rgba(139,92,246,0.05) 0%, transparent 60%),
+    linear-gradient(160deg, #f0f4f8 0%, #eef2fb 40%, #f5f0ff 100%);
+  animation: mesh-shift 14s ease-in-out infinite alternate;
 }
-@keyframes aurora-shift {
-  0%   { opacity: 0.7; }
-  100% { opacity: 1; transform: scale(1.05); }
+@keyframes mesh-shift { 0%{opacity:.9} 100%{opacity:1;transform:scale(1.04)} }
+ 
+/* ─── NOISE TEXTURE ─── */
+.noise {
+  position: fixed; inset: 0; z-index: 0; pointer-events: none; opacity: 0.025;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size: 180px;
 }
  
-/* ─── VIGNETTE ─── */
-.vignette {
-  position: fixed; inset: 0; z-index: 1; pointer-events: none;
-  background: radial-gradient(ellipse 100% 100% at 50% 50%, transparent 40%, rgba(4,5,8,0.92) 100%);
-}
- 
-/* ─── SCANLINES ─── */
-.scanlines {
-  position: fixed; inset: 0; z-index: 1; pointer-events: none; opacity: 0.018;
-  background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,212,255,1) 2px, rgba(0,212,255,1) 3px);
-}
- 
-/* ─── CURSOR GLOW ─── */
-#cursor-glow {
-  position: fixed; width: 300px; height: 300px;
-  border-radius: 50%;
-  background: radial-gradient(circle, rgba(0,212,255,0.055) 0%, transparent 70%);
-  pointer-events: none; z-index: 2;
-  transform: translate(-50%,-50%);
-  transition: transform 0.08s linear;
-}
- 
-/* ─── APP LAYOUT ─── */
+/* ─── APP ─── */
 .app {
   position: relative; z-index: 3;
   display: grid;
-  grid-template-columns: 56px 1fr;
-  grid-template-rows: 54px 1fr;
+  grid-template-columns: 60px 1fr;
+  grid-template-rows: 56px 1fr;
   height: 100vh; width: 100vw;
   overflow: hidden;
 }
@@ -140,118 +119,105 @@ html, body {
 .sidebar {
   grid-row: 1/3;
   display: flex; flex-direction: column; align-items: center;
-  padding: 14px 0 18px; gap: 4px;
-  background: rgba(4,5,8,0.88);
-  backdrop-filter: blur(24px) saturate(1.4);
+  padding: 14px 0 20px; gap: 4px;
+  background: var(--sidebar);
+  backdrop-filter: blur(24px) saturate(1.8);
   border-right: 1px solid var(--border);
   position: relative; z-index: 10;
-}
-.sidebar::after {
-  content: '';
-  position: absolute; top: 0; right: -1px; bottom: 0; width: 1px;
-  background: linear-gradient(180deg, transparent, var(--cyan), var(--cyan2), transparent);
-  opacity: 0.4;
+  box-shadow: 2px 0 24px rgba(99,132,199,0.08);
 }
 .logo {
-  width: 36px; height: 36px; border-radius: 6px;
+  width: 36px; height: 36px; border-radius: 10px;
   display: flex; align-items: center; justify-content: center;
-  font-family: 'Bebas Neue', sans-serif; font-size: 18px;
-  color: var(--bg); background: linear-gradient(135deg, var(--cyan), var(--cyan2));
-  box-shadow: 0 0 20px var(--glow-c), 0 4px 12px rgba(0,0,0,0.6);
-  margin-bottom: 14px; flex-shrink: 0;
-  animation: logo-glow 3s ease-in-out infinite alternate;
+  font-family: 'Syne', sans-serif; font-size: 16px; font-weight: 800;
+  color: white; background: linear-gradient(135deg, var(--blue), var(--teal));
+  box-shadow: 0 4px 16px var(--glow-b), 0 2px 8px rgba(0,0,0,0.12);
+  margin-bottom: 16px; flex-shrink: 0;
+  animation: logo-pulse 4s ease-in-out infinite alternate;
 }
-@keyframes logo-glow {
-  from { box-shadow: 0 0 20px var(--glow-c), 0 4px 12px rgba(0,0,0,0.6); }
-  to   { box-shadow: 0 0 35px rgba(0,212,255,0.6), 0 4px 12px rgba(0,0,0,0.6); }
+@keyframes logo-pulse {
+  from { box-shadow: 0 4px 16px var(--glow-b); }
+  to   { box-shadow: 0 6px 28px rgba(59,108,247,0.45); }
 }
 .nav-btn {
-  width: 38px; height: 38px; border-radius: 7px;
+  width: 40px; height: 40px; border-radius: 10px;
   display: flex; align-items: center; justify-content: center;
   background: none; border: none; cursor: pointer;
   color: var(--muted); font-size: 15px;
   position: relative; transition: all 0.25s cubic-bezier(0.16,1,0.3,1);
 }
-.nav-btn:hover { color: var(--text); background: rgba(0,212,255,0.06); }
+.nav-btn:hover { color: var(--blue); background: rgba(59,108,247,0.07); }
 .nav-btn.active {
-  color: var(--cyan);
-  background: rgba(0,212,255,0.08);
-  box-shadow: inset 0 0 0 1px rgba(0,212,255,0.2);
+  color: var(--blue);
+  background: rgba(59,108,247,0.1);
+  box-shadow: inset 0 0 0 1px rgba(59,108,247,0.18);
 }
 .nav-btn.active::before {
   content: '';
-  position: absolute; left: 0; top: 50%; transform: translateY(-50%);
-  width: 2px; height: 20px;
-  background: linear-gradient(180deg, var(--cyan), var(--cyan2));
-  border-radius: 0 2px 2px 0;
-  box-shadow: 2px 0 12px var(--glow-c);
+  position: absolute; left: -2px; top: 50%; transform: translateY(-50%);
+  width: 3px; height: 22px;
+  background: linear-gradient(180deg, var(--blue), var(--teal));
+  border-radius: 0 3px 3px 0;
+  box-shadow: 2px 0 10px var(--glow-b);
 }
-.nav-icon { font-size: 13px; }
+.nav-sep { width: 24px; height: 1px; background: var(--dim); margin: 6px 0; }
  
 /* ─── HEADER ─── */
 header {
   grid-column: 2/3;
   display: flex; align-items: center; justify-content: space-between;
   padding: 0 24px;
-  background: rgba(4,5,8,0.82);
-  backdrop-filter: blur(24px) saturate(1.4);
+  background: var(--header);
+  backdrop-filter: blur(24px) saturate(1.8);
   border-bottom: 1px solid var(--border);
   position: relative; z-index: 10;
+  box-shadow: 0 2px 20px rgba(99,132,199,0.07);
 }
-header::after {
-  content: '';
-  position: absolute; bottom: -1px; left: 56px; right: 0; height: 1px;
-  background: linear-gradient(90deg, var(--cyan), transparent 40%);
-  opacity: 0.4;
-}
-.h-brand { display: flex; align-items: center; gap: 12px; }
+.h-brand { display: flex; align-items: center; gap: 14px; }
 .h-title {
-  font-family: 'Bebas Neue', sans-serif; font-size: 22px;
-  color: var(--text); letter-spacing: 0.08em;
+  font-family: 'Syne', sans-serif; font-size: 20px; font-weight: 800;
+  color: var(--text); letter-spacing: 0.03em;
 }
-.h-title span { color: var(--cyan); }
+.h-title span { color: var(--blue); }
 .h-sub {
   font-family: 'JetBrains Mono', monospace; font-size: 8px;
-  color: var(--muted); letter-spacing: 0.2em; text-transform: uppercase;
+  color: var(--muted); letter-spacing: 0.18em; text-transform: uppercase;
 }
-.h-sep { width: 1px; height: 28px; background: var(--border); }
+.h-sep { width: 1px; height: 28px; background: var(--dim); }
 .h-right { display: flex; align-items: center; gap: 14px; }
 .h-clock {
-  font-family: 'JetBrains Mono', monospace; font-size: 16px; font-weight: 700;
-  color: var(--cyan); letter-spacing: 0.12em;
-  text-shadow: 0 0 20px var(--glow-c);
+  font-family: 'JetBrains Mono', monospace; font-size: 15px; font-weight: 700;
+  color: var(--blue); letter-spacing: 0.1em;
 }
 .h-pill {
   display: flex; align-items: center; gap: 8px;
   padding: 6px 14px; border-radius: 20px;
-  background: rgba(0,212,255,0.04);
+  background: rgba(59,108,247,0.05);
   border: 1px solid var(--border);
-  backdrop-filter: blur(8px);
 }
 .h-dot {
   width: 7px; height: 7px; border-radius: 50%;
-  background: var(--muted); transition: all 0.4s;
+  background: var(--dim); transition: all 0.4s;
 }
-.h-dot.run  { background: var(--green); box-shadow: 0 0 10px var(--glow-g), 0 0 20px var(--glow-g); animation: blink 1.4s ease-in-out infinite; }
-.h-dot.warn { background: var(--amber); box-shadow: 0 0 10px var(--glow-a); }
-.h-dot.danger { background: var(--red); box-shadow: 0 0 10px var(--glow-r), 0 0 20px var(--glow-r); animation: blink 0.8s ease-in-out infinite; }
-@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.5} }
+.h-dot.run    { background: var(--green);  box-shadow: 0 0 8px var(--glow-g);  animation: blink 1.4s ease-in-out infinite; }
+.h-dot.warn   { background: var(--amber);  box-shadow: 0 0 8px var(--glow-a); }
+.h-dot.danger { background: var(--red);    box-shadow: 0 0 8px var(--glow-r);  animation: blink 0.8s ease-in-out infinite; }
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.4} }
 .h-status {
   font-family: 'JetBrains Mono', monospace; font-size: 9px;
-  color: var(--muted); letter-spacing: 0.12em; text-transform: uppercase;
+  color: var(--muted); letter-spacing: 0.1em; text-transform: uppercase;
 }
 .user-tag {
   display: flex; align-items: center; gap: 8px;
-  font-family: 'Rajdhani', sans-serif; font-size: 12px; font-weight: 500;
-  color: var(--muted); letter-spacing: 0.05em;
+  font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 500;
+  color: var(--text2);
 }
 .user-av {
-  width: 26px; height: 26px; border-radius: 50%;
-  background: linear-gradient(135deg, var(--dim), #1a2840);
-  border: 1px solid var(--border2);
+  width: 28px; height: 28px; border-radius: 8px;
+  background: linear-gradient(135deg, var(--blue), var(--teal));
   display: flex; align-items: center; justify-content: center;
-  font-family: 'JetBrains Mono', monospace; font-size: 8px;
-  font-weight: 700; color: var(--cyan);
+  font-family: 'Syne', sans-serif; font-size: 9px; font-weight: 800;
+  color: white;
 }
  
 /* ─── MAIN ─── */
@@ -261,14 +227,14 @@ main {
   padding: 20px 24px 32px;
   scroll-behavior: smooth;
 }
-main::-webkit-scrollbar { width: 3px; }
-main::-webkit-scrollbar-thumb { background: rgba(0,212,255,0.15); border-radius: 2px; }
+main::-webkit-scrollbar { width: 4px; }
+main::-webkit-scrollbar-thumb { background: var(--dim); border-radius: 2px; }
  
 /* ─── PAGES ─── */
 .page { display: none; }
 .page.active { display: block; animation: pageIn 0.4s cubic-bezier(0.16,1,0.3,1); }
 @keyframes pageIn {
-  from { opacity: 0; transform: translateY(12px); }
+  from { opacity: 0; transform: translateY(10px); }
   to   { opacity: 1; transform: none; }
 }
  
@@ -278,15 +244,13 @@ main::-webkit-scrollbar-thumb { background: rgba(0,212,255,0.15); border-radius:
   margin-bottom: 20px; gap: 12px;
 }
 .sec-title {
-  font-family: 'Bebas Neue', sans-serif;
-  font-size: 28px; letter-spacing: 0.06em;
-  color: var(--text);
-  line-height: 1;
+  font-family: 'Syne', sans-serif; font-size: 24px; font-weight: 800;
+  color: var(--text); letter-spacing: 0.01em; line-height: 1;
 }
-.sec-title span { color: var(--cyan); }
+.sec-title span { color: var(--blue); }
 .sec-sub {
   font-family: 'JetBrains Mono', monospace; font-size: 8px;
-  color: var(--muted); letter-spacing: 0.2em; text-transform: uppercase;
+  color: var(--muted); letter-spacing: 0.18em; text-transform: uppercase;
   margin-top: 4px;
 }
 .sec-actions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
@@ -294,89 +258,81 @@ main::-webkit-scrollbar-thumb { background: rgba(0,212,255,0.15); border-radius:
 /* ─── CARDS ─── */
 .card {
   background: var(--surface);
-  backdrop-filter: blur(32px) saturate(1.5);
+  backdrop-filter: blur(32px) saturate(1.6);
   border: 1px solid var(--border);
   border-radius: var(--r);
-  padding: 18px 20px;
+  padding: 20px 22px;
   position: relative; overflow: hidden;
   transition: all 0.35s cubic-bezier(0.16,1,0.3,1);
-  transform-style: preserve-3d;
+  box-shadow: 0 2px 16px rgba(99,132,199,0.07), 0 1px 4px rgba(99,132,199,0.05);
   will-change: transform;
 }
 .card::before {
   content: '';
-  position: absolute; inset: 0; border-radius: var(--r);
-  background: linear-gradient(135deg, rgba(0,212,255,0.03) 0%, transparent 50%);
-  pointer-events: none;
-}
-.card::after {
-  content: '';
   position: absolute; top: 0; left: 0; right: 0; height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(0,212,255,0.3), transparent);
+  background: linear-gradient(90deg, transparent, rgba(59,108,247,0.2), transparent);
   opacity: 0; transition: opacity 0.35s;
 }
-.card:hover::after { opacity: 1; }
+.card:hover::before { opacity: 1; }
 .card:hover {
-  border-color: rgba(0,212,255,0.22);
-  box-shadow: 0 0 0 1px rgba(0,212,255,0.05), 0 20px 60px rgba(0,0,0,0.7), 0 0 40px rgba(0,212,255,0.04);
+  border-color: rgba(59,108,247,0.18);
+  box-shadow: 0 8px 40px rgba(99,132,199,0.14), 0 2px 8px rgba(99,132,199,0.08);
+  transform: translateY(-2px);
 }
 .card-shine {
   position: absolute; top: 0; left: -120%; width: 50%; height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(0,212,255,0.04), transparent);
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.5), transparent);
   transform: skewX(-15deg);
-  transition: left 0.65s cubic-bezier(0.16,1,0.3,1);
+  transition: left 0.7s cubic-bezier(0.16,1,0.3,1);
   pointer-events: none;
 }
 .card:hover .card-shine { left: 160%; }
- 
 .card-head {
   display: flex; align-items: center; justify-content: space-between;
   margin-bottom: 16px;
 }
 .card-title {
   font-family: 'JetBrains Mono', monospace; font-size: 9px; font-weight: 500;
-  letter-spacing: 0.2em; text-transform: uppercase; color: var(--muted);
+  letter-spacing: 0.18em; text-transform: uppercase; color: var(--muted);
   display: flex; align-items: center; gap: 8px;
 }
 .card-icon {
-  width: 22px; height: 22px; border-radius: 4px;
-  background: rgba(0,212,255,0.07); border: 1px solid var(--border);
+  width: 22px; height: 22px; border-radius: 6px;
+  background: linear-gradient(135deg, rgba(59,108,247,0.1), rgba(12,196,168,0.08));
+  border: 1px solid var(--border);
   display: flex; align-items: center; justify-content: center; font-size: 10px;
-  color: var(--cyan);
+  color: var(--blue);
 }
  
 /* ─── GRIDS ─── */
-.g2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.g2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
 .g3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; }
-.g-main { display: grid; grid-template-columns: 320px 1fr; gap: 14px; margin-bottom: 14px; }
-.g-low  { display: grid; grid-template-columns: 320px 1fr; gap: 14px; }
+.g-main { display: grid; grid-template-columns: 340px 1fr; gap: 16px; margin-bottom: 16px; }
+.g-low  { display: grid; grid-template-columns: 340px 1fr; gap: 16px; }
  
 /* ─── RACE TIMER ─── */
 .race-timer {
-  font-family: 'Bebas Neue', sans-serif;
-  font-size: 64px; letter-spacing: 0.04em;
-  text-align: center; padding: 8px 0 4px;
+  font-family: 'Syne', sans-serif; font-weight: 700;
+  font-size: 60px; letter-spacing: 0.02em;
+  text-align: center; padding: 10px 0 6px;
   color: var(--text); line-height: 1;
-  transition: color 0.4s, text-shadow 0.4s;
+  transition: color 0.4s;
 }
-.race-timer.running {
-  color: var(--cyan);
-  text-shadow: 0 0 30px var(--glow-c), 0 0 60px rgba(0,212,255,0.2);
-}
-.race-timer.paused  { color: var(--amber); text-shadow: 0 0 20px var(--glow-a); }
-.race-timer.stopped { color: var(--red);   text-shadow: 0 0 20px var(--glow-r); }
+.race-timer.running { color: var(--blue); }
+.race-timer.paused  { color: var(--amber); }
+.race-timer.stopped { color: var(--red); }
  
 /* ─── STATUS BAR ─── */
 .status-bar {
   display: flex; align-items: center; justify-content: center; gap: 8px;
-  padding: 7px 14px; border-radius: 5px;
-  font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.14em;
-  background: rgba(0,212,255,0.03); border: 1px solid var(--border);
+  padding: 8px 16px; border-radius: 8px;
+  font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.12em;
+  background: rgba(99,132,199,0.05); border: 1px solid var(--border);
   color: var(--muted); transition: all 0.4s; margin-bottom: 14px;
 }
-.status-bar.running { background: rgba(0,232,122,0.06); border-color: rgba(0,232,122,0.25); color: var(--green); }
-.status-bar.paused  { background: rgba(255,184,48,0.06); border-color: rgba(255,184,48,0.25); color: var(--amber); }
-.status-bar.stopped { background: rgba(255,59,92,0.06);  border-color: rgba(255,59,92,0.25);  color: var(--red); }
+.status-bar.running { background: rgba(16,185,129,0.07); border-color: rgba(16,185,129,0.25); color: var(--green); }
+.status-bar.paused  { background: rgba(245,158,11,0.07); border-color: rgba(245,158,11,0.25); color: var(--amber); }
+.status-bar.stopped { background: rgba(240,78,107,0.07); border-color: rgba(240,78,107,0.25); color: var(--red); }
  
 /* ─── STATS ─── */
 .stats-row { display: flex; gap: 0; }
@@ -387,48 +343,54 @@ main::-webkit-scrollbar-thumb { background: rgba(0,212,255,0.15); border-radius:
 .stat-block:last-child { border-right: none; }
 .stat-lbl {
   font-family: 'JetBrains Mono', monospace; font-size: 8px;
-  color: var(--muted); letter-spacing: 0.18em; text-transform: uppercase; margin-bottom: 4px;
+  color: var(--muted); letter-spacing: 0.16em; text-transform: uppercase; margin-bottom: 4px;
 }
 .stat-val {
-  font-family: 'Bebas Neue', sans-serif; font-size: 26px;
-  color: var(--text); letter-spacing: 0.04em;
+  font-family: 'Syne', sans-serif; font-size: 24px; font-weight: 700;
+  color: var(--text);
 }
 .stat-tag { font-family: 'JetBrains Mono', monospace; font-size: 8px; color: var(--muted); margin-top: 2px; }
-.big-val  { font-family: 'Bebas Neue', sans-serif; font-size: 40px; color: var(--text); letter-spacing: 0.04em; }
-.big-lbl  { font-family: 'JetBrains Mono', monospace; font-size: 8px; color: var(--muted); letter-spacing: 0.18em; text-transform: uppercase; margin-bottom: 6px; }
+.big-val  { font-family: 'Syne', sans-serif; font-size: 38px; font-weight: 700; color: var(--text); }
+.big-lbl  { font-family: 'JetBrains Mono', monospace; font-size: 8px; color: var(--muted); letter-spacing: 0.16em; text-transform: uppercase; margin-bottom: 6px; }
 .big-tag  { font-family: 'JetBrains Mono', monospace; font-size: 8px; color: var(--muted); margin-top: 4px; }
  
-/* ─── KPI CARDS ANIMATED ─── */
-.kpi-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 12px; margin-bottom: 14px; }
+/* ─── KPI CARDS ─── */
+.kpi-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 14px; margin-bottom: 16px; }
 .kpi-card {
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: var(--r); padding: 16px;
+  border-radius: var(--r); padding: 18px 20px;
   position: relative; overflow: hidden;
   transition: all 0.3s cubic-bezier(0.16,1,0.3,1);
+  box-shadow: 0 2px 12px rgba(99,132,199,0.06);
   cursor: default;
 }
-.kpi-card::before {
-  content: '';
-  position: absolute; inset: 0; border-radius: var(--r);
-  background: linear-gradient(135deg, rgba(0,212,255,0.04) 0%, transparent 60%);
-}
 .kpi-card:hover {
-  border-color: rgba(0,212,255,0.25);
-  transform: translateY(-3px);
-  box-shadow: 0 12px 40px rgba(0,0,0,0.6), 0 0 30px rgba(0,212,255,0.06);
+  border-color: rgba(59,108,247,0.2);
+  transform: translateY(-4px);
+  box-shadow: 0 12px 40px rgba(99,132,199,0.15);
 }
+.kpi-card .kpi-accent {
+  position: absolute; top: 0; right: 0;
+  width: 80px; height: 80px;
+  border-radius: 50%;
+  transform: translate(30%, -30%);
+  opacity: 0.12;
+}
+.kpi-card:nth-child(1) .kpi-accent { background: var(--blue); }
+.kpi-card:nth-child(2) .kpi-accent { background: var(--teal); }
+.kpi-card:nth-child(3) .kpi-accent { background: var(--purple); }
+.kpi-card:nth-child(4) .kpi-accent { background: var(--red); }
 .kpi-label {
   font-family: 'JetBrains Mono', monospace; font-size: 8px;
-  color: var(--muted); letter-spacing: 0.2em; text-transform: uppercase; margin-bottom: 10px;
+  color: var(--muted); letter-spacing: 0.18em; text-transform: uppercase; margin-bottom: 10px;
 }
 .kpi-value {
-  font-family: 'Bebas Neue', sans-serif; font-size: 36px;
-  letter-spacing: 0.04em; color: var(--text);
-  transition: color 0.4s;
+  font-family: 'Syne', sans-serif; font-size: 34px; font-weight: 800;
+  color: var(--text); transition: color 0.4s;
 }
 .kpi-trend {
-  font-family: 'JetBrains Mono', monospace; font-size: 9px;
+  font-family: 'DM Sans', monospace; font-size: 11px;
   color: var(--muted); margin-top: 6px;
   display: flex; align-items: center; gap: 4px;
 }
@@ -436,152 +398,138 @@ main::-webkit-scrollbar-thumb { background: rgba(0,212,255,0.15); border-radius:
 .kpi-trend.down { color: var(--red); }
 .kpi-bar {
   position: absolute; bottom: 0; left: 0; right: 0;
-  height: 2px; background: var(--dim); overflow: hidden;
+  height: 3px; background: var(--dim); overflow: hidden;
 }
 .kpi-bar-fill {
   height: 100%;
-  background: linear-gradient(90deg, var(--cyan), var(--cyan2));
-  box-shadow: 0 0 8px var(--glow-c);
+  background: linear-gradient(90deg, var(--blue), var(--teal));
   transition: width 0.8s cubic-bezier(0.16,1,0.3,1);
 }
-.kpi-card.danger .kpi-bar-fill  { background: linear-gradient(90deg, var(--red), #ff6b6b);   box-shadow: 0 0 8px var(--glow-r); }
-.kpi-card.warning .kpi-bar-fill { background: linear-gradient(90deg, var(--amber), #ffd56b); box-shadow: 0 0 8px var(--glow-a); }
-.kpi-card.success .kpi-bar-fill { background: linear-gradient(90deg, var(--green), #6bffaa); box-shadow: 0 0 8px var(--glow-g); }
-.kpi-card.danger  .kpi-value { color: var(--red);   text-shadow: 0 0 20px var(--glow-r); }
-.kpi-card.success .kpi-value { color: var(--green); text-shadow: 0 0 20px var(--glow-g); }
-.kpi-card.warning .kpi-value { color: var(--amber); text-shadow: 0 0 20px var(--glow-a); }
+.kpi-card.danger .kpi-bar-fill  { background: linear-gradient(90deg, var(--red), #ff9aaa); }
+.kpi-card.warning .kpi-bar-fill { background: linear-gradient(90deg, var(--amber), #fcd34d); }
+.kpi-card.success .kpi-bar-fill { background: linear-gradient(90deg, var(--green), #6ee7b7); }
+.kpi-card.danger  .kpi-value { color: var(--red); }
+.kpi-card.success .kpi-value { color: var(--green); }
+.kpi-card.warning .kpi-value { color: var(--amber); }
  
-/* ─── CHART CARD ─── */
-.chart-wrap {
-  position: relative; height: 140px;
-}
+/* ─── CHART ─── */
+.chart-wrap { position: relative; height: 140px; }
  
 /* ─── DIVIDER ─── */
 .divider {
   height: 1px;
-  background: linear-gradient(90deg, transparent, var(--border), transparent);
+  background: linear-gradient(90deg, transparent, var(--dim), transparent);
   margin: 14px 0;
 }
  
 /* ─── BUTTONS ─── */
 .btn {
   font-family: 'JetBrains Mono', monospace; font-size: 9px; font-weight: 500;
-  letter-spacing: 0.12em; text-transform: uppercase;
-  border-radius: 5px; cursor: pointer;
-  padding: 8px 16px; display: inline-flex; align-items: center; gap: 6px;
-  transition: all 0.22s cubic-bezier(0.16,1,0.3,1);
+  letter-spacing: 0.1em; text-transform: uppercase;
+  border-radius: 8px; cursor: pointer;
+  padding: 9px 16px; display: inline-flex; align-items: center; gap: 6px;
+  transition: all 0.2s cubic-bezier(0.16,1,0.3,1);
   border: none; position: relative; overflow: hidden;
 }
-.btn::before {
-  content: '';
-  position: absolute; inset: 0; opacity: 0;
-  background: rgba(255,255,255,0.05);
-  transition: opacity 0.15s;
-}
-.btn:hover::before { opacity: 1; }
 .btn:hover { transform: translateY(-1px); }
 .btn:active { transform: none; }
- 
 .btn-primary {
-  background: linear-gradient(135deg, var(--cyan), var(--cyan2));
-  color: var(--bg);
-  box-shadow: 0 4px 20px var(--glow-c);
+  background: linear-gradient(135deg, var(--blue), #5b8bff);
+  color: white;
+  box-shadow: 0 4px 16px var(--glow-b);
 }
-.btn-primary:hover { box-shadow: 0 6px 30px rgba(0,212,255,0.55); }
- 
+.btn-primary:hover { box-shadow: 0 6px 24px rgba(59,108,247,0.45); }
 .btn-outline {
-  background: transparent;
-  border: 1px solid var(--border2); color: var(--muted);
+  background: white; border: 1px solid var(--border2);
+  color: var(--text2);
+  box-shadow: 0 1px 4px rgba(99,132,199,0.08);
 }
-.btn-outline:hover { border-color: var(--cyan); color: var(--cyan); background: rgba(0,212,255,0.04); }
- 
+.btn-outline:hover { border-color: var(--blue); color: var(--blue); background: rgba(59,108,247,0.04); }
 .btn-ghost {
-  background: transparent; border: 1px solid var(--border); color: var(--muted);
+  background: rgba(99,132,199,0.06); border: 1px solid var(--border);
+  color: var(--text2);
 }
-.btn-ghost:hover { color: var(--text); border-color: rgba(0,212,255,0.2); }
- 
+.btn-ghost:hover { color: var(--text); border-color: var(--border2); }
 .btn-danger {
-  background: rgba(255,59,92,0.08); border: 1px solid rgba(255,59,92,0.3); color: var(--red);
+  background: rgba(240,78,107,0.08); border: 1px solid rgba(240,78,107,0.25); color: var(--red);
 }
-.btn-danger:hover { background: rgba(255,59,92,0.15); box-shadow: 0 4px 20px var(--glow-r); }
- 
+.btn-danger:hover { background: rgba(240,78,107,0.14); box-shadow: 0 4px 16px var(--glow-r); }
 .btn-warn {
-  background: rgba(255,184,48,0.08); border: 1px solid rgba(255,184,48,0.3); color: var(--amber);
+  background: rgba(245,158,11,0.08); border: 1px solid rgba(245,158,11,0.25); color: var(--amber);
 }
-.btn-warn:hover { background: rgba(255,184,48,0.15); }
- 
-.btn-sm { padding: 5px 12px; font-size: 8px; }
-.btns   { display: flex; gap: 8px; flex-wrap: wrap; }
+.btn-warn:hover { background: rgba(245,158,11,0.14); }
+.btn-sm { padding: 6px 12px; font-size: 8px; }
+.btns { display: flex; gap: 8px; flex-wrap: wrap; }
  
 /* ─── TABLE ─── */
 .dtable { width: 100%; border-collapse: collapse; }
 .dtable th {
-  font-family: 'JetBrains Mono', monospace; font-size: 8px; letter-spacing: 0.18em;
+  font-family: 'JetBrains Mono', monospace; font-size: 8px; letter-spacing: 0.16em;
   text-transform: uppercase; color: var(--muted);
   padding: 8px 12px; border-bottom: 1px solid var(--border); text-align: left;
 }
 .dtable td {
-  padding: 10px 12px; border-bottom: 1px solid rgba(0,212,255,0.04);
-  font-family: 'Rajdhani', sans-serif; font-size: 13px; font-weight: 500; color: var(--text);
+  padding: 10px 12px; border-bottom: 1px solid rgba(99,132,199,0.07);
+  font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 500; color: var(--text);
 }
 .dtable tr:last-child td { border-bottom: none; }
 .dtable tbody tr { transition: background 0.12s; }
-.dtable tbody tr:hover { background: rgba(0,212,255,0.03); }
+.dtable tbody tr:hover { background: rgba(59,108,247,0.03); }
 .dtable .id {
-  font-family: 'JetBrains Mono', monospace; font-size: 10px;
-  color: var(--cyan); text-shadow: 0 0 10px rgba(0,212,255,0.3);
+  font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--blue);
 }
  
 /* ─── BADGE ─── */
 .badge {
   display: inline-flex; align-items: center;
   font-family: 'JetBrains Mono', monospace; font-size: 8px; font-weight: 500;
-  letter-spacing: 0.1em; padding: 3px 8px; border-radius: 3px;
+  letter-spacing: 0.1em; padding: 3px 9px; border-radius: 4px;
 }
-.badge-ok      { background: rgba(0,232,122,0.08);  border: 1px solid rgba(0,232,122,0.25);  color: var(--green); }
-.badge-warn    { background: rgba(255,184,48,0.08); border: 1px solid rgba(255,184,48,0.25); color: var(--amber); }
-.badge-err     { background: rgba(255,59,92,0.08);  border: 1px solid rgba(255,59,92,0.25);  color: var(--red); }
-.badge-neutral { background: rgba(0,212,255,0.04);  border: 1px solid var(--border);         color: var(--muted); }
-.badge-info    { background: rgba(0,212,255,0.08);  border: 1px solid rgba(0,212,255,0.25);  color: var(--cyan); }
+.badge-ok      { background: rgba(16,185,129,0.1);  border: 1px solid rgba(16,185,129,0.25);  color: var(--green); }
+.badge-warn    { background: rgba(245,158,11,0.1);  border: 1px solid rgba(245,158,11,0.25);  color: var(--amber); }
+.badge-err     { background: rgba(240,78,107,0.1);  border: 1px solid rgba(240,78,107,0.25);  color: var(--red); }
+.badge-neutral { background: rgba(99,132,199,0.07); border: 1px solid var(--border);          color: var(--muted); }
+.badge-info    { background: rgba(59,108,247,0.1);  border: 1px solid rgba(59,108,247,0.25);  color: var(--blue); }
  
 /* ─── LOGS ─── */
 .log-entry {
-  display: grid; grid-template-columns: 72px 58px 1fr;
+  display: grid; grid-template-columns: 72px 62px 1fr;
   align-items: center; gap: 10px;
-  padding: 8px 12px; border-radius: 5px;
-  background: rgba(4,5,8,0.7); border: 1px solid rgba(0,212,255,0.05);
-  margin-bottom: 3px;
+  padding: 9px 12px; border-radius: 8px;
+  background: rgba(255,255,255,0.7); border: 1px solid rgba(99,132,199,0.08);
+  margin-bottom: 4px;
   animation: logIn 0.3s cubic-bezier(0.16,1,0.3,1);
   transition: border-color 0.18s;
 }
-.log-entry:hover { border-color: var(--border); }
+.log-entry:hover { border-color: var(--border2); }
 @keyframes logIn {
   from { opacity: 0; transform: translateX(-6px); }
   to   { opacity: 1; transform: none; }
 }
 .log-ts  { font-family: 'JetBrains Mono', monospace; font-size: 9px; color: var(--muted); }
-.log-msg { font-family: 'Rajdhani', sans-serif; font-size: 12px; font-weight: 500; color: var(--muted); }
+.log-msg { font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 500; color: var(--text2); }
 .logs-box { max-height: 360px; overflow-y: auto; padding-right: 2px; }
 .logs-box::-webkit-scrollbar { width: 2px; }
-.logs-box::-webkit-scrollbar-thumb { background: var(--border); }
+.logs-box::-webkit-scrollbar-thumb { background: var(--dim); }
  
 /* ─── FORM ─── */
 .form-row   { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 10px; }
 .form-field { flex: 1 1 150px; display: flex; flex-direction: column; gap: 5px; }
-.form-lbl   { font-family: 'JetBrains Mono', monospace; font-size: 8px; color: var(--muted); letter-spacing: 0.18em; text-transform: uppercase; }
+.form-lbl   { font-family: 'JetBrains Mono', monospace; font-size: 8px; color: var(--muted); letter-spacing: 0.16em; text-transform: uppercase; }
 .form-input, .form-select {
-  background: rgba(4,5,8,0.9); border: 1px solid var(--border);
-  border-radius: 5px; color: var(--text);
+  background: white; border: 1px solid var(--border);
+  border-radius: 8px; color: var(--text);
   font-family: 'JetBrains Mono', monospace; font-size: 11px;
-  padding: 8px 12px; outline: none;
+  padding: 9px 12px; outline: none;
   transition: border-color 0.2s, box-shadow 0.2s; -webkit-appearance: none;
+  box-shadow: 0 1px 4px rgba(99,132,199,0.06);
 }
 .form-input:focus, .form-select:focus {
-  border-color: rgba(0,212,255,0.4);
-  box-shadow: 0 0 0 3px rgba(0,212,255,0.06), 0 0 20px rgba(0,212,255,0.05);
+  border-color: rgba(59,108,247,0.4);
+  box-shadow: 0 0 0 3px rgba(59,108,247,0.08);
 }
-.form-input::placeholder { color: var(--muted); opacity: 0.7; }
-.form-select option { background: #070a10; color: var(--text); }
+.form-input::placeholder { color: var(--muted); }
+.form-select option { background: white; color: var(--text); }
 .form-helper { font-family: 'JetBrains Mono', monospace; font-size: 8px; color: var(--muted); }
  
 /* ─── NOTE ─── */
@@ -595,112 +543,99 @@ main::-webkit-scrollbar-thumb { background: rgba(0,212,255,0.15); border-radius:
   color: var(--muted); margin-bottom: 5px; letter-spacing: 0.1em;
 }
 .prog-track {
-  height: 3px; background: rgba(0,212,255,0.06); border-radius: 3px; overflow: hidden;
+  height: 4px; background: var(--dim); border-radius: 4px; overflow: hidden;
 }
 .prog-fill {
   height: 100%;
-  background: linear-gradient(90deg, var(--cyan), var(--cyan2));
-  box-shadow: 0 0 8px var(--glow-c);
-  border-radius: 3px;
+  background: linear-gradient(90deg, var(--blue), var(--teal));
+  border-radius: 4px;
   transition: width 0.6s cubic-bezier(0.16,1,0.3,1);
 }
  
 /* ─── CONNECTION ─── */
 .conn {
   display: inline-flex; align-items: center; gap: 8px;
-  padding: 6px 13px; border-radius: 4px;
+  padding: 7px 14px; border-radius: 6px;
   font-family: 'JetBrains Mono', monospace; font-size: 9px; letter-spacing: 0.1em;
-  border: 1px solid var(--border); background: rgba(4,5,8,0.6); color: var(--muted);
-  transition: all 0.3s;
+  border: 1px solid var(--border); background: white; color: var(--muted);
+  transition: all 0.3s; box-shadow: 0 1px 4px rgba(99,132,199,0.06);
 }
-.conn.ok   { background: rgba(0,232,122,0.05); border-color: rgba(0,232,122,0.2); color: var(--green); }
-.conn.fail { background: rgba(255,59,92,0.05); border-color: rgba(255,59,92,0.2); color: var(--red); }
-.conn-dot  { width: 5px; height: 5px; border-radius: 50%; background: var(--muted); transition: all 0.3s; }
-.conn.ok   .conn-dot { background: var(--green); box-shadow: 0 0 8px var(--glow-g); }
-.conn.fail .conn-dot { background: var(--red);   box-shadow: 0 0 8px var(--glow-r); }
+.conn.ok   { background: rgba(16,185,129,0.06); border-color: rgba(16,185,129,0.25); color: var(--green); }
+.conn.fail { background: rgba(240,78,107,0.06); border-color: rgba(240,78,107,0.25); color: var(--red); }
+.conn-dot  { width: 6px; height: 6px; border-radius: 50%; background: var(--muted); transition: all 0.3s; }
+.conn.ok   .conn-dot { background: var(--green); box-shadow: 0 0 6px var(--glow-g); }
+.conn.fail .conn-dot { background: var(--red);   box-shadow: 0 0 6px var(--glow-r); }
  
 /* ─── VIDEO ─── */
-.video-grid { display: grid; grid-template-columns: 1fr 280px; gap: 14px; }
+.video-grid { display: grid; grid-template-columns: 1fr 300px; gap: 16px; }
 .video-wrap {
   border-radius: var(--r); overflow: hidden;
-  border: 1px solid var(--border); background: #000; position: relative;
+  border: 1px solid var(--border); background: #111; position: relative;
+  box-shadow: 0 4px 20px rgba(99,132,199,0.1);
 }
 .video-rec {
   position: absolute; top: 12px; left: 14px; z-index: 5;
   font-family: 'JetBrains Mono', monospace; font-size: 9px;
   color: var(--red); letter-spacing: 0.14em;
-  background: rgba(4,5,8,0.85); padding: 4px 10px; border-radius: 3px;
-  border: 1px solid rgba(255,59,92,0.2);
+  background: rgba(255,255,255,0.92); padding: 4px 10px; border-radius: 4px;
+  border: 1px solid rgba(240,78,107,0.2);
   animation: blink 1.2s ease-in-out infinite;
 }
-video { width: 100%; display: block; min-height: 240px; background: #000; }
+video { width: 100%; display: block; min-height: 240px; background: #111; }
 .video-footer {
-  position: absolute; bottom: 0; left: 0; right: 0; padding: 10px 14px;
-  background: linear-gradient(transparent, rgba(4,5,8,0.96));
+  position: absolute; bottom: 0; left: 0; right: 0; padding: 12px 16px;
+  background: linear-gradient(transparent, rgba(0,0,0,0.7));
   font-family: 'JetBrains Mono', monospace; font-size: 9px;
-  color: var(--muted); pointer-events: none;
+  color: rgba(255,255,255,0.7); pointer-events: none;
 }
 .video-list { max-height: 420px; overflow-y: auto; }
 .video-list::-webkit-scrollbar { width: 2px; }
-.video-list::-webkit-scrollbar-thumb { background: var(--border); }
+.video-list::-webkit-scrollbar-thumb { background: var(--dim); }
 .v-item {
-  display: flex; gap: 10px; padding: 10px; border-radius: 7px;
-  background: rgba(4,5,8,0.6); border: 1px solid rgba(0,212,255,0.06);
+  display: flex; gap: 10px; padding: 10px; border-radius: 8px;
+  background: white; border: 1px solid var(--border);
   cursor: pointer; margin-bottom: 6px;
   transition: all 0.25s cubic-bezier(0.16,1,0.3,1);
+  box-shadow: 0 1px 6px rgba(99,132,199,0.06);
 }
-.v-item:hover { border-color: var(--border2); transform: translateX(3px); }
-.v-item.active { border-color: rgba(0,212,255,0.35); background: rgba(0,212,255,0.04); }
+.v-item:hover { border-color: var(--border2); transform: translateX(2px); }
+.v-item.active { border-color: rgba(59,108,247,0.3); background: rgba(59,108,247,0.03); }
 .v-thumb {
-  width: 68px; height: 46px; border-radius: 5px; flex-shrink: 0;
-  background: rgba(8,12,22,0.9); border: 1px solid var(--border);
+  width: 68px; height: 46px; border-radius: 6px; flex-shrink: 0;
+  background: var(--bg2); border: 1px solid var(--border);
   display: flex; align-items: center; justify-content: center;
   font-size: 16px; color: var(--muted);
 }
-.v-title  { font-family: 'Rajdhani', sans-serif; font-size: 12px; font-weight: 600; color: var(--text); }
+.v-title  { font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 600; color: var(--text); }
 .v-meta   { font-family: 'JetBrains Mono', monospace; font-size: 8px; color: var(--muted); margin-top: 3px; }
  
 /* ─── CHIP ─── */
 .chip {
   display: inline-flex; align-items: center; gap: 6px;
-  padding: 4px 10px; border-radius: 4px;
+  padding: 5px 12px; border-radius: 6px;
   font-family: 'JetBrains Mono', monospace; font-size: 9px; color: var(--muted);
-  background: rgba(0,212,255,0.03); border: 1px solid var(--border); letter-spacing: 0.1em;
+  background: white; border: 1px solid var(--border);
+  letter-spacing: 0.08em;
+  box-shadow: 0 1px 4px rgba(99,132,199,0.06);
 }
-.chip-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--cyan); box-shadow: 0 0 6px var(--glow-c); }
+.chip-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--blue); box-shadow: 0 0 6px var(--glow-b); }
  
 /* ─── INFO BOX ─── */
 .infobox {
-  padding: 12px 14px; border-radius: 5px;
-  background: rgba(0,212,255,0.02); border: 1px solid rgba(0,212,255,0.07);
+  padding: 12px 14px; border-radius: 8px;
+  background: rgba(59,108,247,0.03); border: 1px solid rgba(59,108,247,0.1);
   font-family: 'JetBrains Mono', monospace; font-size: 9px; color: var(--muted);
   line-height: 1.7; margin-top: 10px;
 }
 .infobox-label {
   font-size: 8px; letter-spacing: 0.2em; text-transform: uppercase;
-  color: var(--cyan); margin-bottom: 6px;
+  color: var(--blue); margin-bottom: 6px;
 }
  
 /* ─── SPACERS ─── */
 .mt-2 { margin-top: 8px; }
 .mt-3 { margin-top: 12px; }
 .mt-4 { margin-top: 16px; }
- 
-/* ─── TELEMETRY PULSE ─── */
-.pulse-ring {
-  position: relative; display: inline-flex; align-items: center; justify-content: center;
-}
-.pulse-ring::before, .pulse-ring::after {
-  content: '';
-  position: absolute; border-radius: 50%;
-  border: 1px solid var(--cyan); opacity: 0;
-  animation: ring-expand 2.4s ease-out infinite;
-}
-.pulse-ring::after { animation-delay: 1.2s; }
-@keyframes ring-expand {
-  0%   { width: 28px; height: 28px; opacity: 0.5; }
-  100% { width: 60px; height: 60px; opacity: 0; }
-}
  
 /* ─── RESPONSIVE ─── */
 @media (max-width: 1100px) {
@@ -711,7 +646,7 @@ video { width: 100%; display: block; min-height: 240px; background: #000; }
 @media (max-width: 760px) {
   .g2, .g3 { grid-template-columns: 1fr; }
   .kpi-grid { grid-template-columns: 1fr; }
-  .app { grid-template-columns: 46px 1fr; }
+  .app { grid-template-columns: 48px 1fr; }
 }
 </style>
 </head>
@@ -721,46 +656,35 @@ video { width: 100%; display: block; min-height: 240px; background: #000; }
 <div id="loader">
   <div class="loader-ring"></div>
   <div class="loader-bar"><div class="loader-bar-fill"></div></div>
-  <div class="loader-text">RACE CONTROL · INITIALIZING</div>
+  <div class="loader-text">Race Control · Initialisation</div>
 </div>
  
 <!-- BG -->
 <canvas id="bg-canvas"></canvas>
-<div class="aurora"></div>
-<div class="vignette"></div>
-<div class="scanlines"></div>
-<div id="cursor-glow"></div>
+<div class="mesh-bg"></div>
+<div class="noise"></div>
  
 <div class="app">
  
 <!-- SIDEBAR -->
 <aside class="sidebar">
   <div class="logo">R</div>
-  <button class="nav-btn active" data-page="dashboard" title="Dashboard">
-    <span class="nav-icon">⬡</span>
-  </button>
-  <button class="nav-btn" data-page="administration" title="Administration">
-    <span class="nav-icon">⚙</span>
-  </button>
-  <button class="nav-btn" data-page="telemetry" title="Télémétrie">
-    <span class="nav-icon">◎</span>
-  </button>
-  <button class="nav-btn" data-page="video" title="Vidéo">
-    <span class="nav-icon">▣</span>
-  </button>
-  <button class="nav-btn" data-page="tech" title="AWS">
-    <span class="nav-icon">☁</span>
-  </button>
-  <button class="nav-btn" data-page="logs" title="Logs">
-    <span class="nav-icon">≡</span>
-  </button>
+  <button class="nav-btn active" data-page="dashboard" title="Dashboard">⬡</button>
+  <button class="nav-btn" data-page="administration" title="Administration">⚙</button>
+  <button class="nav-btn" data-page="telemetry" title="Télémétrie">◎</button>
+  <button class="nav-btn" data-page="video" title="Vidéo">▣</button>
+  <div class="nav-sep"></div>
+  <button class="nav-btn" data-page="tech" title="AWS">☁</button>
+  <button class="nav-btn" data-page="logs" title="Logs">≡</button>
 </aside>
  
 <!-- HEADER -->
 <header>
   <div class="h-brand">
-    <div class="h-title">RACE <span>CONTROL</span></div>
-    <div class="h-sub">Supervision temps réel · Télémétrie &amp; Caméras</div>
+    <div>
+      <div class="h-title">RACE <span>CONTROL</span></div>
+      <div class="h-sub">Supervision temps réel · Télémétrie &amp; Caméras</div>
+    </div>
   </div>
   <div class="h-sep"></div>
   <div class="h-right">
@@ -779,7 +703,7 @@ video { width: 100%; display: block; min-height: 240px; background: #000; }
 <!-- MAIN -->
 <main>
  
-<!-- ═══════ DASHBOARD ═══════ -->
+<!-- ═══ DASHBOARD ═══ -->
 <section class="page active" id="page-dashboard">
   <div class="sec-head">
     <div>
@@ -795,24 +719,28 @@ video { width: 100%; display: block; min-height: 240px; background: #000; }
   <!-- KPI ROW -->
   <div class="kpi-grid">
     <div class="kpi-card" id="kpi-tours">
+      <div class="kpi-accent"></div>
       <div class="kpi-label">Tours totaux</div>
       <div class="kpi-value" id="kpiTours">0</div>
       <div class="kpi-trend" id="kpiToursTrend">— Aucune course</div>
       <div class="kpi-bar"><div class="kpi-bar-fill" id="kpiToursBar" style="width:0%"></div></div>
     </div>
     <div class="kpi-card" id="kpi-participants">
+      <div class="kpi-accent"></div>
       <div class="kpi-label">Participants</div>
       <div class="kpi-value" id="kpiPart">0</div>
       <div class="kpi-trend">Pilotes actifs</div>
       <div class="kpi-bar"><div class="kpi-bar-fill" id="kpiPartBar" style="width:0%"></div></div>
     </div>
     <div class="kpi-card" id="kpi-paquets">
+      <div class="kpi-accent"></div>
       <div class="kpi-label">Paquets télémétriques</div>
       <div class="kpi-value" id="kpiPaquets">0</div>
       <div class="kpi-trend" id="kpiPaquetsTrend">Flux capteurs</div>
       <div class="kpi-bar"><div class="kpi-bar-fill" id="kpiPaquetsBar" style="width:0%"></div></div>
     </div>
-    <div class="kpi-card danger" id="kpi-erreurs">
+    <div class="kpi-card" id="kpi-erreurs">
+      <div class="kpi-accent"></div>
       <div class="kpi-label">Anomalies</div>
       <div class="kpi-value" id="kpiErreurs">0</div>
       <div class="kpi-trend down" id="kpiErreursTrend">Erreurs capteurs</div>
@@ -827,7 +755,7 @@ video { width: 100%; display: block; min-height: 240px; background: #000; }
         <div class="card-title"><div class="card-icon">⬡</div>Contrôle Course</div>
         <div class="badge badge-neutral" id="raceStateBadge">IDLE</div>
       </div>
-      <div class="status-bar" id="raceStatusBar">◌  Course en attente</div>
+      <div class="status-bar" id="raceStatusBar">◌ &nbsp;Course en attente</div>
       <div class="race-timer" id="raceElapsed">00:00:00</div>
       <div class="divider"></div>
       <div class="stats-row">
@@ -841,7 +769,7 @@ video { width: 100%; display: block; min-height: 240px; background: #000; }
         </div>
         <div class="stat-block">
           <div class="stat-lbl">Dernier event</div>
-          <div class="stat-val" style="font-family:'JetBrains Mono',monospace;font-size:10px;padding-top:5px" id="raceLastEvent">—</div>
+          <div class="stat-val" style="font-family:'JetBrains Mono',monospace;font-size:9px;padding-top:6px" id="raceLastEvent">—</div>
         </div>
       </div>
       <div class="btns mt-4">
@@ -887,11 +815,11 @@ video { width: 100%; display: block; min-height: 240px; background: #000; }
         </div>
         <div class="stat-block">
           <div class="stat-lbl">Flux</div>
-          <div class="stat-val" style="font-size:12px;padding-top:4px" id="telemetryConnectionState">Déconnecté</div>
+          <div class="stat-val" style="font-size:11px;padding-top:5px" id="telemetryConnectionState">Déconnecté</div>
         </div>
         <div class="stat-block">
           <div class="stat-lbl">Sync</div>
-          <div class="stat-val" style="font-size:12px;padding-top:4px" id="telemetryLastSync">—</div>
+          <div class="stat-val" style="font-size:11px;padding-top:5px" id="telemetryLastSync">—</div>
         </div>
       </div>
       <div class="prog-wrap">
@@ -924,7 +852,7 @@ video { width: 100%; display: block; min-height: 240px; background: #000; }
   </div>
 </section>
  
-<!-- ═══════ ADMINISTRATION ═══════ -->
+<!-- ═══ ADMINISTRATION ═══ -->
 <section class="page" id="page-administration">
   <div class="sec-head">
     <div>
@@ -967,7 +895,7 @@ video { width: 100%; display: block; min-height: 240px; background: #000; }
       <div class="stats-row">
         <div class="stat-block">
           <div class="stat-lbl">État</div>
-          <div class="stat-val" style="font-size:14px" id="adminRaceSummary">EN ATTENTE</div>
+          <div class="stat-val" style="font-size:13px" id="adminRaceSummary">EN ATTENTE</div>
         </div>
         <div class="stat-block">
           <div class="stat-lbl">Participants</div>
@@ -979,7 +907,7 @@ video { width: 100%; display: block; min-height: 240px; background: #000; }
   </div>
 </section>
  
-<!-- ═══════ TÉLÉMÉTRIE ═══════ -->
+<!-- ═══ TÉLÉMÉTRIE ═══ -->
 <section class="page" id="page-telemetry">
   <div class="sec-head">
     <div>
@@ -1005,11 +933,10 @@ video { width: 100%; display: block; min-height: 240px; background: #000; }
         </div>
         <div>
           <div class="big-lbl">Erreurs</div>
-          <div class="big-val" style="color:var(--red);text-shadow:0 0 20px var(--glow-r)" id="telemetryErrorEvents">0</div>
+          <div class="big-val" style="color:var(--red)" id="telemetryErrorEvents">0</div>
           <div class="big-tag">Anomalies</div>
         </div>
       </div>
-      <!-- Real-time chart -->
       <div class="chart-wrap mt-3">
         <canvas id="telemetryChart"></canvas>
       </div>
@@ -1026,7 +953,7 @@ video { width: 100%; display: block; min-height: 240px; background: #000; }
   </div>
 </section>
  
-<!-- ═══════ VIDÉO ═══════ -->
+<!-- ═══ VIDÉO ═══ -->
 <section class="page" id="page-video">
   <div class="sec-head">
     <div>
@@ -1062,7 +989,7 @@ video { width: 100%; display: block; min-height: 240px; background: #000; }
   </div>
 </section>
  
-<!-- ═══════ PARAMÈTRES TECHNIQUES ═══════ -->
+<!-- ═══ TECH ═══ -->
 <section class="page" id="page-tech">
   <div class="sec-head">
     <div>
@@ -1127,7 +1054,7 @@ video { width: 100%; display: block; min-height: 240px; background: #000; }
           <span class="conn-dot" id="awsStatusDot"></span>
           <span id="awsStatusText">Déconnecté · Buffer local actif</span>
         </div>
-        <div class="note mt-2">Envoi via <code style="color:var(--cyan)">sendToDatabase()</code>. Échec → buffer → <code style="color:var(--cyan)">flushBuffer()</code>.</div>
+        <div class="note mt-2">Envoi via <code style="color:var(--blue)">sendToDatabase()</code>. Échec → buffer → <code style="color:var(--blue)">flushBuffer()</code>.</div>
       </div>
     </div>
     <div class="card">
@@ -1156,7 +1083,7 @@ video { width: 100%; display: block; min-height: 240px; background: #000; }
   </div>
 </section>
  
-<!-- ═══════ LOGS ═══════ -->
+<!-- ═══ LOGS ═══ -->
 <section class="page" id="page-logs">
   <div class="sec-head">
     <div>
@@ -1174,12 +1101,13 @@ video { width: 100%; display: block; min-height: 240px; background: #000; }
     <div class="logs-box" id="logsContainer"></div>
   </div>
 </section>
+ 
 </main>
 </div>
  
 <script>
 // ═══════════════════════════════════════════════════════════
-// THREE.JS — Animated 3D background (grid + particles + waves)
+// THREE.JS — Light theme 3D background
 // ═══════════════════════════════════════════════════════════
 (function() {
   const canvas = document.getElementById('bg-canvas');
@@ -1189,99 +1117,95 @@ video { width: 100%; display: block; min-height: 240px; background: #000; }
   renderer.setClearColor(0x000000, 0);
  
   const scene = new THREE.Scene();
-  const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 200);
-  camera.position.set(0, 6, 18);
+  const camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 0.1, 300);
+  camera.position.set(0, 5, 22);
   camera.lookAt(0, 0, 0);
  
-  // Mouse tracking
   let mx = 0, my = 0;
   window.addEventListener('mousemove', e => {
     mx = (e.clientX / window.innerWidth  - 0.5) * 2;
     my = (e.clientY / window.innerHeight - 0.5) * 2;
   });
  
-  // ─ Particle field ─
-  const particleCount = 280;
-  const pGeo = new THREE.BufferGeometry();
-  const pPos = new Float32Array(particleCount * 3);
-  const pSizes = new Float32Array(particleCount);
-  for (let i = 0; i < particleCount; i++) {
-    pPos[i*3]   = (Math.random() - 0.5) * 80;
-    pPos[i*3+1] = (Math.random() - 0.5) * 50;
-    pPos[i*3+2] = (Math.random() - 0.5) * 60 - 10;
-    pSizes[i]   = Math.random() * 1.4 + 0.3;
+  // ─ Floating translucent orbs ─
+  function makeOrb(radius, color, opacity) {
+    const geo = new THREE.SphereGeometry(radius, 24, 24);
+    const mat = new THREE.MeshBasicMaterial({ color, transparent: true, opacity, depthWrite: false });
+    return new THREE.Mesh(geo, mat);
   }
-  pGeo.setAttribute('position', new THREE.BufferAttribute(pPos, 3));
-  pGeo.setAttribute('size', new THREE.BufferAttribute(pSizes, 1));
  
-  const pMat = new THREE.PointsMaterial({
-    color: 0x00d4ff,
-    size: 0.12,
-    transparent: true,
-    opacity: 0.35,
-    sizeAttenuation: true,
-    blending: THREE.AdditiveBlending,
-    depthWrite: false,
-  });
-  const particles = new THREE.Points(pGeo, pMat);
-  scene.add(particles);
+  const orbs = [
+    { mesh: makeOrb(5, 0x3b6cf7, 0.035), x: -14, y: 3, z: -18 },
+    { mesh: makeOrb(3.5, 0x0cc4a8, 0.04), x: 12, y: -3, z: -12 },
+    { mesh: makeOrb(2.5, 0x8b5cf6, 0.03), x: 4,  y: 6, z: -10 },
+    { mesh: makeOrb(6, 0x3b6cf7, 0.02), x: 6, y: -8, z: -22 },
+    { mesh: makeOrb(1.5, 0x0cc4a8, 0.06), x: -6, y: -4, z: -6 },
+  ];
+  orbs.forEach(o => { o.mesh.position.set(o.x, o.y, o.z); scene.add(o.mesh); });
  
-  // ─ Secondary particle field (warmer) ─
-  const pGeo2 = new THREE.BufferGeometry();
-  const pPos2 = new Float32Array(120 * 3);
-  for (let i = 0; i < 120; i++) {
-    pPos2[i*3]   = (Math.random() - 0.5) * 100;
-    pPos2[i*3+1] = (Math.random() - 0.5) * 60;
-    pPos2[i*3+2] = (Math.random() - 0.5) * 80 - 15;
-  }
-  pGeo2.setAttribute('position', new THREE.BufferAttribute(pPos2, 3));
-  const pMat2 = new THREE.PointsMaterial({
-    color: 0x00ffcc, size: 0.08, transparent: true, opacity: 0.18,
-    sizeAttenuation: true, blending: THREE.AdditiveBlending, depthWrite: false,
-  });
-  scene.add(new THREE.Points(pGeo2, pMat2));
- 
-  // ─ Wave grid ─
-  const gridW = 48, gridH = 28;
-  const wGeo = new THREE.PlaneGeometry(48, 28, gridW - 1, gridH - 1);
-  wGeo.rotateX(-Math.PI * 0.42);
-  const wMat = new THREE.MeshBasicMaterial({
-    color: 0x00d4ff,
-    wireframe: true,
-    transparent: true,
-    opacity: 0.045,
-    blending: THREE.AdditiveBlending,
-    depthWrite: false,
-  });
-  const waveMesh = new THREE.Mesh(wGeo, wMat);
-  waveMesh.position.set(0, -4, -8);
-  scene.add(waveMesh);
- 
-  // Store original positions for wave animation
-  const wPos = wGeo.attributes.position;
-  const wOrig = new Float32Array(wPos.array);
- 
-  // ─ Floating icospheres ─
+  // ─ Wireframe icospheres ─
   function makeIco(radius, color, opacity) {
     const g = new THREE.IcosahedronGeometry(radius, 1);
     const m = new THREE.MeshBasicMaterial({
       color, wireframe: true, transparent: true, opacity,
-      blending: THREE.AdditiveBlending, depthWrite: false,
+      blending: THREE.NormalBlending, depthWrite: false,
     });
     return new THREE.Mesh(g, m);
   }
- 
-  const spheres = [
-    { mesh: makeIco(2.4, 0x00d4ff, 0.08), x: -12, y:  2, z: -6, spx: 0.0008, spy: 0.0012 },
-    { mesh: makeIco(1.6, 0x00ffcc, 0.06), x:  10, y: -3, z: -4, spx: 0.0010, spy: 0.0007 },
-    { mesh: makeIco(1.0, 0x00d4ff, 0.10), x:   4, y:  4, z: -2, spx: 0.0015, spy: 0.0018 },
-    { mesh: makeIco(3.0, 0x00ffcc, 0.04), x: -6,  y: -5, z:-12, spx: 0.0005, spy: 0.0006 },
-    { mesh: makeIco(0.7, 0xff3b5c, 0.09), x: 14,  y:  3, z: -5, spx: 0.002,  spy: 0.0014 },
+  const icos = [
+    { mesh: makeIco(3.0, 0x3b6cf7, 0.07), x: -10, y: 2, z: -8, spx: 0.0006, spy: 0.0009 },
+    { mesh: makeIco(2.0, 0x0cc4a8, 0.07), x: 9,  y: -2, z: -6, spx: 0.0009, spy: 0.0006 },
+    { mesh: makeIco(1.2, 0x8b5cf6, 0.10), x: 3,  y: 5,  z: -4, spx: 0.0013, spy: 0.0015 },
+    { mesh: makeIco(4.0, 0x3b6cf7, 0.04), x: -4, y: -7, z:-16, spx: 0.0004, spy: 0.0005 },
   ];
-  spheres.forEach(s => {
-    s.mesh.position.set(s.x, s.y, s.z);
-    scene.add(s.mesh);
+  icos.forEach(s => { s.mesh.position.set(s.x, s.y, s.z); scene.add(s.mesh); });
+ 
+  // ─ Grid plane ─
+  const gridGeo = new THREE.PlaneGeometry(60, 36, 36, 20);
+  gridGeo.rotateX(-Math.PI * 0.38);
+  const gridMat = new THREE.MeshBasicMaterial({
+    color: 0x3b6cf7, wireframe: true, transparent: true, opacity: 0.04,
+    blending: THREE.NormalBlending, depthWrite: false,
   });
+  const grid = new THREE.Mesh(gridGeo, gridMat);
+  grid.position.set(0, -5, -14);
+  scene.add(grid);
+  const gridPos = gridGeo.attributes.position;
+  const gridOrig = new Float32Array(gridPos.array);
+ 
+  // ─ Floating particles ─
+  const pCount = 180;
+  const pGeo = new THREE.BufferGeometry();
+  const pArr = new Float32Array(pCount * 3);
+  for (let i = 0; i < pCount; i++) {
+    pArr[i*3]   = (Math.random()-0.5)*90;
+    pArr[i*3+1] = (Math.random()-0.5)*55;
+    pArr[i*3+2] = (Math.random()-0.5)*70 - 15;
+  }
+  pGeo.setAttribute('position', new THREE.BufferAttribute(pArr, 3));
+  const pMat = new THREE.PointsMaterial({
+    color: 0x3b6cf7, size: 0.12, transparent: true, opacity: 0.25,
+    sizeAttenuation: true, blending: THREE.NormalBlending, depthWrite: false,
+  });
+  scene.add(new THREE.Points(pGeo, pMat));
+ 
+  // ─ Ring torus ─
+  const torusGeo = new THREE.TorusGeometry(8, 0.06, 8, 80);
+  const torusMat = new THREE.MeshBasicMaterial({
+    color: 0x3b6cf7, transparent: true, opacity: 0.07, depthWrite: false,
+  });
+  const torus = new THREE.Mesh(torusGeo, torusMat);
+  torus.position.set(-8, 2, -14);
+  torus.rotation.x = Math.PI * 0.35;
+  scene.add(torus);
+ 
+  const torus2 = new THREE.Mesh(
+    new THREE.TorusGeometry(5, 0.04, 8, 60),
+    new THREE.MeshBasicMaterial({ color: 0x0cc4a8, transparent: true, opacity: 0.08, depthWrite: false })
+  );
+  torus2.position.set(9, -2, -10);
+  torus2.rotation.y = Math.PI * 0.2;
+  scene.add(torus2);
  
   window.addEventListener('resize', () => {
     camera.aspect = window.innerWidth / window.innerHeight;
@@ -1292,61 +1216,39 @@ video { width: 100%; display: block; min-height: 240px; background: #000; }
   let t = 0;
   function animate() {
     requestAnimationFrame(animate);
-    t += 0.012;
+    t += 0.01;
  
-    // Smooth camera movement
-    camera.position.x += (mx * 2.5 - camera.position.x) * 0.025;
-    camera.position.y += (-my * 1.5 + 6 - camera.position.y) * 0.025;
+    camera.position.x += (mx * 2 - camera.position.x) * 0.02;
+    camera.position.y += (-my * 1.2 + 5 - camera.position.y) * 0.02;
     camera.lookAt(0, 0, 0);
  
-    // Particles drift
-    particles.rotation.y = t * 0.018;
-    particles.rotation.x = t * 0.006;
- 
-    // Wave animation
-    for (let i = 0; i < wPos.count; i++) {
-      const x = wOrig[i * 3];
-      const y = wOrig[i * 3 + 1];
-      wPos.setZ(i, Math.sin(x * 0.4 + t * 0.9) * 0.55 + Math.cos(y * 0.35 + t * 0.7) * 0.45);
+    // Wave grid
+    for (let i = 0; i < gridPos.count; i++) {
+      const x = gridOrig[i*3], y = gridOrig[i*3+1];
+      gridPos.setZ(i, Math.sin(x*0.3 + t*0.7)*0.6 + Math.cos(y*0.25 + t*0.5)*0.4);
     }
-    wPos.needsUpdate = true;
-    waveMesh.rotation.z = Math.sin(t * 0.08) * 0.03;
+    gridPos.needsUpdate = true;
  
-    // Spheres spin
-    spheres.forEach(s => {
+    // Orbs float
+    orbs.forEach((o, i) => {
+      o.mesh.position.y = o.y + Math.sin(t*0.35 + i*1.2) * 0.8;
+    });
+ 
+    // Icos spin
+    icos.forEach(s => {
       s.mesh.rotation.x += s.spx;
       s.mesh.rotation.y += s.spy;
-      s.mesh.position.y = s.y + Math.sin(t * 0.4 + s.x) * 0.4;
+      s.mesh.position.y = s.y + Math.sin(t*0.38 + s.x)*0.5;
     });
+ 
+    // Tori spin
+    torus.rotation.z  += 0.003;
+    torus2.rotation.x += 0.004;
  
     renderer.render(scene, camera);
   }
   animate();
 })();
- 
-// ═══════════════════════════════════════════════════════════
-// CURSOR GLOW
-// ═══════════════════════════════════════════════════════════
-const cursorGlow = document.getElementById('cursor-glow');
-window.addEventListener('mousemove', e => {
-  cursorGlow.style.left = e.clientX + 'px';
-  cursorGlow.style.top  = e.clientY + 'px';
-});
- 
-// ═══════════════════════════════════════════════════════════
-// CARD 3D TILT
-// ═══════════════════════════════════════════════════════════
-function initCardTilt() {
-  document.querySelectorAll('.card, .kpi-card').forEach(card => {
-    card.addEventListener('mousemove', e => {
-      const r  = card.getBoundingClientRect();
-      const rx = ((e.clientY - r.top)  / r.height - 0.5) * 7;
-      const ry = ((e.clientX - r.left) / r.width  - 0.5) * -7;
-      card.style.transform = `perspective(900px) rotateX(${rx}deg) rotateY(${ry}deg) translateY(-2px)`;
-    });
-    card.addEventListener('mouseleave', () => { card.style.transform = ''; });
-  });
-}
  
 // ═══════════════════════════════════════════════════════════
 // CLOCK
@@ -1355,117 +1257,92 @@ function updateClock() {
   const n = new Date();
   document.getElementById('headerClock').textContent =
     [n.getHours(), n.getMinutes(), n.getSeconds()]
-      .map(x => String(x).padStart(2, '0')).join(':');
+      .map(x => String(x).padStart(2,'0')).join(':');
 }
 setInterval(updateClock, 1000);
 updateClock();
  
 // ═══════════════════════════════════════════════════════════
-// CHART.JS — Realtime telemetry sparkline
+// CHART.JS
 // ═══════════════════════════════════════════════════════════
 let telemetryChart = null;
-const chartHistory = { tours: [], cameras: [], errors: [], labels: [] };
+const chartHistory = { tours:[], cameras:[], errors:[], labels:[] };
 const MAX_HIST = 20;
  
 function initChart() {
   const ctx = document.getElementById('telemetryChart');
   if (!ctx) return;
-  Chart.defaults.color = '#4a6080';
   telemetryChart = new Chart(ctx, {
     type: 'line',
     data: {
       labels: chartHistory.labels,
       datasets: [
-        {
-          label: 'Tours',
-          data: chartHistory.tours,
-          borderColor: '#00d4ff', backgroundColor: 'rgba(0,212,255,0.06)',
-          borderWidth: 1.5, pointRadius: 0, tension: 0.4, fill: true,
-        },
-        {
-          label: 'Caméras',
-          data: chartHistory.cameras,
-          borderColor: '#00ffcc', backgroundColor: 'rgba(0,255,204,0.04)',
-          borderWidth: 1.5, pointRadius: 0, tension: 0.4, fill: true,
-        },
-        {
-          label: 'Erreurs',
-          data: chartHistory.errors,
-          borderColor: '#ff3b5c', backgroundColor: 'rgba(255,59,92,0.06)',
-          borderWidth: 1.5, pointRadius: 0, tension: 0.4, fill: true,
-        },
+        { label:'Tours',   data: chartHistory.tours,   borderColor:'#3b6cf7', backgroundColor:'rgba(59,108,247,0.08)', borderWidth:1.5, pointRadius:0, tension:0.4, fill:true },
+        { label:'Caméras', data: chartHistory.cameras, borderColor:'#0cc4a8', backgroundColor:'rgba(12,196,168,0.06)', borderWidth:1.5, pointRadius:0, tension:0.4, fill:true },
+        { label:'Erreurs', data: chartHistory.errors,  borderColor:'#f04e6b', backgroundColor:'rgba(240,78,107,0.06)', borderWidth:1.5, pointRadius:0, tension:0.4, fill:true },
       ],
     },
     options: {
-      responsive: true, maintainAspectRatio: false,
-      animation: { duration: 300 },
-      plugins: {
-        legend: { display: false },
-        tooltip: {
-          mode: 'index', intersect: false,
-          backgroundColor: 'rgba(4,5,8,0.95)',
-          borderColor: 'rgba(0,212,255,0.2)', borderWidth: 1,
-          titleFont: { family: 'JetBrains Mono', size: 8 },
-          bodyFont: { family: 'JetBrains Mono', size: 9 },
-          titleColor: '#4a6080', bodyColor: '#e8f4ff',
-          padding: 10,
+      responsive:true, maintainAspectRatio:false,
+      animation:{ duration:300 },
+      plugins:{
+        legend:{ display:false },
+        tooltip:{
+          mode:'index', intersect:false,
+          backgroundColor:'rgba(255,255,255,0.96)',
+          borderColor:'rgba(59,108,247,0.2)', borderWidth:1,
+          titleFont:{ family:'JetBrains Mono', size:8 },
+          bodyFont:{ family:'JetBrains Mono', size:9 },
+          titleColor:'#8a9abf', bodyColor:'#1a2240',
+          padding:10,
         },
       },
-      scales: {
-        x: {
-          display: false,
-          grid: { display: false },
-        },
-        y: {
-          display: false,
-          grid: { display: false },
-          beginAtZero: true,
-        },
+      scales:{
+        x:{ display:false, grid:{ display:false } },
+        y:{ display:false, grid:{ display:false }, beginAtZero:true },
       },
     },
   });
 }
  
 function pushChartPoint() {
-  const label = new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+  const label = new Date().toLocaleTimeString('fr-FR',{ hour:'2-digit',minute:'2-digit',second:'2-digit' });
   chartHistory.labels.push(label);
   chartHistory.tours.push(state.telemetry.nbTours);
   chartHistory.cameras.push(state.telemetry.nbCamera);
   chartHistory.errors.push(state.telemetry.nbErreurs);
   if (chartHistory.labels.length > MAX_HIST) {
-    chartHistory.labels.shift();
-    chartHistory.tours.shift();
-    chartHistory.cameras.shift();
-    chartHistory.errors.shift();
+    chartHistory.labels.shift(); chartHistory.tours.shift();
+    chartHistory.cameras.shift(); chartHistory.errors.shift();
   }
   if (telemetryChart) telemetryChart.update('none');
 }
  
 // ═══════════════════════════════════════════════════════════
-// APP STATE & LOGIC — unchanged logic, enhanced rendering
+// APP STATE
 // ═══════════════════════════════════════════════════════════
 const state = {
-  course:      { statut: "idle", startTime: null, elapsedMs: 0, totalTours: 0, dernierEvenement: null },
+  course:      { statut:"idle", startTime:null, elapsedMs:0, totalTours:0, dernierEvenement:null },
   participants: [],
-  telemetry:   { paquets: 0, enAttente: 0, connexion: "disconnected", derniereSync: null, nbTours: 0, nbCamera: 0, nbErreurs: 0, dernierEvenementDescription: null, evenementsRecents: [] },
-  aws:         { connected: false, region: "eu-west-1", tableName: "race-telemetry-demo", buffer: [], lastSync: null, simulateFailure: false, syncIntervalMs: 5000, syncTimer: null },
-  video:       { list: [], currentId: null, filterType: "all" },
+  telemetry:   { paquets:0, enAttente:0, connexion:"disconnected", derniereSync:null, nbTours:0, nbCamera:0, nbErreurs:0, dernierEvenementDescription:null, evenementsRecents:[] },
+  aws:         { connected:false, region:"eu-west-1", tableName:"race-telemetry-demo", buffer:[], lastSync:null, simulateFailure:false, syncIntervalMs:5000, syncTimer:null },
+  video:       { list:[], currentId:null, filterType:"all" },
   logs:        [],
 };
 let raceTimerInterval = null, nextId = 1;
  
-const fmt    = d  => { d = d instanceof Date ? d : new Date(d); return [d.getHours(), d.getMinutes(), d.getSeconds()].map(x => String(x).padStart(2,'0')).join(':'); };
-const fmtDur = ms => { const t = Math.floor(ms / 1000); return [Math.floor(t/3600), Math.floor((t%3600)/60), t%60].map(x => String(x).padStart(2,'0')).join(':'); };
+const fmt    = d  => { d = d instanceof Date ? d : new Date(d); return [d.getHours(),d.getMinutes(),d.getSeconds()].map(x=>String(x).padStart(2,'0')).join(':'); };
+const fmtDur = ms => { const t = Math.floor(ms/1000); return [Math.floor(t/3600),Math.floor((t%3600)/60),t%60].map(x=>String(x).padStart(2,'0')).join(':'); };
 const nowIso = () => new Date().toISOString();
  
 function log(level, message) {
-  state.logs.push({ timestamp: new Date(), level, message });
+  state.logs.push({ timestamp:new Date(), level, message });
   if (state.logs.length > 300) state.logs.shift();
   renderLogs();
 }
  
 function addTelemetryEvent(type, description) {
-  state.telemetry.evenementsRecents.unshift({ timestamp: new Date(), type, description });
+  state.telemetry.evenementsRecents.unshift({ timestamp:new Date(), type, description });
   if (state.telemetry.evenementsRecents.length > 50) state.telemetry.evenementsRecents.pop();
   state.telemetry.dernierEvenementDescription = `${type.toUpperCase()} · ${description}`;
   pushChartPoint();
@@ -1486,44 +1363,39 @@ function updateKPIs() {
   const { paquets, nbErreurs } = state.telemetry;
   const nPart = state.participants.length;
  
-  const elTours    = document.getElementById('kpiTours');
-  const elPart     = document.getElementById('kpiPart');
-  const elPaquets  = document.getElementById('kpiPaquets');
-  const elErreurs  = document.getElementById('kpiErreurs');
+  const elTours   = document.getElementById('kpiTours');
+  const elPart    = document.getElementById('kpiPart');
+  const elPaquets = document.getElementById('kpiPaquets');
+  const elErreurs = document.getElementById('kpiErreurs');
  
   animateNumber(elTours,   parseInt(elTours.textContent   || '0'), totalTours);
   animateNumber(elPart,    parseInt(elPart.textContent    || '0'), nPart);
   animateNumber(elPaquets, parseInt(elPaquets.textContent || '0'), paquets);
   animateNumber(elErreurs, parseInt(elErreurs.textContent || '0'), nbErreurs);
  
-  document.getElementById('kpiToursBar').style.width   = Math.min(100, totalTours * 5) + '%';
-  document.getElementById('kpiPartBar').style.width    = Math.min(100, nPart * 20)     + '%';
-  document.getElementById('kpiPaquetsBar').style.width = Math.min(100, paquets * 2)    + '%';
-  document.getElementById('kpiErreursBar').style.width = Math.min(100, nbErreurs * 10) + '%';
+  document.getElementById('kpiToursBar').style.width   = Math.min(100, totalTours*5) + '%';
+  document.getElementById('kpiPartBar').style.width    = Math.min(100, nPart*20)     + '%';
+  document.getElementById('kpiPaquetsBar').style.width = Math.min(100, paquets*2)    + '%';
+  document.getElementById('kpiErreursBar').style.width = Math.min(100, nbErreurs*10) + '%';
  
   const kpiErr = document.getElementById('kpi-erreurs');
   if (nbErreurs > 0) {
     kpiErr.classList.add('danger');
-    kpiErr.classList.remove('success');
     document.getElementById('kpiErreursTrend').textContent = `↑ ${nbErreurs} anomalie${nbErreurs>1?'s':''} détectée${nbErreurs>1?'s':''}`;
+    document.getElementById('kpiErreursTrend').className = 'kpi-trend down';
   }
- 
-  if (state.course.statut === 'running') {
-    document.getElementById('kpi-tours').classList.add('success');
-  } else {
-    document.getElementById('kpi-tours').classList.remove('success');
-  }
+  const kpiTours = document.getElementById('kpi-tours');
+  if (state.course.statut === 'running') kpiTours.classList.add('success');
+  else kpiTours.classList.remove('success');
 }
  
 function animateNumber(el, from, to) {
   if (from === to) return;
-  const diff = to - from;
-  const steps = 12;
-  let i = 0;
-  const interval = setInterval(() => {
+  const diff = to - from, steps = 12; let i = 0;
+  const iv = setInterval(() => {
     i++;
-    el.textContent = Math.round(from + diff * (i / steps));
-    if (i >= steps) clearInterval(interval);
+    el.textContent = Math.round(from + diff * (i/steps));
+    if (i >= steps) clearInterval(iv);
   }, 25);
 }
  
@@ -1531,15 +1403,15 @@ function animateNumber(el, from, to) {
 function startRace() {
   if (state.course.statut === "running") return;
   const now = Date.now();
-  if (!state.course.startTime || state.course.statut === "stopped") { state.course.startTime = now; state.course.elapsedMs = 0; }
-  else if (state.course.statut === "paused") state.course.startTime = now - state.course.elapsedMs;
+  if (!state.course.startTime || state.course.statut === "stopped") {
+    state.course.startTime = now; state.course.elapsedMs = 0;
+  } else if (state.course.statut === "paused") {
+    state.course.startTime = now - state.course.elapsedMs;
+  }
   state.course.statut = "running";
   state.course.dernierEvenement = "Course démarrée";
-  log("SUCCESS", "Course démarrée.");
-  updateAdminLastAction("Course démarrée");
-  ensureRaceTimer();
-  renderRace();
-  updateKPIs();
+  log("SUCCESS","Course démarrée."); updateAdminLastAction("Course démarrée");
+  ensureRaceTimer(); renderRace(); updateKPIs();
 }
 function pauseRace() {
   if (state.course.statut !== "running") return;
@@ -1547,20 +1419,20 @@ function pauseRace() {
   state.course.elapsedMs = Date.now() - state.course.startTime;
   state.course.dernierEvenement = "Course en pause";
   clearInterval(raceTimerInterval); raceTimerInterval = null;
-  log("INFO", "Course en pause."); updateAdminLastAction("Course en pause"); renderRace();
+  log("INFO","Course en pause."); updateAdminLastAction("Course en pause"); renderRace();
 }
 function stopRace() {
   if (state.course.statut === "idle" || state.course.statut === "stopped") return;
   if (state.course.statut === "running") state.course.elapsedMs = Date.now() - state.course.startTime;
   state.course.statut = "stopped"; state.course.dernierEvenement = "Course arrêtée";
   clearInterval(raceTimerInterval); raceTimerInterval = null;
-  log("WARNING", "Course arrêtée."); updateAdminLastAction("Course arrêtée"); renderRace();
+  log("WARNING","Course arrêtée."); updateAdminLastAction("Course arrêtée"); renderRace();
 }
 function resetRace() {
-  state.course = { statut: "idle", startTime: null, elapsedMs: 0, totalTours: 0, dernierEvenement: "Reset effectué" };
+  state.course = { statut:"idle", startTime:null, elapsedMs:0, totalTours:0, dernierEvenement:"Reset effectué" };
   clearInterval(raceTimerInterval); raceTimerInterval = null;
-  state.participants.forEach(p => { p.laps = 0; p.lastPassage = null; p.status = "actif"; });
-  log("ERROR", "Reset d'urgence."); updateAdminLastAction("Reset d'urgence");
+  state.participants.forEach(p => { p.laps=0; p.lastPassage=null; p.status="actif"; });
+  log("ERROR","Reset d'urgence."); updateAdminLastAction("Reset d'urgence");
   renderRace(); renderParticipants(); updateKPIs();
 }
 function ensureRaceTimer() {
@@ -1568,7 +1440,7 @@ function ensureRaceTimer() {
   raceTimerInterval = setInterval(() => {
     if (state.course.statut === "running") {
       state.course.elapsedMs = Date.now() - state.course.startTime;
-      renderRaceTimeOnly();
+      document.getElementById('raceElapsed').textContent = fmtDur(state.course.elapsedMs);
     }
   }, 1000);
 }
@@ -1576,58 +1448,57 @@ function ensureRaceTimer() {
 // ─ Participants ─
 function addParticipant(name) {
   if (!name.trim()) return;
-  const p = { id: nextId++, name: name.trim(), laps: 0, lastPassage: null, status: "actif" };
+  const p = { id:nextId++, name:name.trim(), laps:0, lastPassage:null, status:"actif" };
   state.participants.push(p);
-  log("INFO", `Participant ajouté : ${p.name}.`);
-  updateAdminLastAction(`Ajouté : ${p.name}`);
+  log("INFO",`Participant ajouté : ${p.name}.`); updateAdminLastAction(`Ajouté : ${p.name}`);
   renderParticipants(); updateKPIs();
 }
 function removeParticipant(id) {
-  const i = state.participants.findIndex(p => p.id === id); if (i === -1) return;
-  const [rm] = state.participants.splice(i, 1);
-  log("WARNING", `Supprimé : ${rm.name}.`); updateAdminLastAction(`Supprimé : ${rm.name}`);
+  const i = state.participants.findIndex(p=>p.id===id); if (i===-1) return;
+  const [rm] = state.participants.splice(i,1);
+  log("WARNING",`Supprimé : ${rm.name}.`); updateAdminLastAction(`Supprimé : ${rm.name}`);
   renderParticipants(); updateKPIs();
 }
 function incrementLap(participantId) {
-  const p = state.participants.find(x => x.id === participantId); if (!p) return;
+  const p = state.participants.find(x=>x.id===participantId); if (!p) return;
   p.laps++; p.lastPassage = new Date();
   state.course.totalTours++; state.course.dernierEvenement = `Tour : ${p.name}`;
   state.telemetry.paquets++; state.telemetry.nbTours++;
-  addTelemetryEvent("tour", `Passage de tour — ${p.name} (#${p.id}).`);
-  sendTelemetryToDatabase({ type: "lap", participantId: p.id, name: p.name, timestamp: nowIso(), lap: p.laps });
-  log("SUCCESS", `Tour ${p.laps} — ${p.name}.`);
-  renderRace(); renderParticipants(); renderTelemetry();
+  addTelemetryEvent("tour",`Passage de tour — ${p.name} (#${p.id}).`);
+  sendTelemetryToDatabase({ type:"lap", participantId:p.id, name:p.name, timestamp:nowIso(), lap:p.laps });
+  log("SUCCESS",`Tour ${p.laps} — ${p.name}.`);
+  renderRace(); renderParticipants();
 }
 function simulateCameraEvent(participantId) {
-  const p = state.participants.find(x => x.id === participantId);
+  const p = state.participants.find(x=>x.id===participantId);
   const label = p ? `${p.name} (#${p.id})` : "caméra globale";
   state.telemetry.paquets++; state.telemetry.nbCamera++;
-  addTelemetryEvent("camera", `Détection caméra — ${label}.`);
-  sendTelemetryToDatabase({ type: "camera", participantId: p ? p.id : null, name: p ? p.name : null, timestamp: nowIso() });
-  log("INFO", `Caméra — ${label}.`); renderTelemetry();
+  addTelemetryEvent("camera",`Détection caméra — ${label}.`);
+  sendTelemetryToDatabase({ type:"camera", participantId:p?p.id:null, name:p?p.name:null, timestamp:nowIso() });
+  log("INFO",`Caméra — ${label}.`);
 }
 function simulateSensorError(participantId) {
-  const p = state.participants.find(x => x.id === participantId);
+  const p = state.participants.find(x=>x.id===participantId);
   const label = p ? `${p.name} (#${p.id})` : "capteur global";
   state.telemetry.paquets++; state.telemetry.nbErreurs++;
-  addTelemetryEvent("erreur", `Erreur capteur — ${label}.`);
-  sendTelemetryToDatabase({ type: "error", participantId: p ? p.id : null, name: p ? p.name : null, timestamp: nowIso() });
-  log("ERROR", `Erreur capteur — ${label}.`); renderTelemetry();
+  addTelemetryEvent("erreur",`Erreur capteur — ${label}.`);
+  sendTelemetryToDatabase({ type:"error", participantId:p?p.id:null, name:p?p.name:null, timestamp:nowIso() });
+  log("ERROR",`Erreur capteur — ${label}.`);
 }
 function simulateRandomTelemetryEvent() {
-  const types = ["lap", "camera", "error"];
-  const type  = types[Math.floor(Math.random() * types.length)];
-  const participant = state.participants.length ? state.participants[Math.floor(Math.random() * state.participants.length)] : null;
-  if (type === "lap" && participant) incrementLap(participant.id);
-  else if (type === "camera") simulateCameraEvent(participant ? participant.id : null);
-  else simulateSensorError(participant ? participant.id : null);
+  const types = ["lap","camera","error"];
+  const type  = types[Math.floor(Math.random()*types.length)];
+  const part  = state.participants.length ? state.participants[Math.floor(Math.random()*state.participants.length)] : null;
+  if (type==="lap" && part) incrementLap(part.id);
+  else if (type==="camera") simulateCameraEvent(part?part.id:null);
+  else simulateSensorError(part?part.id:null);
 }
  
 // ─ AWS ─
 function sendToDatabase(payload) {
-  return new Promise((res, rej) => {
+  return new Promise((res,rej) => {
     if (!state.aws.connected || state.aws.simulateFailure) rej(new Error());
-    else setTimeout(() => res({ ok: true }), 150);
+    else setTimeout(()=>res({ok:true}), 150);
   });
 }
 function flushBuffer() {
@@ -1639,40 +1510,39 @@ function flushBuffer() {
   document.getElementById('awsLastSync').textContent = fmt(state.aws.lastSync);
   document.getElementById('telemetryLastSync').textContent = fmt(state.telemetry.derniereSync);
   document.getElementById('awsLog').textContent = `Buffer vidé : ${copy.length} événement(s) synchronisé(s).`;
-  log("SUCCESS", `Buffer vidé : ${copy.length} event(s).`);
+  log("SUCCESS",`Buffer vidé : ${copy.length} event(s).`);
 }
 function sendTelemetryToDatabase(payload) {
   if (!state.aws.connected || state.aws.simulateFailure) {
-    state.aws.buffer.push(payload);
-    state.telemetry.enAttente = state.aws.buffer.length;
+    state.aws.buffer.push(payload); state.telemetry.enAttente = state.aws.buffer.length;
     document.getElementById('awsBufferCount').textContent = String(state.aws.buffer.length);
     document.getElementById('awsLog').textContent = `Connexion indisponible : buffer (${state.aws.buffer.length}).`;
-    return;
+    renderTelemetry(); return;
   }
-  sendToDatabase(payload).then(() => {
+  sendToDatabase(payload).then(()=>{
     state.aws.lastSync = new Date(); state.telemetry.derniereSync = state.aws.lastSync;
     document.getElementById('awsLastSync').textContent = fmt(state.aws.lastSync);
     document.getElementById('telemetryLastSync').textContent = fmt(state.telemetry.derniereSync);
     document.getElementById('awsLog').textContent = "Événement envoyé.";
-  }).catch(() => {
-    state.aws.buffer.push(payload);
-    state.telemetry.enAttente = state.aws.buffer.length;
+    renderTelemetry();
+  }).catch(()=>{
+    state.aws.buffer.push(payload); state.telemetry.enAttente = state.aws.buffer.length;
     document.getElementById('awsBufferCount').textContent = String(state.aws.buffer.length);
     document.getElementById('awsLog').textContent = `Erreur : buffer (${state.aws.buffer.length}).`;
-    log("ERROR", "Échec envoi → buffer.");
+    log("ERROR","Échec envoi → buffer."); renderTelemetry();
   });
 }
 function startAutoSync() {
-  const v = Number(document.getElementById('awsSyncInterval').value) || 5000;
+  const v = Number(document.getElementById('awsSyncInterval').value)||5000;
   state.aws.syncIntervalMs = v;
   if (state.aws.syncTimer) clearInterval(state.aws.syncTimer);
-  state.aws.syncTimer = setInterval(() => {
+  state.aws.syncTimer = setInterval(()=>{
     if (state.aws.connected && !state.aws.simulateFailure && state.aws.buffer.length) flushBuffer();
   }, state.aws.syncIntervalMs);
 }
 function connectAws() {
   state.aws.region = document.getElementById('awsRegion').value;
-  state.aws.tableName = document.getElementById('awsTableName').value || "race-telemetry-demo";
+  state.aws.tableName = document.getElementById('awsTableName').value||"race-telemetry-demo";
   state.aws.connected = true; state.aws.simulateFailure = false; state.telemetry.connexion = "connected";
   document.getElementById('awsConnectionStateText').textContent = "Connecté";
   document.getElementById('awsStatusText').textContent = `${state.aws.region} · ${state.aws.tableName}`;
@@ -1680,7 +1550,7 @@ function connectAws() {
   document.getElementById('telemetryConnectionState').textContent = "Connecté";
   document.getElementById('telemetryStatusBadge').className = 'badge badge-ok';
   document.getElementById('telemetryStatusBadge').textContent = "ACTIF";
-  log("INFO", `AWS : ${state.aws.region}, ${state.aws.tableName}.`);
+  log("INFO",`AWS : ${state.aws.region}, ${state.aws.tableName}.`);
   if (state.aws.buffer.length) flushBuffer();
   startAutoSync();
 }
@@ -1692,53 +1562,53 @@ function disconnectAws() {
   document.getElementById('telemetryConnectionState').textContent = "Déconnecté";
   document.getElementById('telemetryStatusBadge').className = 'badge badge-neutral';
   document.getElementById('telemetryStatusBadge').textContent = "INACTIF";
-  log("WARNING", "Connexion AWS fermée.");
+  log("WARNING","Connexion AWS fermée.");
   if (state.aws.syncTimer) { clearInterval(state.aws.syncTimer); state.aws.syncTimer = null; }
 }
 function testAwsConnection() {
   if (state.aws.connected && !state.aws.simulateFailure) {
-    document.getElementById('awsLog').textContent = "Test réussi."; log("SUCCESS", "Test AWS réussi.");
+    document.getElementById('awsLog').textContent = "Test réussi."; log("SUCCESS","Test AWS réussi.");
   } else {
-    document.getElementById('awsLog').textContent = "Test échoué."; log("WARNING", "Test AWS échoué.");
+    document.getElementById('awsLog').textContent = "Test échoué."; log("WARNING","Test AWS échoué.");
   }
 }
  
 // ─ Video ─
 function initVideoList() {
   state.video.list = [
-    { id: 1, src: "https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4", timestamp: "2026-03-11T09:15:23Z", cameraId: "CAM-01", type: "lap",      label: "Passage de tour — Voiture 12" },
-    { id: 2, src: "https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4", timestamp: "2026-03-11T09:18:47Z", cameraId: "CAM-02", type: "camera",   label: "Détection caméra — Virage 3" },
-    { id: 3, src: "https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4", timestamp: "2026-03-11T09:21:02Z", cameraId: "CAM-03", type: "incident", label: "Incident — Sortie de piste" },
+    { id:1, src:"https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4", timestamp:"2026-03-11T09:15:23Z", cameraId:"CAM-01", type:"lap",      label:"Passage de tour — Voiture 12" },
+    { id:2, src:"https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4", timestamp:"2026-03-11T09:18:47Z", cameraId:"CAM-02", type:"camera",   label:"Détection caméra — Virage 3" },
+    { id:3, src:"https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4", timestamp:"2026-03-11T09:21:02Z", cameraId:"CAM-03", type:"incident", label:"Incident — Sortie de piste" },
   ];
   document.getElementById('videoCount').textContent = String(state.video.list.length);
   renderVideoList();
 }
 function renderVideoList() {
   const c = document.getElementById('videoList'); c.innerHTML = "";
-  const filtered = state.video.list.filter(v => state.video.filterType === "all" || v.type === state.video.filterType);
-  if (!filtered.length) { const d = document.createElement('div'); d.className = 'note'; d.textContent = "Aucune vidéo."; c.appendChild(d); return; }
+  const filtered = state.video.list.filter(v=>state.video.filterType==="all"||v.type===state.video.filterType);
+  if (!filtered.length) { const d=document.createElement('div'); d.className='note'; d.textContent="Aucune vidéo."; c.appendChild(d); return; }
   filtered.forEach(video => {
     const item = document.createElement('div');
-    item.className = 'v-item' + (state.video.currentId === video.id ? ' active' : '');
-    const thumb = document.createElement('div'); thumb.className = 'v-thumb'; thumb.textContent = '▶';
+    item.className = 'v-item'+(state.video.currentId===video.id?' active':'');
+    const thumb = document.createElement('div'); thumb.className='v-thumb'; thumb.textContent='▶';
     const meta  = document.createElement('div');
-    const title = document.createElement('div'); title.className = 'v-title'; title.textContent = video.label;
-    const sub   = document.createElement('div'); sub.className   = 'v-meta';  sub.textContent  = `${fmt(new Date(video.timestamp))} · ${video.cameraId}`;
+    const title = document.createElement('div'); title.className='v-title'; title.textContent=video.label;
+    const sub   = document.createElement('div'); sub.className='v-meta'; sub.textContent=`${fmt(new Date(video.timestamp))} · ${video.cameraId}`;
     const tag   = document.createElement('span');
-    tag.className = video.type === 'lap' ? 'badge badge-ok' : video.type === 'camera' ? 'badge badge-info' : 'badge badge-err';
-    tag.style.marginTop = '6px'; tag.style.display = 'inline-flex';
-    tag.textContent = video.type === 'lap' ? 'TOUR' : video.type === 'camera' ? 'CAMÉRA' : 'INCIDENT';
+    tag.className = video.type==='lap'?'badge badge-ok':video.type==='camera'?'badge badge-info':'badge badge-err';
+    tag.style.cssText = 'margin-top:6px;display:inline-flex';
+    tag.textContent = video.type==='lap'?'TOUR':video.type==='camera'?'CAMÉRA':'INCIDENT';
     meta.appendChild(title); meta.appendChild(sub); meta.appendChild(tag);
     item.appendChild(thumb); item.appendChild(meta);
-    item.addEventListener('click', () => loadVideo(video.id));
+    item.addEventListener('click',()=>loadVideo(video.id));
     c.appendChild(item);
   });
 }
 function loadVideo(id) {
-  const v = state.video.list.find(x => x.id === id); if (!v) return;
+  const v = state.video.list.find(x=>x.id===id); if (!v) return;
   state.video.currentId = id;
   document.getElementById('videoSource').src = v.src;
-  const p = document.getElementById('videoPlayer'); p.load(); p.play().catch(() => {});
+  const p = document.getElementById('videoPlayer'); p.load(); p.play().catch(()=>{});
   document.getElementById('videoCurrentInfo').textContent = `${v.label} · ${fmt(new Date(v.timestamp))} · ${v.cameraId}`;
   renderVideoList();
 }
@@ -1746,30 +1616,28 @@ function loadVideo(id) {
 // ─ Render ─
 function renderRace() {
   const cfg = {
-    idle:    { label: "EN ATTENTE", bar: "◌  Course en attente", dot: "",       tc: "",        badge: "IDLE",    adm: "EN ATTENTE" },
-    running: { label: "EN COURS",   bar: "▶  Course en cours",  dot: "run",    tc: "running", badge: "RUNNING", adm: "EN COURS" },
-    paused:  { label: "EN PAUSE",   bar: "⏸  Course en pause",  dot: "warn",   tc: "paused",  badge: "PAUSED",  adm: "EN PAUSE" },
-    stopped: { label: "ARRÊTÉE",    bar: "⏹  Course arrêtée",   dot: "danger", tc: "stopped", badge: "STOPPED", adm: "ARRÊTÉE" },
+    idle:    { label:"EN ATTENTE", bar:"◌ &nbsp;Course en attente", dot:"",       tc:"",        badge:"IDLE",    adm:"EN ATTENTE" },
+    running: { label:"EN COURS",   bar:"▶ &nbsp;Course en cours",   dot:"run",    tc:"running", badge:"RUNNING", adm:"EN COURS"   },
+    paused:  { label:"EN PAUSE",   bar:"⏸ &nbsp;Course en pause",   dot:"warn",   tc:"paused",  badge:"PAUSED",  adm:"EN PAUSE"   },
+    stopped: { label:"ARRÊTÉE",    bar:"⏹ &nbsp;Course arrêtée",    dot:"danger", tc:"stopped", badge:"STOPPED", adm:"ARRÊTÉE"    },
   };
-  const c = cfg[state.course.statut] || cfg.idle;
-  document.getElementById('globalStatusLabel').textContent  = c.label;
-  document.getElementById('chipRaceText').textContent        = c.label;
-  document.getElementById('raceStateBadge').textContent      = c.badge;
-  document.getElementById('adminRaceSummary').textContent    = c.adm;
-  document.getElementById('globalStatusDot').className       = 'h-dot' + (c.dot ? ' ' + c.dot : '');
+  const c = cfg[state.course.statut]||cfg.idle;
+  document.getElementById('globalStatusLabel').textContent     = c.label;
+  document.getElementById('chipRaceText').textContent          = c.label;
+  document.getElementById('raceStateBadge').textContent        = c.badge;
+  document.getElementById('adminRaceSummary').textContent      = c.adm;
+  document.getElementById('globalStatusDot').className         = 'h-dot'+(c.dot?' '+c.dot:'');
   const bar = document.getElementById('raceStatusBar');
-  bar.className = 'status-bar' + (state.course.statut !== 'idle' ? ' ' + state.course.statut : '');
-  bar.textContent = c.bar;
+  bar.className = 'status-bar'+(state.course.statut!=='idle'?' '+state.course.statut:'');
+  bar.innerHTML = c.bar;
   const timer = document.getElementById('raceElapsed');
-  timer.className = 'race-timer' + (c.tc ? ' ' + c.tc : '');
+  timer.className = 'race-timer'+(c.tc?' '+c.tc:'');
   timer.textContent = fmtDur(state.course.elapsedMs);
   document.getElementById('raceTotalLaps').textContent          = String(state.course.totalTours);
   document.getElementById('raceActiveParticipants').textContent = String(state.participants.length);
-  document.getElementById('raceLastEvent').textContent          = state.course.dernierEvenement || "—";
+  document.getElementById('raceLastEvent').textContent          = state.course.dernierEvenement||"—";
 }
-function renderRaceTimeOnly() {
-  document.getElementById('raceElapsed').textContent = fmtDur(state.course.elapsedMs);
-}
+ 
 function renderParticipants() {
   const bd  = document.getElementById('participantsTableBody');
   const ba  = document.getElementById('adminParticipantsTableBody');
@@ -1777,67 +1645,82 @@ function renderParticipants() {
   bd.innerHTML = ""; ba.innerHTML = ""; sel.innerHTML = '<option value="">Sélectionner…</option>';
   state.participants.forEach(p => {
     const trD = document.createElement('tr');
-    trD.innerHTML = `<td class="id">#${p.id}</td><td>${p.name}</td><td>${p.laps}</td><td>${p.lastPassage ? fmt(p.lastPassage) : "—"}</td><td><span class="badge ${p.status === "actif" ? "badge-ok" : "badge-warn"}">${p.status === "actif" ? "ACTIF" : "INACTIF"}</span></td>`;
+    trD.innerHTML = `<td class="id">#${p.id}</td><td>${p.name}</td><td>${p.laps}</td><td>${p.lastPassage?fmt(p.lastPassage):"—"}</td><td><span class="badge ${p.status==="actif"?"badge-ok":"badge-warn"}">${p.status==="actif"?"ACTIF":"INACTIF"}</span></td>`;
     bd.appendChild(trD);
     const trA = document.createElement('tr');
-    trA.innerHTML = `<td class="id">#${p.id}</td><td>${p.name}</td><td>${p.laps}</td><td><span class="badge ${p.status === "actif" ? "badge-ok" : "badge-warn"}">${p.status === "actif" ? "ACTIF" : "INACTIF"}</span></td><td><button class="btn btn-ghost btn-sm" data-rm="${p.id}">Supprimer</button></td>`;
+    trA.innerHTML = `<td class="id">#${p.id}</td><td>${p.name}</td><td>${p.laps}</td><td><span class="badge ${p.status==="actif"?"badge-ok":"badge-warn"}">${p.status==="actif"?"ACTIF":"INACTIF"}</span></td><td><button class="btn btn-ghost btn-sm" data-rm="${p.id}">Supprimer</button></td>`;
     ba.appendChild(trA);
-    const opt = document.createElement('option'); opt.value = p.id; opt.textContent = `#${p.id} · ${p.name}`;
+    const opt = document.createElement('option'); opt.value=p.id; opt.textContent=`#${p.id} · ${p.name}`;
     sel.appendChild(opt);
   });
   const cnt = state.participants.length;
   document.getElementById('participantsCountBadge').textContent = String(cnt);
   document.getElementById('adminParticipantsCount').textContent = String(cnt);
-  ba.querySelectorAll('[data-rm]').forEach(btn => btn.addEventListener('click', () => removeParticipant(Number(btn.getAttribute('data-rm')))));
+  ba.querySelectorAll('[data-rm]').forEach(btn=>btn.addEventListener('click',()=>removeParticipant(Number(btn.getAttribute('data-rm')))));
 }
+ 
 function renderTelemetry() {
-  document.getElementById('telemetryPackets').textContent          = String(state.telemetry.paquets);
-  document.getElementById('telemetryPending').textContent          = String(state.telemetry.enAttente);
-  document.getElementById('telemetryConnectionState').textContent  = state.telemetry.connexion === "connected" ? "Connecté" : "Déconnecté";
-  document.getElementById('telemetryLastSync').textContent         = state.telemetry.derniereSync ? fmt(state.telemetry.derniereSync) : "—";
-  document.getElementById('telemetryLapEvents').textContent        = String(state.telemetry.nbTours);
-  document.getElementById('telemetryCameraEvents').textContent     = String(state.telemetry.nbCamera);
-  document.getElementById('telemetryErrorEvents').textContent      = String(state.telemetry.nbErreurs);
-  document.getElementById('telemetryLastEvent').textContent        = state.telemetry.dernierEvenementDescription || "Aucun événement.";
+  document.getElementById('telemetryPackets').textContent         = String(state.telemetry.paquets);
+  document.getElementById('telemetryPending').textContent         = String(state.telemetry.enAttente);
+  document.getElementById('telemetryConnectionState').textContent = state.telemetry.connexion==="connected"?"Connecté":"Déconnecté";
+  document.getElementById('telemetryLastSync').textContent        = state.telemetry.derniereSync?fmt(state.telemetry.derniereSync):"—";
+  document.getElementById('telemetryLapEvents').textContent       = String(state.telemetry.nbTours);
+  document.getElementById('telemetryCameraEvents').textContent    = String(state.telemetry.nbCamera);
+  document.getElementById('telemetryErrorEvents').textContent     = String(state.telemetry.nbErreurs);
+  document.getElementById('telemetryLastEvent').textContent       = state.telemetry.dernierEvenementDescription||"Aucun événement.";
   const list = document.getElementById('telemetryEventsList'); list.innerHTML = "";
   state.telemetry.evenementsRecents.forEach(ev => {
-    const d   = document.createElement('div'); d.className = 'log-entry';
-    const cls = ev.type === "erreur" ? "badge-err" : ev.type === "camera" ? "badge-info" : "badge-ok";
-    const lbl = ev.type === "erreur" ? "ERREUR"    : ev.type === "camera" ? "CAMÉRA"    : "TOUR";
+    const d   = document.createElement('div'); d.className='log-entry';
+    const cls = ev.type==="erreur"?"badge-err":ev.type==="camera"?"badge-info":"badge-ok";
+    const lbl = ev.type==="erreur"?"ERREUR":ev.type==="camera"?"CAMÉRA":"TOUR";
     d.innerHTML = `<div class="log-ts">${fmt(ev.timestamp)}</div><div><span class="badge ${cls}">${lbl}</span></div><div class="log-msg">${ev.description}</div>`;
     list.appendChild(d);
   });
 }
+ 
 function renderLogs() {
   const c = document.getElementById('logsContainer'); c.innerHTML = "";
   state.logs.slice().reverse().forEach(e => {
-    const d   = document.createElement('div'); d.className = 'log-entry';
-    const cls = { SUCCESS: 'badge-ok', WARNING: 'badge-warn', ERROR: 'badge-err', INFO: 'badge-info' }[e.level] || 'badge-neutral';
+    const d   = document.createElement('div'); d.className='log-entry';
+    const cls = {SUCCESS:'badge-ok',WARNING:'badge-warn',ERROR:'badge-err',INFO:'badge-info'}[e.level]||'badge-neutral';
     d.innerHTML = `<div class="log-ts">${fmt(e.timestamp)}</div><div><span class="badge ${cls}">${e.level}</span></div><div class="log-msg">${e.message}</div>`;
     c.appendChild(d);
   });
 }
+ 
 function updateAdminLastAction(txt) {
-  document.getElementById('adminLastAction').textContent  = txt;
-  document.getElementById('adminQuickLog').textContent    = txt;
+  document.getElementById('adminLastAction').textContent = txt;
+  document.getElementById('adminQuickLog').textContent   = txt;
+}
+ 
+// ─ Card 3D tilt ─
+function initCardTilt() {
+  document.querySelectorAll('.card, .kpi-card').forEach(card => {
+    card.addEventListener('mousemove', e => {
+      const r  = card.getBoundingClientRect();
+      const rx = ((e.clientY-r.top)/r.height-0.5)*6;
+      const ry = ((e.clientX-r.left)/r.width-0.5)*-6;
+      card.style.transform = `perspective(900px) rotateX(${rx}deg) rotateY(${ry}deg) translateY(-2px)`;
+    });
+    card.addEventListener('mouseleave', ()=>{ card.style.transform=''; });
+  });
 }
  
 // ─ Navigation ─
 function initNavigation() {
   const btns  = document.querySelectorAll('.nav-btn');
-  const pages = { dashboard: 'page-dashboard', administration: 'page-administration', telemetry: 'page-telemetry', video: 'page-video', tech: 'page-tech', logs: 'page-logs' };
+  const pages = { dashboard:'page-dashboard', administration:'page-administration', telemetry:'page-telemetry', video:'page-video', tech:'page-tech', logs:'page-logs' };
   btns.forEach(btn => {
     btn.addEventListener('click', () => {
-      btns.forEach(b => b.classList.remove('active')); btn.classList.add('active');
-      Object.values(pages).forEach(id => document.getElementById(id).classList.remove('active'));
+      btns.forEach(b=>b.classList.remove('active')); btn.classList.add('active');
+      Object.values(pages).forEach(id=>document.getElementById(id).classList.remove('active'));
       const t = document.getElementById(pages[btn.getAttribute('data-page')]); if (t) t.classList.add('active');
-      // Re-init tilt for new visible cards
       setTimeout(initCardTilt, 50);
     });
   });
 }
  
-// ─ Events ─
+// ─ Event Listeners ─
 function initEventListeners() {
   document.getElementById('btnRaceStart').addEventListener('click', startRace);
   document.getElementById('btnRacePause').addEventListener('click', pauseRace);
@@ -1847,43 +1730,43 @@ function initEventListeners() {
   document.getElementById('btnAdminPause').addEventListener('click', pauseRace);
   document.getElementById('btnAdminStop').addEventListener('click', stopRace);
   document.getElementById('btnAdminReset').addEventListener('click', resetRace);
-  document.getElementById('btnAdminAddParticipant').addEventListener('click', () => {
+  document.getElementById('btnAdminAddParticipant').addEventListener('click', ()=>{
     const inp = document.getElementById('adminParticipantName');
-    addParticipant(inp.value || `Participant ${nextId}`); inp.value = "";
+    addParticipant(inp.value||`Participant ${nextId}`); inp.value="";
   });
-  document.getElementById('adminParticipantName').addEventListener('keydown', e => {
-    if (e.key === 'Enter') { const inp = e.target; addParticipant(inp.value || `Participant ${nextId}`); inp.value = ""; }
+  document.getElementById('adminParticipantName').addEventListener('keydown', e=>{
+    if (e.key==='Enter') { const inp=e.target; addParticipant(inp.value||`Participant ${nextId}`); inp.value=""; }
   });
-  document.getElementById('btnSimLap').addEventListener('click', () => {
+  document.getElementById('btnSimLap').addEventListener('click', ()=>{
     const id = Number(document.getElementById('simParticipantSelect').value);
-    if (!id) { log("WARNING", "Aucun participant sélectionné."); return; }
+    if (!id) { log("WARNING","Aucun participant sélectionné."); return; }
     incrementLap(id);
   });
-  document.getElementById('btnSimCamera').addEventListener('click', () => simulateCameraEvent(Number(document.getElementById('simParticipantSelect').value) || null));
-  document.getElementById('btnSimError').addEventListener('click',  () => simulateSensorError(Number(document.getElementById('simParticipantSelect').value) || null));
+  document.getElementById('btnSimCamera').addEventListener('click', ()=>simulateCameraEvent(Number(document.getElementById('simParticipantSelect').value)||null));
+  document.getElementById('btnSimError').addEventListener('click',  ()=>simulateSensorError(Number(document.getElementById('simParticipantSelect').value)||null));
   document.getElementById('btnAwsConnect').addEventListener('click',    connectAws);
   document.getElementById('btnAwsDisconnect').addEventListener('click', disconnectAws);
   document.getElementById('btnAwsFlush').addEventListener('click',      flushBuffer);
-  document.getElementById('btnAwsSimFailure').addEventListener('click', () => {
+  document.getElementById('btnAwsSimFailure').addEventListener('click', ()=>{
     state.aws.simulateFailure = !state.aws.simulateFailure;
-    document.getElementById('awsStatusPill').className = 'conn' + (state.aws.simulateFailure ? ' fail' : (state.aws.connected ? ' ok' : ''));
-    const txt = state.aws.simulateFailure ? "Mode échec activé." : "Mode échec désactivé.";
-    document.getElementById('awsLog').textContent = txt; log("INFO", txt);
+    document.getElementById('awsStatusPill').className='conn'+(state.aws.simulateFailure?' fail':state.aws.connected?' ok':'');
+    const txt=state.aws.simulateFailure?"Mode échec activé.":"Mode échec désactivé.";
+    document.getElementById('awsLog').textContent=txt; log("INFO",txt);
   });
   document.getElementById('btnAwsTest').addEventListener('click', testAwsConnection);
   document.getElementById('awsSyncInterval').addEventListener('change', startAutoSync);
   document.getElementById('btnTelemetrySimEvent').addEventListener('click', simulateRandomTelemetryEvent);
   document.getElementById('btnDashboardForceTick').addEventListener('click', simulateRandomTelemetryEvent);
-  document.getElementById('btnLogsClear').addEventListener('click', () => { state.logs = []; renderLogs(); });
-  document.getElementById('videoFilterType').addEventListener('change', e => { state.video.filterType = e.target.value; renderVideoList(); });
+  document.getElementById('btnLogsClear').addEventListener('click', ()=>{ state.logs=[]; renderLogs(); });
+  document.getElementById('videoFilterType').addEventListener('change', e=>{ state.video.filterType=e.target.value; renderVideoList(); });
 }
  
-// ─ GSAP entrance animations ─
+// ─ GSAP entrance ─
 function runEntranceAnims() {
-  const tl = gsap.timeline({ delay: 0.1 });
-  tl.from('.kpi-card',  { y: 24, opacity: 0, duration: 0.5, stagger: 0.08, ease: 'power3.out' })
-    .from('.g-main .card',  { y: 20, opacity: 0, duration: 0.45, stagger: 0.1, ease: 'power3.out' }, '-=0.2')
-    .from('.g-low .card',   { y: 20, opacity: 0, duration: 0.45, stagger: 0.1, ease: 'power3.out' }, '-=0.2');
+  const tl = gsap.timeline({ delay:0.1 });
+  tl.from('.kpi-card',      { y:20, opacity:0, duration:0.5, stagger:0.08, ease:'power3.out' })
+    .from('.g-main .card',  { y:18, opacity:0, duration:0.45, stagger:0.1, ease:'power3.out' }, '-=0.2')
+    .from('.g-low .card',   { y:18, opacity:0, duration:0.45, stagger:0.1, ease:'power3.out' }, '-=0.2');
 }
  
 // ─ Demo data ─
@@ -1893,9 +1776,7 @@ function initDemoData() {
   addParticipant("Voiture 21 · Pilote C");
 }
  
-// ═══════════════════════════════════════════════════════════
-// INIT
-// ═══════════════════════════════════════════════════════════
+// ─ INIT ─
 function init() {
   initNavigation();
   initEventListeners();
@@ -1908,22 +1789,20 @@ function init() {
   renderLogs();
   initCardTilt();
   runEntranceAnims();
-  log("INFO", "Race Control initialisé.");
-  log("SUCCESS", "3 participants de démonstration chargés.");
-  log("INFO", "3D background · Aurora · Telemetry chart actifs.");
+  log("INFO","Race Control initialisé.");
+  log("SUCCESS","3 participants de démonstration chargés.");
+  log("INFO","3D background · Mesh gradient · Chart actifs.");
 }
  
-// Loader → init
-window.addEventListener('load', () => {
-  setTimeout(() => {
+window.addEventListener('load', ()=>{
+  setTimeout(()=>{
     const loader = document.getElementById('loader');
     gsap.to(loader, {
-      opacity: 0, duration: 0.55, ease: 'power2.inOut',
-      onComplete: () => { loader.style.display = 'none'; init(); }
+      opacity:0, duration:0.5, ease:'power2.inOut',
+      onComplete:()=>{ loader.style.display='none'; init(); }
     });
-  }, 1900);
+  }, 1800);
 });
 </script>
 </body>
 </html>
- 
